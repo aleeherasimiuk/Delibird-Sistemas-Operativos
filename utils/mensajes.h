@@ -17,7 +17,8 @@ typedef enum {
 	CATCH_POKEMON,
 	CAUGHT_POKEMON,
 	GET_POKEMON,
-	LOCALIZED_POKEMON
+	LOCALIZED_POKEMON,
+	CONFIRMATION		// Para avisar al broker que se recibió el mensaje (el broker actualiza el ACK)
 } message_type;
 
 typedef struct {
@@ -81,12 +82,18 @@ typedef struct {
 
 // FIN STRUCTS MENSAJES
 
-// MENSAJE: Struct que es lo que se va a enviar
-// type (tipo de mensaje (ENUM)), data: un puntero al struct correspondiente del tipo del mensaje
-
+// PAQUETE DEL BROKER: Struct que reciben los procesos del broker (tienen las id)
+/*
+ * type (tipo de mensaje (ENUM)),
+ * id: ID del mensaje, cuando se envía hacia el broker estaría vacío, pero cuando el broker te lo envía estaría con el identificador asignado
+ * correlative_id : ID del mensaje al cual se está respondiendo.
+ * data: un puntero al struct correspondiente del tipo del mensaje
+ */
 typedef struct {
 	message_type type;
+	uint32_t id = 0;
+	uint32_t correlative_id = 0;
 	void* data;
-} t_message;
+} t_paquete_from_broker;
 
 #endif /* MENSAJES_H_ */
