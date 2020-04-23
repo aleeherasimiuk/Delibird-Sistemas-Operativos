@@ -41,7 +41,7 @@ typedef struct {
 typedef struct {
 	t_pokemon pokemon;
 	t_coords coords;
-	uint32_t cantidad;
+	uint32_t cantidad; // TODO: ¿Pueden haber más de un pokemon por celda?
 } t_new_pokemon;
 
 // Este mensaje tendrá el nombre del pokemon y para indicar la posición en X y en Y.
@@ -60,15 +60,13 @@ typedef struct {
 
 // Este mensaje tendrá un valor para indicar si se pudo o no atrapar al pokemon (0 o 1)
 
-typedef struct {
-	uint32_t status;
-} t_caught_pokemon;
+//Acá sacamos las struct ya que de momento los mensajes llevan un solo campo.
+
+typedef uint32_t t_caught_pokemon;
 
 // Este mensaje tendrá el nombre del pokemon.
 
-typedef struct {
-	t_pokemon pokemon;
-} t_get_pokemon;
+typedef t_pokemon t_get_pokemon;
 
 /* Este mensaje tendrá el nombre del pokémon, un entero para la cantidad de pares de coordenadas
  * y los pares de coordenadas donde se encuentra el mismo.
@@ -93,7 +91,31 @@ typedef struct {
 	message_type type;
 	uint32_t id = 0;
 	uint32_t correlative_id = 0;
-	void* data;
-} t_paquete_from_broker;
+	void* buffer;
+} t_paquete;
+
+//TODO: Ver si los typedef sin struct deben ser serializados
+
+//Firmas de Serializacion
+void* serializarPokemon(t_pokemon* pokemon, uint32_t * bytes);
+void* serializarCoordenadas(t_coords* coordenadas, uint32_t * bytes);
+void* serializarNewPokemon(t_new_pokemon* new_pokemon, uint32_t * bytes);
+void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t * bytes);
+void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes);
+void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_t * bytes);
+void* serializarPaquete(t_paquete* paquete, uint32_t bytes);
+
+//Firmas de Deserialización
+t_pokemon* deserializarPokemon(void* buffer);
+t_coords* deserializarCoordenadas(void* buffer);
+t_new_pokemon* deserializarNewPokemon(void* buffer);
+t_appeared_pokemon* deserializarAppearedPokemon(void* buffer);
+t_catch_pokemon* deserializarCatchPokemon(void* buffer);
+t_localized_pokemon* deserializarLocalizedPokemon(void* buffer);
+t_paquete* deserializarPaquete(void* buffer);
+
+
+
+
 
 #endif /* MENSAJES_H_ */
