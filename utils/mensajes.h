@@ -27,8 +27,8 @@ typedef struct {
 } t_pokemon;
 
 typedef struct {
-	uint32_t posx;
-	uint32_t posy;
+	uint32_t posX;
+	uint32_t posY;
 } t_coords;
 
 // STRUCTS DE MENSAJES
@@ -88,22 +88,28 @@ typedef struct {
  * data: un puntero al struct correspondiente del tipo del mensaje
  */
 typedef struct {
+	uint32_t buffer_size;
+	void* stream;
+}t_buffer;
+
+typedef struct {
 	message_type type;
 	uint32_t id = 0;
 	uint32_t correlative_id = 0;
-	void* buffer;
+	t_buffer* buffer;
 } t_paquete;
 
 //TODO: Ver si los typedef sin struct deben ser serializados
 
 //Firmas de Serializacion
-void* serializarPokemon(t_pokemon* pokemon, uint32_t * bytes);
-void* serializarCoordenadas(t_coords* coordenadas, uint32_t * bytes);
-void* serializarNewPokemon(t_new_pokemon* new_pokemon, uint32_t * bytes);
+void* serializarPokemon(t_pokemon* pokemon, uint32_t* bytes);
+void* serializarCoordenadas(t_coords* coordenadas, uint32_t* bytes);
+void* serializarNewPokemon(t_new_pokemon* new_pokemon, uint32_t* bytes);
 void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t * bytes);
 void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes);
 void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_t * bytes);
-void* serializarPaquete(t_paquete* paquete, uint32_t bytes);
+void* serializarBuffer(t_buffer* buffer, uint32_t* bytes);
+void* serializarPaquete(t_paquete* paquete, uint32_t* bytes);
 
 //Firmas de Deserialización
 t_pokemon* deserializarPokemon(void* buffer);
@@ -113,6 +119,9 @@ t_appeared_pokemon* deserializarAppearedPokemon(void* buffer);
 t_catch_pokemon* deserializarCatchPokemon(void* buffer);
 t_localized_pokemon* deserializarLocalizedPokemon(void* buffer);
 t_paquete* deserializarPaquete(void* buffer);
+
+
+t_pokemon* crearPokemon(char*);
 
 
 
