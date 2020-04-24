@@ -3,36 +3,18 @@
 //Firmas de Serializacion
 void* serializarPokemon(t_pokemon* pokemon, uint32_t* bytes) {
 
-	void* serialized_pokemon;
-
-	*bytes = pokemon -> name_size + sizeof(uint32_t);
-
-	uint32_t offset = 0;
-	memcpy(serialized_pokemon, &(pokemon -> name_size), sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-
-	memcpy(serialized_pokemon + offset, &(pokemon -> name), pokemon -> name_size);
-	offset += sizeof(pokemon -> name_size); //No necesario.
+	void* serialized_pokemon = serializarGenerico(bytes, 2, &(pokemon -> name_size), sizeof(uint32_t), pokemon -> name, pokemon -> name_size);
 
 	return serialized_pokemon;
-
 }
 
 void* serializarCoordenadas(t_coords* coordenadas, uint32_t* bytes) {
 
-	void* serialized_coords;
-
-	*bytes = 2* sizeof(uint32_t);
-
-	uint32_t offset = 0;
-	memcpy(serialized_coords, &(coordenadas -> posX), sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-
-	memcpy(serialized_coords + offset, &(coordenadas -> posY), sizeof(uint32_t));
-	offset += sizeof(uint32_t); //No necesario.
+	void* serialized_coords = serializarGenerico(bytes, 2, &(coordenadas -> posX), sizeof(uint32_t), &(coordenadas -> posY), sizeof(uint32_t));
 
 	return serialized_coords;
 }
+
 void* serializarNewPokemon(t_new_pokemon* new_pokemon, uint32_t* bytes) {
 
 		t_pokemon* pokemon = new_pokemon -> pokemon;
@@ -46,20 +28,7 @@ void* serializarNewPokemon(t_new_pokemon* new_pokemon, uint32_t* bytes) {
 
 		uint32_t pokemon_count = new_pokemon -> cantidad;
 
-		*bytes = pokemon_size + coords_size + sizeof(uint32_t);
-
-		void* serialized_new_pokemon;
-
-		uint32_t offset = 0;
-		memcpy(serialized_new_pokemon, serialized_pokemon, pokemon_size);
-		offset += sizeof(pokemon_size);
-
-		memcpy(serialized_new_pokemon + offset, serialized_coords, coords_size);
-		offset += sizeof(coords_size);
-
-		memcpy(serialized_new_pokemon + offset, &pokemon_count, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-
+		void* serialized_new_pokemon = serializarGenerico(bytes, 3, serialized_pokemon, pokemon_size, serialized_coords, coords_size, &pokemon_count, sizeof(uint32_t));
 
 		return serialized_new_pokemon;
 }
@@ -75,16 +44,7 @@ void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t *
 		uint32_t coords_size;
 		void* serialized_coords = serializarCoordenadas(coordenadas, &coords_size);
 
-		*bytes = pokemon_size + coords_size;
-
-		void* serialized_appeared_pokemon;
-
-		uint32_t offset = 0;
-		memcpy(serialized_appeared_pokemon, serialized_pokemon, pokemon_size);
-		offset += pokemon_size;
-
-		memcpy(serialized_appeared_pokemon + offset, serialized_coords, coords_size);
-		offset += coords_size;
+		void* serialized_appeared_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
 		return serialized_appeared_pokemon;
 }
@@ -99,16 +59,8 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 	uint32_t coords_size;
 	void* serialized_coords = serializarCoordenadas(coordenadas, &coords_size);
 
-	*bytes = pokemon_size + coords_size;
 
-	void* serialized_catch_pokemon;
-
-	uint32_t offset = 0;
-	memcpy(serialized_catch_pokemon, serialized_pokemon, pokemon_size);
-	offset += pokemon_size;
-
-	memcpy(serialized_catch_pokemon + offset, serialized_coords, coords_size);
-	offset += coords_size;
+	void* serialized_catch_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
 	return serialized_catch_pokemon;
 }
@@ -149,14 +101,7 @@ void* serializarBuffer(t_buffer* buffer, uint32_t* bytes) {
 	void* stream = buffer -> stream;
 	uint32_t buffer_size = buffer -> buffer_size;
 
-	void* serialized_buffer;
-	uint32_t offset = 0;
-
-	memcpy(serialized_buffer + offset, buffer_size, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-
-	memcpy(serialized_buffer + offset, stream, buffer-> buffer_size);
-	offset += buffer -> buffer_size;
+	void* serialized_buffer = serializarGenerico(bytes, 2, buffer_size, sizeof(uint32_t), stream, buffer-> buffer_size);
 
 	return serialized_buffer;
 }
@@ -168,28 +113,50 @@ void* serializarPaquete(t_paquete* paquete, uint32_t* bytes){
 	uint32_t correlative_id = paquete -> correlative_id;
 	t_buffer* buffer = paquete -> buffer;
 
-	*bytes = buffer -> buffer_size + (2* sizeof(uint32_t)) + sizeof(message_type);
-
-	void* serialized_paquete;
-
-	uint32_t offset = 0;
-
-	memcpy(serialized_paquete, &type, sizeof(message_type));
-	offset += sizeof(message_type);
-
-	memcpy(serialized_paquete + offset, &id, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-
-	memcpy(serialized_paquete + offset, &correlative_id, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-
 	uint32_t buffer_size;
 	void* serialized_buffer = serializarBuffer(buffer, &buffer_size);
-	memcpy(serialized_paquete + offset, serialized_buffer, buffer_size);
 
+	void* serialized_paquete = serializarGenerico(bytes, 4, &type, sizeof(message_type), &id, sizeof(uint32_t), &correlative_id, sizeof(uint32_t), serialized_buffer, buffer_size);
 
 	return serialized_paquete;
 
+}
+
+void* serializarGenerico(uint32_t* bytes, uint32_t num_args, ...) {
+
+	// va_list es la lista para guardar los argumentos variables
+	va_list args;
+	// cargo los argumentos en args
+	va_start(args, num_args);
+
+	// variables para el memcpy
+	void* serialized; // falta el malloc
+	void* sources[num_args];
+	uint32_t sizes[num_args];
+	uint32_t offset = 0;
+	*bytes = 0;
+
+	// primero tengo que conseguir el tamaño (bytes) para poder hacer el malloc del serialized
+	for (int i = 0; i < num_args; i++) { // num_args = pares source,size
+ 		// consigo el valor del argumento
+		sources[i] = va_arg(args, void*);
+		sizes[i]   = va_arg(args, uint32_t);
+		*bytes += sizes[i];
+	}
+
+	// malloc
+	serialized = malloc(*bytes);
+
+	// Hago todos los memcpy
+	for (int i = 0; i < num_args; i++) {
+		memcpy(serialized + offset, sources[i], sizes[i]);
+		offset += sizes[i];
+	}
+
+	// libero la memoria del va_list
+	va_end(args);
+
+	return serialized;
 }
 
 //Firmas de Deserialización
@@ -201,7 +168,14 @@ t_catch_pokemon* deserializarCatchPokemon(void* buffer);
 t_localized_pokemon* deserializarLocalizedPokemon(void* buffer);
 t_paquete* deserializarPaquete(void* buffer);*/
 
+t_pokemon* crearPokemon(char* name) {
+	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
+	pokemon->name_size = strlen(name) + 1;
+	pokemon->name = malloc(pokemon->name_size);
+	memcpy(pokemon->name, name, pokemon->name_size);
 
+	return pokemon;
+}
 
 /*
  	switch(type){

@@ -10,6 +10,9 @@
 
 #include<stdlib.h>
 #include<stdint.h>
+#include<stdarg.h> // Para argumentos variables en funciones
+
+
 
 typedef enum {
 	NEW_POKEMON,
@@ -94,8 +97,8 @@ typedef struct {
 
 typedef struct {
 	message_type type;
-	uint32_t id = 0;
-	uint32_t correlative_id = 0;
+	uint32_t id;
+	uint32_t correlative_id;
 	t_buffer* buffer;
 } t_paquete;
 
@@ -110,6 +113,16 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes);
 void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_t * bytes);
 void* serializarBuffer(t_buffer* buffer, uint32_t* bytes);
 void* serializarPaquete(t_paquete* paquete, uint32_t* bytes);
+
+/*
+ * serializarGenerico:
+ * bytes: el largo de la cadena serializada
+ * se le pasa la cantidad de pares (source,size) a enviar,
+ * un argumento siempre tiene que ser de a pares, el primero es un void* (source) y el segundo es un uint32_t (size)
+ * para los distintos memcpy, y me devuelve el puntero a la serializacion de todos los elementos
+ * EJ: serializarGenerico(serialized_size, 2, &name_size, sizeof(uint32_t), name, name_size);
+ */
+void* serializarGenerico(uint32_t* bytes, uint32_t num_args, ...);
 
 //Firmas de Deserialización
 t_pokemon* deserializarPokemon(void* buffer);
