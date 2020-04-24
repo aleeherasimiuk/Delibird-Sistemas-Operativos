@@ -112,13 +112,14 @@ void* serializarBuffer(t_buffer* buffer, uint32_t* bytes);
 void* serializarPaquete(t_paquete* paquete, uint32_t* bytes);
 
 //Firmas de Deserialización
-t_pokemon* deserializarPokemon(void* buffer);
-t_coords* deserializarCoordenadas(void* buffer);
-t_new_pokemon* deserializarNewPokemon(void* buffer);
-t_appeared_pokemon* deserializarAppearedPokemon(void* buffer);
-t_catch_pokemon* deserializarCatchPokemon(void* buffer);
-t_localized_pokemon* deserializarLocalizedPokemon(void* buffer);
-t_paquete* deserializarPaquete(void* buffer);
+t_pokemon* deserializarPokemon(t_buffer* buffer);
+t_coords* deserializarCoordenadas(t_buffer* buffer);
+t_new_pokemon* deserializarNewPokemon(t_buffer* buffer);
+t_appeared_pokemon* deserializarAppearedPokemon(t_buffer* buffer);
+t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer);
+t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer);
+t_buffer* deserializarBuffer(t_buffer* buffer);
+t_paquete* recibirPaquete(int socket);
 
 
 t_pokemon* crearPokemon(char*);
