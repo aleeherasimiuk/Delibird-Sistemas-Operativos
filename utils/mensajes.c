@@ -68,7 +68,7 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_t * bytes) {
 	t_pokemon* pokemon = localized_pokemon -> pokemon;
 	uint32_t cant_coordenadas = localized_pokemon -> cant_coords;
-	t_coords* coords_array = localized_pokemon -> coords_array;
+	t_coords** coords_array = localized_pokemon -> coords_array;
 
 	uint32_t pokemon_size;
 	void* serialized_pokemon = serializarPokemon(pokemon, &pokemon_size);
@@ -218,8 +218,8 @@ t_new_pokemon* deserializarNewPokemon(t_buffer* buffer) {
 	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
 	t_coords* coords = deserializarCoordenadas(serialized_coords);
 
-	new_pokemon -> pokemon = *pokemon;
-	new_pokemon -> coords = *coords;
+	new_pokemon -> pokemon = pokemon;
+	new_pokemon -> coords = coords;
 	new_pokemon -> cantidad = count;
 
 	return new_pokemon;
@@ -245,8 +245,8 @@ t_appeared_pokemon* deserializarAppearedPokemon(t_buffer* buffer) {
 	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
 	t_coords* coords = deserializarCoordenadas(serialized_coords);
 
-	appeared_pokemon -> pokemon = *pokemon;
-	appeared_pokemon -> coords = *coords;
+	appeared_pokemon -> pokemon = pokemon;
+	appeared_pokemon -> coords = coords;
 
 	return appeared_pokemon;
 }
@@ -274,8 +274,8 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer) {
 	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
 	t_coords* coords = deserializarCoordenadas(serialized_coords);
 
-	catch_pokemon -> pokemon = *pokemon;
-	catch_pokemon -> coords = *coords;
+	catch_pokemon -> pokemon = pokemon;
+	catch_pokemon -> coords = coords;
 
 	return catch_pokemon;
 }
@@ -301,7 +301,7 @@ t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer) {
 
 	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
 
-	uint32_t* coords_array = malloc(count * sizeof(t_coords));
+	uint32_t** coords_array = malloc(count * sizeof(t_coords));
 
 	offset = 0;
 	for(int i = 0; i < count; i++){
@@ -309,7 +309,7 @@ t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer) {
 		offset += sizeof(t_coords);
 	}
 
-	localized_pokemon -> pokemon = *pokemon;
+	localized_pokemon -> pokemon = pokemon;
 	localized_pokemon -> cant_coords = count;
 	localized_pokemon -> coords_array = coords_array;
 

@@ -42,23 +42,23 @@ typedef struct {
  */
 
 typedef struct {
-	t_pokemon pokemon;
-	t_coords coords;
+	t_pokemon* pokemon;
+	t_coords* coords;
 	uint32_t cantidad; // TODO: ¿Pueden haber más de un pokemon por celda?
 } t_new_pokemon;
 
 // Este mensaje tendrá el nombre del pokemon y para indicar la posición en X y en Y.
 
 typedef struct {
-	t_pokemon pokemon;
-	t_coords coords;
+	t_pokemon* pokemon;
+	t_coords* coords;
 } t_appeared_pokemon;
 
 // Este mensaje tendrá el nombre del pokemon y la posición en X y en Y.
 
 typedef struct {
-	t_pokemon pokemon;
-	t_coords coords;
+	t_pokemon* pokemon;
+	t_coords* coords;
 } t_catch_pokemon;
 
 // Este mensaje tendrá un valor para indicar si se pudo o no atrapar al pokemon (0 o 1)
@@ -76,9 +76,9 @@ typedef t_pokemon t_get_pokemon;
  */
 
 typedef struct {
-	t_pokemon pokemon;
+	t_pokemon* pokemon;
 	uint32_t cant_coords;
-	t_coords* coords_array;
+	t_coords** coords_array;
 } t_localized_pokemon;
 
 // FIN STRUCTS MENSAJES
