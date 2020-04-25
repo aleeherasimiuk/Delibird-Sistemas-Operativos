@@ -11,11 +11,13 @@
 #include<stdlib.h>
 #include<stdint.h>
 #include<stdarg.h> // Para argumentos variables en funciones
+#include<string.h>
+
 
 
 
 typedef enum {
-	NEW_POKEMON,
+	NEW_POKEMON = 1,
 	APPEARED_POKEMON,
 	CATCH_POKEMON,
 	CAUGHT_POKEMON,

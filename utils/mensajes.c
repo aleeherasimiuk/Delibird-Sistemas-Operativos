@@ -9,7 +9,6 @@ void* serializarPokemon(t_pokemon* pokemon, uint32_t* bytes) {
 }
 
 void* serializarCoordenadas(t_coords* coordenadas, uint32_t* bytes) {
-
 	void* serialized_coords = serializarGenerico(bytes, 2, &(coordenadas -> posX), sizeof(uint32_t), &(coordenadas -> posY), sizeof(uint32_t));
 
 	return serialized_coords;
@@ -301,7 +300,7 @@ t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer) {
 
 	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
 
-	uint32_t** coords_array = malloc(count * sizeof(t_coords));
+	t_coords** coords_array = malloc(count * sizeof(t_coords));
 
 	offset = 0;
 	for(int i = 0; i < count; i++){
