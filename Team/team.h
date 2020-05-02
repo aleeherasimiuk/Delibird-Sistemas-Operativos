@@ -7,10 +7,15 @@
 #include<commons/string.h>
 #include<commons/config.h>
 #include<readline/readline.h>
-#include "utilsTeam.h"
+
+#include "conexiones.h"
+#include "entrenadores.h"
+#include "planificador.h"
+#include "var_globales.h"
 
 
-t_log* iniciar_logger(void);
+void inicializar_team(void);
+t_log* iniciar_logger(char*);
 t_config* leer_config(void);
 void terminar_programa(int, t_log*, t_config*);
 

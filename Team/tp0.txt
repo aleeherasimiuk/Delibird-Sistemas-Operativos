@@ -1,0 +1,1 @@
+[INFO] 20:12:23:685 Game-watch-client/(8143:8143): soy un log
