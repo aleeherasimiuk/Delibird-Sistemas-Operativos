@@ -14,6 +14,8 @@ void* serializarCoordenadas(t_coords* coordenadas, uint32_t* bytes) {
 	return serialized_coords;
 }
 
+//TODO: deserializarGenérico
+
 void* serializarNewPokemon(t_new_pokemon* new_pokemon, uint32_t* bytes) {
 
 		t_pokemon* pokemon = new_pokemon -> pokemon;
@@ -94,6 +96,24 @@ void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_
 
 	return serialized_localized_pokemon;
 }
+
+void* serializarSubscribe(t_subscribe subscribe, uint32_t* bytes) {
+
+	module_type type = subscribe -> module;
+	void* serializedSubscribe = serializarGenerico(bytes, 1, type, sizeof(module_type));
+	return serializedSubscribe;
+
+}
+
+void* serializarSubscribeGameboy(t_gameboy_queue_to_suscribe subscribe, uint32_t* bytes) {
+
+	message_type queue_to_suscribe = subscribe -> queue_to_suscribe;
+	uint32_t seconds = subscribe -> seconds;
+	void* serializedSubscribe = serializarGenerico(bytes, 2, queue_to_suscribe, sizeof(message_type), seconds, sizeof(uint32_t));
+	return serializedSubscribe;
+}
+
+
 
 void* serializarBuffer(t_buffer* buffer, uint32_t* bytes) {
 
@@ -313,6 +333,46 @@ t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer) {
 	localized_pokemon -> coords_array = coords_array;
 
 	return localized_pokemon;
+}
+
+t_subscribe* deserializarSubscribe(t_buffer* buffer) {
+	t_subscribe* subscribe = malloc(sizeof(t_subscribe));
+	void* stream = buffer -> stream;
+
+	module_type type;
+	uint32_t offset = 0;
+	memcpy(&type, stream + offset, sizeof(module_type));
+	offset += sizeof(module_type);
+
+	subscribe -> module = type;
+
+	free(stream);
+	free(buffer);
+
+	return subscribe;
+}
+
+t_gameboy_queue_to_suscribe* deserializarSubscribeGameboy(t_buffer* buffer) {
+	t_gameboy_queue_to_suscribe* subscribe = malloc(sizeof(t_gameboy_queue_to_suscribe));
+	void* stream = buffer -> stream;
+
+	message_type type;
+	uint32_t seconds;
+
+	uint32_t offset = 0;
+	memcpy(&type, stream + offset, sizeof(message_type));
+	offset += sizeof(module_type);
+
+	memcpy(&seconds, stream + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t)
+
+	subscribe -> queue_to_suscribe = type;
+	subscribe -> seconds = seconds;
+
+	free(stream);
+	free(buffer);
+
+	return subscribe;
 }
 
 t_pokemon* crearPokemon(char* name) {

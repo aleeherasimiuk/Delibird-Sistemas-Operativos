@@ -14,8 +14,6 @@
 #include<string.h>
 
 
-
-
 typedef enum {
 	NEW_POKEMON = 1,
 	APPEARED_POKEMON,
@@ -23,8 +21,16 @@ typedef enum {
 	CAUGHT_POKEMON,
 	GET_POKEMON,
 	LOCALIZED_POKEMON,
-	CONFIRMATION		// Para avisar al broker que se recibió el mensaje (el broker actualiza el ACK)
+	CONFIRMATION,		// Para avisar al broker que se recibió el mensaje (el broker actualiza el ACK)
+	SUBSCRIBE,
+	GAMEBOY_SUBSCRIBE
 } message_type;
+
+typedef enum{
+	TEAM,
+	GAME_CARD,
+	GAME_BOY
+}module_type;
 
 typedef struct {
 	uint32_t name_size;
@@ -83,6 +89,20 @@ typedef struct {
 	t_coords** coords_array;
 } t_localized_pokemon;
 
+
+typedef struct {
+	// En el futuro podría llevar información extra para identificar el proceso.
+	module_type module;
+
+} t_subscribe;
+
+// Gameboy Modo Suscriptor: https://bit.ly/3c1R6Md
+typedef struct {
+	message_type queue_to_suscribe; // Cola a la que se suscribe el gameboy
+	uint32_t seconds; // Tiempo en segundos
+} t_gameboy_queue_to_suscribe;
+
+
 // FIN STRUCTS MENSAJES
 
 // PAQUETE DEL BROKER: Struct que reciben los procesos del broker (tienen las id)
@@ -113,6 +133,8 @@ void* serializarNewPokemon(t_new_pokemon* new_pokemon, uint32_t* bytes);
 void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t * bytes);
 void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes);
 void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_t * bytes);
+void* serializarSubscribe(t_subscribe subscribe, uint32_t* bytes);
+void* serializarSubscribeGameboy(t_gameboy_queue_to_suscribe subscribe, uint32_t* bytes);
 void* serializarBuffer(t_buffer* buffer, uint32_t* bytes);
 void* serializarPaquete(t_paquete* paquete, uint32_t* bytes);
 
@@ -133,6 +155,8 @@ t_new_pokemon* deserializarNewPokemon(t_buffer* buffer);
 t_appeared_pokemon* deserializarAppearedPokemon(t_buffer* buffer);
 t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer);
 t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer);
+t_subscribe* deserializarSubscribe(t_buffer* buffer);
+t_gameboy_queue_to_suscribe* deserializarSubscribeGameboy(t_buffer* buffer);
 t_buffer* deserializarBuffer(t_buffer* buffer);
 t_paquete* recibirPaquete(int socket);
 

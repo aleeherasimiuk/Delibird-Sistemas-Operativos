@@ -16,8 +16,10 @@
 
 #include"../utils/mensajes.h"
 #include "utils.h"
+#include "queues.h"
 
 t_config* leer_config(void);
+t_subscribers* iniciarSubscribers(void);
 
 
 
