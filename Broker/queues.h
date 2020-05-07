@@ -50,7 +50,7 @@ typedef struct{
 
 uint32_t suscribirCliente(t_buffer* msg, uint32_t* size);
 
-
+// BORRAME MARICO
 
 
 #endif /* BROKER_QUEUES_H_ */
