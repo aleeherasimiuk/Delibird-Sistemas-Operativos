@@ -18,28 +18,21 @@ t_coords* crearCoordenadas(char* string_coord) {
 	return coords_nuevas;
 }
 
-t_list* crearListaDeInventario(char* pokemones_string) {
+t_list* crearListaDeInventario(char* pokemones_string, t_list* objetivo_global) {  // Se, la super negrada
 	char separador = '|';
 	char** pokemones_array = string_split(pokemones_string, &separador);
 	t_list* lista_inventario = list_create();
 
-	t_inventario* nuevo_inventario;
+
 
 	int i = 0;
 	while(pokemones_array[i] != NULL) {
 		char* pokemon_name = pokemones_array[i];
-		// Verifico que el pokemon no esté cargado
-		nuevo_inventario = findInventarioByPokemonName(lista_inventario, pokemon_name);
-		if(nuevo_inventario != NULL) {
-			// Si ese pokemon ya está cargado
-			nuevo_inventario->cantidad++;
-		} else {
-			// Si es un pokemon nuevo
-			nuevo_inventario = malloc(sizeof(t_inventario));
-			nuevo_inventario->pokemon = crearPokemon(pokemon_name);
-			nuevo_inventario->cantidad = 1;
 
-			list_add(lista_inventario, nuevo_inventario);
+		cargarPokemonEnListaDeInventario(lista_inventario, pokemon_name);
+
+		if (objetivo_global != NULL) {	// Cargo los objetivos en el global
+			cargarPokemonEnListaDeInventario(objetivo_global, pokemon_name);
 		}
 
 		i++;
@@ -47,18 +40,39 @@ t_list* crearListaDeInventario(char* pokemones_string) {
 	return lista_inventario;
 }
 
-t_inventario* findInventarioByPokemonName(t_list* list, char* pokemon_name) {
+void cargarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_name) {
+	t_inventario* nuevo_inventario;
+	// Verifico que el pokemon no esté cargado
+	nuevo_inventario = buscarInventarioPorPokemonName(lista_inventario, pokemon_name);
+	if(nuevo_inventario != NULL) {
+		// Si ese pokemon ya está cargado
+		nuevo_inventario->cantidad++;
+	} else {
+		// Si es un pokemon nuevo
+		nuevo_inventario = malloc(sizeof(t_inventario));
+		nuevo_inventario->pokemon = crearPokemon(pokemon_name);
+		nuevo_inventario->cantidad = 1;
+
+		list_add(lista_inventario, nuevo_inventario);
+	}
+}
+
+t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name) {
 	int position = 0;
 	t_inventario* actual;
-	actual = list_get(list, position);
+	actual = list_get(lista, position);
 
 	while (actual != NULL && strcmp(actual->pokemon->name, pokemon_name) != 0) {
 		// Recorro la lista hasta que se termine o que encuentre un inventario con el mismo nombre del pokemon
 		position++;
-		actual = list_get(list, position);
+		actual = list_get(lista, position);
 	}
 
 	return actual;
 }
 
-
+void *entrenadorMain(void* arg) {
+	t_entrenador* entrenador = (t_entrenador*)arg;
+	printf("Soy el entrenador %d\n", entrenador->id_entrenador);
+	return NULL;
+}

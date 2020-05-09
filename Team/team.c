@@ -31,8 +31,7 @@ int main() {
  */
 
 void inicializar_team(void) {
-	cargarEntrenadores();
-	// definirObjetivoGlobal(); TODO
+	cargarEntrenadores(); // Tambien se define el objetivo global aca
 	// suscribirseAlBroker(); TODO
 	// enviarGetsAlBroker(); TODO
 	// abrirSocketParaGameboy(); TODO

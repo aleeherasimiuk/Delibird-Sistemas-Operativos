@@ -48,7 +48,9 @@ typedef struct {
  * Crea un t_coords a partir de la posiciones de la config, formato "x|y"
  */
 t_coords* crearCoordenadas(char*);
-t_list* crearListaDeInventario(char*);
-t_inventario* findInventarioByPokemonName(t_list* list, char* pokemon_name);
+t_list* crearListaDeInventario(char*, t_list*);
+void cargarPokemonEnListaDeInventario(t_list*, char*);
+t_inventario* buscarInventarioPorPokemonName(t_list*, char*);
+void *entrenadorMain(void*);
 
 #endif /* ENTRENADORES_H_ */

@@ -18,6 +18,5 @@
 
 
 void cargarEntrenadores(void);
-void crearHilos(void);
 
 #endif /* PLANIFICADOR_H_ */
