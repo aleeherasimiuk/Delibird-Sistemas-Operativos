@@ -97,3 +97,59 @@ void liberar_conexion(int socket_cliente)
 {
 	close(socket_cliente);
 }
+
+void suscribirseAlBroker(void) {
+	char* ip = config_get_string_value(config,"IP_BROKER");
+	char* puerto = config_get_string_value(config, "PUERTO_BROKER");
+	// Abro conexion
+	int conexion = crear_conexion(ip, puerto);
+
+	// Creo el mensaje de subscripcion
+	t_subscribe* subscripcion = malloc(sizeof(t_subscribe*));
+	subscripcion->module = TEAM;
+
+	int subscripcion_size;
+
+	void* serialized_subscribe = serializarSubscribe(subscripcion, &subscripcion_size);
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->buffer_size = subscripcion_size;
+	buffer->stream = serialized_subscribe;
+
+	t_paquete* paquete = crearPaquete();	// ESTO HACE MALLOC
+	paquete->type = SUBSCRIBE;
+	paquete->buffer = buffer;
+
+	int paquete_size;
+	void* paquete_serializado = serializarPaquete(paquete, &paquete_size);
+
+	send(conexion, paquete_serializado, paquete_size, 0);
+
+	escucharAlBroker(conexion);
+
+	free(subscripcion);
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
+
+}
+
+void escucharAlBroker(int socket) {
+	while(1) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
+		t_paquete* paquete = recibirPaquete(socket);
+
+		switch(paquete->type) {
+			case APPEARED_POKEMON:
+				// procesarAppeared(paquete); TODO
+			case LOCALIZED_POKEMON:
+				// procesarLocalized(paquete); TODO
+			case CAUGHT_POKEMON:
+				// procesarCaught(paquete); TODO
+			default:
+				printf("Codigo no valido");
+		}
+	}
+
+}
+
+

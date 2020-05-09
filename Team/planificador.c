@@ -16,13 +16,6 @@ t_entrenador* entrenador_exec;
 t_list* objetivo_global;
 
 
-void *threadfunction(void *arg)
-{
-	t_entrenador* entrenador = (t_entrenador*)arg;
-	printf("Soy el entrenador %d\n", entrenador->id_entrenador); /*printf() is specified as thread-safe as of C11*/
-	return 0;
-}
-
 void cargarEntrenadores(void) {
 	entrenadores_new = list_create();
 	objetivo_global = list_create();

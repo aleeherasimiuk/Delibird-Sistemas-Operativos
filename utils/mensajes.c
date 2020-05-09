@@ -97,7 +97,7 @@ void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_
 	return serialized_localized_pokemon;
 }
 
-void* serializarSubscribe(t_subscribe subscribe, uint32_t* bytes) {
+void* serializarSubscribe(t_subscribe* subscribe, uint32_t* bytes) {
 
 	module_type type = subscribe -> module;
 	void* serializedSubscribe = serializarGenerico(bytes, 1, type, sizeof(module_type));
@@ -105,7 +105,7 @@ void* serializarSubscribe(t_subscribe subscribe, uint32_t* bytes) {
 
 }
 
-void* serializarSubscribeGameboy(t_gameboy_queue_to_suscribe subscribe, uint32_t* bytes) {
+void* serializarSubscribeGameboy(t_gameboy_queue_to_suscribe* subscribe, uint32_t* bytes) {
 
 	message_type queue_to_suscribe = subscribe -> queue_to_suscribe;
 	uint32_t seconds = subscribe -> seconds;
@@ -364,7 +364,7 @@ t_gameboy_queue_to_suscribe* deserializarSubscribeGameboy(t_buffer* buffer) {
 	offset += sizeof(module_type);
 
 	memcpy(&seconds, stream + offset, sizeof(uint32_t));
-	offset += sizeof(uint32_t)
+	offset += sizeof(uint32_t);
 
 	subscribe -> queue_to_suscribe = type;
 	subscribe -> seconds = seconds;
@@ -373,6 +373,24 @@ t_gameboy_queue_to_suscribe* deserializarSubscribeGameboy(t_buffer* buffer) {
 	free(buffer);
 
 	return subscribe;
+}
+
+t_paquete* recibirPaquete(int socket) {
+	t_paquete* paquete = malloc(sizeof(t_paquete));
+
+	// Recibo tipo de mensaje
+	recv(socket, &(paquete->type), sizeof(paquete->type), 0);
+	// Recibo IDs
+	recv(socket, &(paquete->id), sizeof(paquete->id), 0);
+	recv(socket, &(paquete->correlative_id), sizeof(paquete->correlative_id), 0);
+
+	paquete->buffer = malloc(sizeof(t_buffer));
+	recv(socket, &(paquete->buffer->buffer_size), sizeof(paquete->buffer->buffer_size), 0);
+
+	paquete->buffer->stream = malloc(paquete->buffer->buffer_size);
+	recv(socket, paquete->buffer->stream, paquete->buffer->buffer_size, 0);
+
+	return paquete;
 }
 
 t_pokemon* crearPokemon(char* name) {
@@ -384,30 +402,10 @@ t_pokemon* crearPokemon(char* name) {
 	return pokemon;
 }
 
-/*
- 	switch(type){
-
-		case NEW_POKEMON:
-			break;
-
-		case APPEARED_POKEMON:
-			break;
-
-		case CATCH_POKEMON:
-			break;
-
-		case CAUGHT_POKEMON:
-			break;
-
-		case GET_POKEMON:
-			break;
-
-		case LOCALIZED_POKEMON:
-			break;
-
-		case CONFIRMATION:
-			break;
-
-	}
-*/
+t_paquete* crearPaquete(void) {
+	t_paquete* paquete = malloc(sizeof(t_paquete));
+	paquete->id = 0;
+	paquete->correlative_id = 0;
+	return paquete;
+}
 

@@ -10,15 +10,9 @@ int main() {
 
 	config = leer_config();
 
-	ip = config_get_string_value(config,"IP_BROKER");
-	puerto = config_get_string_value(config, "PUERTO_BROKER");
 	logfile = config_get_string_value(config, "LOG_FILE");
 
 	logger = iniciar_logger(logfile);
-
-
-	log_info(logger, "Lei la ip %s y el puerto %s", ip, puerto);
-
 
 	inicializar_team();
 
@@ -32,7 +26,7 @@ int main() {
 
 void inicializar_team(void) {
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
-	// suscribirseAlBroker(); TODO
+	suscribirseAlBroker(); // INPROGRESS
 	// enviarGetsAlBroker(); TODO
 	// abrirSocketParaGameboy(); TODO
 }

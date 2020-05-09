@@ -15,6 +15,9 @@
 #include<sys/socket.h>
 #include<netdb.h>
 #include<string.h>
+#include<commons/config.h>
+
+#include "var_globales.h"
 #include "../utils/mensajes.h"
 
 
@@ -22,5 +25,8 @@ int crear_conexion(char* ip, char* puerto);
 void enviar_mensaje(char* mensaje, int socket_cliente);
 void* recibir_mensaje(int socket_cliente);
 void liberar_conexion(int socket_cliente);
+
+void suscribirseAlBroker(void);
+void escucharAlBroker(int);
 
 #endif /* CONEXIONES_H_ */

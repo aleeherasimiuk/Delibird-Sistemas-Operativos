@@ -133,8 +133,8 @@ void* serializarNewPokemon(t_new_pokemon* new_pokemon, uint32_t* bytes);
 void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t * bytes);
 void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes);
 void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_t * bytes);
-void* serializarSubscribe(t_subscribe subscribe, uint32_t* bytes);
-void* serializarSubscribeGameboy(t_gameboy_queue_to_suscribe subscribe, uint32_t* bytes);
+void* serializarSubscribe(t_subscribe* subscribe, uint32_t* bytes);
+void* serializarSubscribeGameboy(t_gameboy_queue_to_suscribe* subscribe, uint32_t* bytes);
 void* serializarBuffer(t_buffer* buffer, uint32_t* bytes);
 void* serializarPaquete(t_paquete* paquete, uint32_t* bytes);
 
@@ -157,12 +157,12 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer);
 t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer);
 t_subscribe* deserializarSubscribe(t_buffer* buffer);
 t_gameboy_queue_to_suscribe* deserializarSubscribeGameboy(t_buffer* buffer);
-t_buffer* deserializarBuffer(t_buffer* buffer);
+
 t_paquete* recibirPaquete(int socket);
 
 
 t_pokemon* crearPokemon(char*);
-
+t_paquete* crearPaquete(void);	// Me crea un paquete con los id = 0 por defecto
 
 
 
