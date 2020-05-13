@@ -46,7 +46,7 @@ void esperar_cliente(int socket_servidor)
 {
 	struct sockaddr_in dir_cliente;
 
-	int tam_direccion = sizeof(struct sockaddr_in);
+	socklen_t tam_direccion = sizeof(struct sockaddr_in);
 
 	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 
@@ -55,7 +55,7 @@ void esperar_cliente(int socket_servidor)
 
 }
 
-void serve_client(uint32_t* socket)
+void serve_client(int* socket)
 {
 	message_type msg_type;
 	if(recv(*socket, &msg_type, sizeof(message_type), MSG_WAITALL) == -1)
@@ -63,13 +63,13 @@ void serve_client(uint32_t* socket)
 	process_request(msg_type, *socket);
 }
 
-void process_request(uint32_t cod_op, uint32_t cliente_fd) {
+void process_request(int cod_op, int cliente_fd) {
 	uint32_t size;
-	void* msg;
+	t_buffer* msg;
 		switch (cod_op) {
 			case SUBSCRIBE:
-				msg = recibir_mensaje(cliente_fd);
-				suscribir_cliente(msg, cliente_fd);
+				msg = recibir_mensaje(cliente_fd, &size);
+				suscribirCliente(msg, cliente_fd);
 				free(msg);
 				break;
 			case NEW_POKEMON:
@@ -86,7 +86,7 @@ void process_request(uint32_t cod_op, uint32_t cliente_fd) {
 
 //TODO: Controlar los recv
 // Todos los mensajes vienen empaquetados en t_paquete
-t_buffer* recibir_mensaje(uint32_t socket_cliente){
+t_buffer* recibir_mensaje(int socket_cliente,uint32_t* size){
 	uint32_t id;
 	uint32_t correlative_id;
 	t_buffer* buffer = malloc(sizeof(t_buffer));
@@ -94,10 +94,10 @@ t_buffer* recibir_mensaje(uint32_t socket_cliente){
 	recv(socket_cliente, &id, sizeof(uint32_t), MSG_WAITALL);
 	recv(socket_cliente, &correlative_id, sizeof(uint32_t), MSG_WAITALL);
 
-	buffer -> buffer_size = malloc(sizeof(uint32_t));
-	recv(socket_cliente, buffer -> buffer_size, sizeof(uint32_t), MSG_WAITALL);
-	buffer -> stream = malloc(*(buffer -> buffer_size));
-	recv(socket_cliente, buffer -> stream, *(buffer -> buffer_size), MSG_WAITALL);
+	//buffer -> buffer_size = malloc(sizeof(uint32_t));
+	recv(socket_cliente, &(buffer -> buffer_size), sizeof(uint32_t), MSG_WAITALL);
+	buffer -> stream = malloc((buffer -> buffer_size));
+	recv(socket_cliente, buffer -> stream, (buffer -> buffer_size), MSG_WAITALL);
 
 	return buffer;
 }

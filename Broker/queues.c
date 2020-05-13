@@ -5,7 +5,9 @@
  *      Author: utnso
  */
 
-#include <queues.h>
+#include "queues.h"
+
+extern t_subscribers* subscribers;
 
 t_subscribers* iniciarSubscribers(){
 	t_subscribers* subscribers = malloc(sizeof(t_subscribers));
@@ -27,7 +29,7 @@ uint32_t suscribirCliente(t_buffer* msg, uint32_t cliente) {
 
 	module_type type = subscribe -> module;
 
-	t_client client = malloc(sizeof(t_client));
+	t_client* client = malloc(sizeof(t_client));
 	client -> socket = cliente;
 
 	switch(type){
@@ -47,9 +49,9 @@ uint32_t suscribirCliente(t_buffer* msg, uint32_t cliente) {
 			break;
 
 		default:
-			return -1;
+			return 1;
 	}
-
+	return 0;
 }
 
 //TODO: Segundos!
@@ -57,7 +59,7 @@ uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
 
 	t_gameboy_queue_to_suscribe* subscribe = deserializarSubscribeGameboy(msg);
 
-	t_client client = malloc(sizeof(t_client));
+	t_client* client = malloc(sizeof(t_client));
 	client -> socket = cliente;
 
 	message_type type = subscribe -> queue_to_suscribe;
@@ -89,10 +91,10 @@ uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
 			break;
 
 		default:
-			return -1; // Devuelve unsigned int, entonces no debería devolver -1 no?
+			return 1; // Devuelve unsigned int, entonces no debería devolver -1 no?
 	}
 
-	return 1;
+	return 0;
 
 
 }

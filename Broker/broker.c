@@ -26,6 +26,7 @@ int main(void) {
 	subscribers = iniciarSubscribers();
 	iniciar_servidor(ip, puerto);
 
+
 	return 0;
 }
 
@@ -36,8 +37,20 @@ t_config* leer_config(void)
 
 
 
-void terminar_programa(t_config* config, t_subscribers subscribers) {
+/*void terminar_programa(t_config* config, t_subscribers* subscribers) {
 	config_destroy(config);
-	list_destroy_and_destroy_elements(subscribers);
+	list_destroy(subscribers -> new_pokemon);
+	list_destroy(subscribers -> get_pokemon);
+	list_destroy(subscribers -> catch_pokemon);
+	list_destroy(subscribers -> caught_pokemon);
+	list_destroy(subscribers -> appeared_pokemon);
+	list_destroy(subscribers -> localized_pokemon);
+	free(subscribers);
 }
+
+this is basically useless, but we have it here anyway just in case!
+*/
+
+
+
 

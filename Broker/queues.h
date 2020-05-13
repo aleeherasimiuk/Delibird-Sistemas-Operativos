@@ -14,7 +14,7 @@
 //#include<commons/collections/queue.h>
 #include<commons/collections/list.h>
 
-#include "mensajes.h"
+#include "../utils/mensajes.h"
 /*
  typedef struct{
 	t_queue* new_pokemon;
@@ -48,9 +48,9 @@ typedef struct{
 }t_message_by_client;
 
 
-uint32_t suscribirCliente(t_buffer* msg, uint32_t* size);
+uint32_t suscribirCliente(t_buffer* msg, uint32_t size);
 
-// BORRAME MARICO
+
 
 
 #endif /* BROKER_QUEUES_H_ */

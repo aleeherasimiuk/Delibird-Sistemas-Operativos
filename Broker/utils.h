@@ -17,6 +17,7 @@
 #include<commons/collections/list.h>
 #include<string.h>
 #include<pthread.h>
+#include"queues.h"
 
 #include"../utils/mensajes.h"
 
@@ -26,10 +27,10 @@ void* recibir_buffer(int*, int);
 
 void iniciar_servidor(char*, char*);
 void esperar_cliente(int);
-void* recibir_mensaje(int socket_cliente, int* size);
+t_buffer* recibir_mensaje(int socket_cliente, uint32_t* size);
 int recibir_operacion(int);
 void process_request(int cod_op, int cliente_fd);
-void serve_client(int *socket);
+void serve_client(int* socket);
 void* serializar_paquete(t_paquete* paquete, int bytes);
 void devolver_mensaje(void* payload, int size, int socket_cliente);
 
