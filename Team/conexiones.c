@@ -67,32 +67,6 @@ void enviar_mensaje(char* mensaje, int socket_cliente)
 
 }
 
-void* recibir_mensaje(int socket_cliente)
-{
-
-	message_type tipo_mensaje;
-	int buffer_size;
-	recv(socket_cliente, &tipo_mensaje, sizeof(tipo_mensaje), 0);
-	recv(socket_cliente, &buffer_size, sizeof(buffer_size), 0);
-
-	char* buffer = malloc(buffer_size);
-
-	recv(socket_cliente, buffer, buffer_size, 0);
-
-	if(tipo_mensaje == LOCALIZED_POKEMON) {
-
-		t_localized_pokemon* pokemonesLocalizados;
-
-		pokemonesLocalizados = deserializarLocalizedPokemon(buffer);
-
-		free(buffer);
-
-		return pokemonesLocalizados;
-	}
-
-	return NULL;
-}
-
 void liberar_conexion(int socket_cliente)
 {
 	close(socket_cliente);
@@ -105,7 +79,7 @@ void suscribirseAlBroker(void) {
 	int conexion = crear_conexion(ip, puerto);
 
 	// Creo el mensaje de subscripcion
-	t_subscribe* subscripcion = malloc(sizeof(t_subscribe*));
+	t_subscribe* subscripcion = malloc(sizeof(t_subscribe));
 	subscripcion->module = TEAM;
 
 	uint32_t subscripcion_size;
@@ -120,7 +94,7 @@ void suscribirseAlBroker(void) {
 	paquete->type = SUBSCRIBE;
 	paquete->buffer = buffer;
 
-	int paquete_size;
+	uint32_t paquete_size;
 	void* paquete_serializado = serializarPaquete(paquete, &paquete_size);
 
 	send(conexion, paquete_serializado, paquete_size, 0);
@@ -137,10 +111,10 @@ void suscribirseAlBroker(void) {
 	return;
 }
 
-void escucharAlBroker(int* socket) {
+void *escucharAlBroker(void* socket) {
 	int i = 1;
 	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
-		t_paquete* paquete = recibirPaquete(*socket);
+		t_paquete* paquete = recibirPaquete(*((int*)socket));
 
 		switch(paquete->type) {
 			case APPEARED_POKEMON:
@@ -151,9 +125,43 @@ void escucharAlBroker(int* socket) {
 				// procesarCaught(paquete); TODO
 			default:
 				printf("Codigo no valido: %d \n", paquete->type);
+				i = 0;
 		}
 	}
+	// TODO DESTRUIR EL HILO?
+	return NULL;
+}
 
+void enviarGetPokemon(t_pokemon* pokemon) {
+	char* ip = config_get_string_value(config,"IP_BROKER");
+	char* puerto = config_get_string_value(config, "PUERTO_BROKER");
+	// Abro conexion
+	int conexion = crear_conexion(ip, puerto);
+
+	uint32_t get_pokemon_size;
+
+	void* serialized_get_pokemon = serializarPokemon(pokemon, &get_pokemon_size);
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer->buffer_size = get_pokemon_size;
+	buffer->stream = serialized_get_pokemon;
+
+	t_paquete* paquete = crearPaquete();	// ESTO HACE MALLOC
+	paquete->type = GET_POKEMON;
+	paquete->buffer = buffer;
+
+	uint32_t paquete_size;
+	void* paquete_serializado = serializarPaquete(paquete, &paquete_size);
+	printf("envio pokemon: %s\n", pokemon->name);
+
+	send(conexion, paquete_serializado, paquete_size, 0); // TODO ver si tengo que esperar a que envie todo el mensaje para recien cerrar la conexion
+
+	liberar_conexion(conexion);
+
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
+	return;
 }
 
 

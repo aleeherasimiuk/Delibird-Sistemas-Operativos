@@ -29,6 +29,7 @@ void* recibir_mensaje(int socket_cliente);
 void liberar_conexion(int socket_cliente);
 
 void suscribirseAlBroker(void);
-void escucharAlBroker(int*);
+void* escucharAlBroker(void*);
+void enviarGetPokemon(t_pokemon* pokemon);
 
 #endif /* CONEXIONES_H_ */

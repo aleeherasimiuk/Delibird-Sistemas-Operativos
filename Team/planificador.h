@@ -13,10 +13,12 @@
 #include<commons/collections/list.h>
 
 #include "entrenadores.h"
+#include "conexiones.h"
 #include "var_globales.h"
 
 
 
 void cargarEntrenadores(void);
+void enviarGetsAlBroker(void);
 
 #endif /* PLANIFICADOR_H_ */

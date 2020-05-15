@@ -58,7 +58,7 @@ void esperar_cliente(int socket_servidor)
 void serve_client(int* socket)
 {
 	message_type msg_type;
-	if(recv(*socket, &msg_type, sizeof(message_type), MSG_WAITALL) == -1)
+	if(recv(*socket, &msg_type, sizeof(message_type), MSG_WAITALL) == -1) // TODO ver porque recibe un -1 del team, excepto por el ultimo pokemon
 		msg_type = -1;
 	process_request(msg_type, *socket);
 }
@@ -77,9 +77,16 @@ void process_request(int cod_op, int cliente_fd) {
 				//devolver_mensaje(msg, size, cliente_fd);
 				//free(msg);
 				break;
+			case GET_POKEMON:
+				msg = recibir_mensaje(cliente_fd, &size);
+				t_pokemon* pokemon = deserializarPokemon(msg);
+				printf("slap Like now %d \n", pokemon->name_size);
+				break;
 			case 0:
+				printf("codigo -1\n");
 				pthread_exit(NULL);
 			case -1:
+				printf("codigo -1\n");
 				pthread_exit(NULL);
 		}
 }

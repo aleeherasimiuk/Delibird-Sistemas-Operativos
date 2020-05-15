@@ -7,13 +7,13 @@
 
 #include "planificador.h"
 
-t_list* entrenadores_new;
-t_list* entrenadores_ready;
-t_list* entrenadores_blocked;
-t_list* entrenadores_exit;
+t_list* entrenadores_new; // lista de t_entrenador*
+t_list* entrenadores_ready; // lista de t_entrenador*
+t_list* entrenadores_blocked; // lista de t_entrenador*
+t_list* entrenadores_exit; // lista de t_entrenador*
 t_entrenador* entrenador_exec;
 
-t_list* objetivo_global;
+t_list* objetivo_global;  // lista de t_inventario*
 
 
 void cargarEntrenadores(void) {
@@ -44,3 +44,12 @@ void cargarEntrenadores(void) {
 		i++;
 	}
 }
+
+void enviarGetsAlBroker(void) {
+	t_inventario* objetivo;
+	for(int i = 0; i < objetivo_global->elements_count; i++) {
+		objetivo = list_get(objetivo_global, i);
+		enviarGetPokemon(objetivo->pokemon);
+	}
+}
+

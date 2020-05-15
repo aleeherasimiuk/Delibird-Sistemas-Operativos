@@ -39,6 +39,7 @@ uint32_t suscribirCliente(t_buffer* msg, uint32_t cliente) {
 			list_add(subscribers -> appeared_pokemon, client);
 			list_add(subscribers -> localized_pokemon, client);
 			list_add(subscribers -> caught_pokemon, client);
+			printf("se conecto un team\n");
 			break;
 
 		// https://bit.ly/3feT1Pr

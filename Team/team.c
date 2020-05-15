@@ -25,7 +25,7 @@ int main() {
 void inicializar_team(void) {
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
 	suscribirseAlBroker(); // TODO Revisar el escucharAlBroker
-	enviarGetsAlBroker(); // TODO
+	enviarGetsAlBroker(); // InProgress
 	// abrirSocketParaGameboy(); TODO
 }
 
