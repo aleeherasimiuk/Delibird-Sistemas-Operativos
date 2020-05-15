@@ -21,8 +21,6 @@
 
 #include"../utils/mensajes.h"
 
-pthread_t thread;
-
 void* recibir_buffer(int*, int);
 
 void iniciar_servidor(char*, char*);

@@ -44,13 +44,19 @@ void iniciar_servidor(char* ip, char* puerto)
 
 void esperar_cliente(int socket_servidor)
 {
+	pthread_t thread;
 	struct sockaddr_in dir_cliente;
 
 	socklen_t tam_direccion = sizeof(struct sockaddr_in);
+	int* socket_cliente = malloc(sizeof(int));  // Hicimos un malloc porque siempre le pasaba la misma direccion a los hilos
+	*socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
+	if(*socket_cliente == -1) {
+		return;
+	}
 
-	int socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
+	printf("socket %d\n", *socket_cliente);
 
-	pthread_create(&thread,NULL,(void*)serve_client,&socket_cliente);
+	pthread_create(&thread,NULL,(void*)serve_client,socket_cliente);
 	pthread_detach(thread);
 
 }
@@ -58,37 +64,43 @@ void esperar_cliente(int socket_servidor)
 void serve_client(int* socket)
 {
 	message_type msg_type;
-	if(recv(*socket, &msg_type, sizeof(message_type), MSG_WAITALL) == -1) // TODO ver porque recibe un -1 del team, excepto por el ultimo pokemon
+	int status = recv(*socket, &msg_type, sizeof(message_type), MSG_WAITALL);
+	if(status == -1)
 		msg_type = -1;
 	process_request(msg_type, *socket);
+	free(socket);
 }
 
 void process_request(int cod_op, int cliente_fd) {
 	uint32_t size;
 	t_buffer* msg;
-		switch (cod_op) {
-			case SUBSCRIBE:
-				msg = recibir_mensaje(cliente_fd, &size);
-				suscribirCliente(msg, cliente_fd);
-				free(msg);
-				break;
-			case NEW_POKEMON:
-				//msg = recibir_mensaje(cliente_fd, &size);
-				//devolver_mensaje(msg, size, cliente_fd);
-				//free(msg);
-				break;
-			case GET_POKEMON:
-				msg = recibir_mensaje(cliente_fd, &size);
-				t_pokemon* pokemon = deserializarPokemon(msg);
-				printf("slap Like now %d \n", pokemon->name_size);
-				break;
-			case 0:
-				printf("codigo -1\n");
-				pthread_exit(NULL);
-			case -1:
-				printf("codigo -1\n");
-				pthread_exit(NULL);
-		}
+	switch (cod_op) {
+		case SUBSCRIBE:
+			msg = recibir_mensaje(cliente_fd, &size);
+			suscribirCliente(msg, cliente_fd);
+			free(msg);
+			break;
+		case NEW_POKEMON:
+			//msg = recibir_mensaje(cliente_fd, &size);
+			//devolver_mensaje(msg, size, cliente_fd);
+			//free(msg);
+			break;
+		case GET_POKEMON:
+			//msg = recibir_mensaje(cliente_fd, &size);
+			//t_pokemon* pokemon = deserializarPokemon(msg);
+			// procesarGet(pokemon);
+			break;
+		case 0:
+			printf("codigo 0\n");
+			close(cliente_fd); // Ante error cerrar el socket
+			pthread_exit(NULL);
+		case -1:
+			printf("codigo -1\n");
+			close(cliente_fd); // Ante error cerrar el socket
+			pthread_exit(NULL);
+	}
+	// Cierro la conexion con ese cliente
+	close(cliente_fd);
 }
 
 //TODO: Controlar los recv
