@@ -35,6 +35,10 @@ t_config* leer_config(void)
 	return config_create("broker.config");
 }
 
+t_log* iniciar_logger(char* logfile)
+{
+	return log_create(logfile, "Team", true, LOG_LEVEL_INFO);
+}
 
 
 /*void terminar_programa(t_config* config, t_subscribers* subscribers) {

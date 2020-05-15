@@ -108,7 +108,7 @@ void suscribirseAlBroker(void) {
 	t_subscribe* subscripcion = malloc(sizeof(t_subscribe*));
 	subscripcion->module = TEAM;
 
-	int subscripcion_size;
+	uint32_t subscripcion_size;
 
 	void* serialized_subscribe = serializarSubscribe(subscripcion, &subscripcion_size);
 
@@ -125,18 +125,22 @@ void suscribirseAlBroker(void) {
 
 	send(conexion, paquete_serializado, paquete_size, 0);
 
-	escucharAlBroker(conexion);
+	pthread_t thread;
+	pthread_create(&thread, NULL, escucharAlBroker, &conexion);
+	pthread_detach(thread);
 
 	free(subscripcion);
 	free(paquete->buffer->stream);
 	free(paquete->buffer);
 	free(paquete);
 
+	return;
 }
 
-void escucharAlBroker(int socket) {
-	while(1) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
-		t_paquete* paquete = recibirPaquete(socket);
+void escucharAlBroker(int* socket) {
+	int i = 1;
+	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
+		t_paquete* paquete = recibirPaquete(*socket);
 
 		switch(paquete->type) {
 			case APPEARED_POKEMON:
@@ -146,7 +150,7 @@ void escucharAlBroker(int socket) {
 			case CAUGHT_POKEMON:
 				// procesarCaught(paquete); TODO
 			default:
-				printf("Codigo no valido");
+				printf("Codigo no valido: %d \n", paquete->type);
 		}
 	}
 

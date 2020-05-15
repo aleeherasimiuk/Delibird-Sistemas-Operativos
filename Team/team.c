@@ -4,8 +4,6 @@ t_log* logger = NULL;
 t_config* config = NULL;
 
 int main() {
-	char* ip;
-	char* puerto;
 	char* logfile;
 
 	config = leer_config();
@@ -26,8 +24,8 @@ int main() {
 
 void inicializar_team(void) {
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
-	suscribirseAlBroker(); // INPROGRESS
-	// enviarGetsAlBroker(); TODO
+	suscribirseAlBroker(); // TODO Revisar el escucharAlBroker
+	enviarGetsAlBroker(); // TODO
 	// abrirSocketParaGameboy(); TODO
 }
 

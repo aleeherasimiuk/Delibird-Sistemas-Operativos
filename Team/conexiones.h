@@ -11,10 +11,12 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<signal.h>
+#include<stdint.h>
 #include<unistd.h>
-#include<sys/socket.h>
+#include <sys/socket.h>
 #include<netdb.h>
 #include<string.h>
+#include <pthread.h>
 #include<commons/config.h>
 
 #include "var_globales.h"
@@ -27,6 +29,6 @@ void* recibir_mensaje(int socket_cliente);
 void liberar_conexion(int socket_cliente);
 
 void suscribirseAlBroker(void);
-void escucharAlBroker(int);
+void escucharAlBroker(int*);
 
 #endif /* CONEXIONES_H_ */

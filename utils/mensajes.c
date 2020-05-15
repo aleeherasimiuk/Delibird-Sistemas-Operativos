@@ -100,7 +100,7 @@ void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_
 void* serializarSubscribe(t_subscribe* subscribe, uint32_t* bytes) {
 
 	module_type type = subscribe -> module;
-	void* serializedSubscribe = serializarGenerico(bytes, 1, type, sizeof(module_type));
+	void* serializedSubscribe = serializarGenerico(bytes, 1, &type, sizeof(module_type));
 	return serializedSubscribe;
 
 }
@@ -109,7 +109,7 @@ void* serializarSubscribeGameboy(t_gameboy_queue_to_suscribe* subscribe, uint32_
 
 	message_type queue_to_suscribe = subscribe -> queue_to_suscribe;
 	uint32_t seconds = subscribe -> seconds;
-	void* serializedSubscribe = serializarGenerico(bytes, 2, queue_to_suscribe, sizeof(message_type), seconds, sizeof(uint32_t));
+	void* serializedSubscribe = serializarGenerico(bytes, 2, &queue_to_suscribe, sizeof(message_type), &seconds, sizeof(uint32_t));
 	return serializedSubscribe;
 }
 
@@ -120,7 +120,7 @@ void* serializarBuffer(t_buffer* buffer, uint32_t* bytes) {
 	void* stream = buffer -> stream;
 	uint32_t buffer_size = buffer -> buffer_size;
 
-	void* serialized_buffer = serializarGenerico(bytes, 2, buffer_size, sizeof(uint32_t), stream, buffer-> buffer_size);
+	void* serialized_buffer = serializarGenerico(bytes, 2, &buffer_size, sizeof(uint32_t), stream, buffer-> buffer_size);
 
 	*bytes = buffer -> buffer_size + sizeof(uint32_t);
 
@@ -379,16 +379,16 @@ t_paquete* recibirPaquete(int socket) {
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
 	// Recibo tipo de mensaje
-	recv(socket, &(paquete->type), sizeof(paquete->type), 0);
+	recv(socket, &(paquete->type), sizeof(paquete->type), MSG_WAITALL);
 	// Recibo IDs
 	recv(socket, &(paquete->id), sizeof(paquete->id), 0);
-	recv(socket, &(paquete->correlative_id), sizeof(paquete->correlative_id), 0);
+	recv(socket, &(paquete->correlative_id), sizeof(paquete->correlative_id), MSG_WAITALL);
 
 	paquete->buffer = malloc(sizeof(t_buffer));
-	recv(socket, &(paquete->buffer->buffer_size), sizeof(paquete->buffer->buffer_size), 0);
+	recv(socket, &(paquete->buffer->buffer_size), sizeof(paquete->buffer->buffer_size), MSG_WAITALL);
 
 	paquete->buffer->stream = malloc(paquete->buffer->buffer_size);
-	recv(socket, paquete->buffer->stream, paquete->buffer->buffer_size, 0);
+	recv(socket, paquete->buffer->stream, paquete->buffer->buffer_size, MSG_WAITALL);
 
 	return paquete;
 }
