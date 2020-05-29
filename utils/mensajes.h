@@ -99,9 +99,9 @@ typedef struct {
 
 // Gameboy Modo Suscriptor: https://bit.ly/3c1R6Md
 typedef struct {
-	message_type queue_to_suscribe; // Cola a la que se suscribe el gameboy
+	message_type queue_to_subscribe; // Cola a la que se suscribe el gameboy
 	uint32_t seconds; // Tiempo en segundos
-} t_gameboy_queue_to_suscribe;
+} t_gameboy_queue_to_subscribe;
 
 
 // FIN STRUCTS MENSAJES
@@ -135,7 +135,7 @@ void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t *
 void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes);
 void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_t * bytes);
 void* serializarSubscribe(t_subscribe* subscribe, uint32_t* bytes);
-void* serializarSubscribeGameboy(t_gameboy_queue_to_suscribe* subscribe, uint32_t* bytes);
+void* serializarSubscribeGameboy(t_gameboy_queue_to_subscribe* subscribe, uint32_t* bytes);
 void* serializarBuffer(t_buffer* buffer, uint32_t* bytes);
 void* serializarPaquete(t_paquete* paquete, uint32_t* bytes);
 
@@ -157,7 +157,7 @@ t_appeared_pokemon* deserializarAppearedPokemon(t_buffer* buffer);
 t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer);
 t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer);
 t_subscribe* deserializarSubscribe(t_buffer* buffer);
-t_gameboy_queue_to_suscribe* deserializarSubscribeGameboy(t_buffer* buffer);
+t_gameboy_queue_to_subscribe* deserializarSubscribeGameboy(t_buffer* buffer);
 
 t_paquete* recibirPaquete(int socket);
 
@@ -165,7 +165,14 @@ t_paquete* recibirPaquete(int socket);
 t_pokemon* crearPokemon(char*);
 t_paquete* crearPaquete(void);	// Me crea un paquete con los id = 0 por defecto
 
-
-
-
+// Crear Mensajes
+void* crear_paquete(message_type, void*, uint32_t, uint32_t*);
+void* crear_paquete_con_id_correlativo(message_type, void*, uint32_t, uint32_t, uint32_t*); //No se como sobrecargar funciones
+t_coords* crear_coordenadas_from_int(uint32_t, uint32_t);
+t_new_pokemon* new_pokemon(t_pokemon*, uint32_t, uint32_t, uint32_t);
+t_appeared_pokemon* appeared_pokemon(t_pokemon*, uint32_t, uint32_t);
+t_catch_pokemon* catch_pokemon(t_pokemon*, uint32_t, uint32_t);
+t_caught_pokemon* caught_pokemon(uint32_t*);
+t_get_pokemon* get_pokemon(t_pokemon*);
+t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type, uint32_t);
 #endif /* MENSAJES_H_ */

@@ -105,11 +105,11 @@ void* serializarSubscribe(t_subscribe* subscribe, uint32_t* bytes) {
 
 }
 
-void* serializarSubscribeGameboy(t_gameboy_queue_to_suscribe* subscribe, uint32_t* bytes) {
+void* serializarSubscribeGameboy(t_gameboy_queue_to_subscribe* subscribe, uint32_t* bytes) {
 
-	message_type queue_to_suscribe = subscribe -> queue_to_suscribe;
+	message_type queue_to_subscribe = subscribe -> queue_to_subscribe;
 	uint32_t seconds = subscribe -> seconds;
-	void* serializedSubscribe = serializarGenerico(bytes, 2, &queue_to_suscribe, sizeof(message_type), &seconds, sizeof(uint32_t));
+	void* serializedSubscribe = serializarGenerico(bytes, 2, &queue_to_subscribe, sizeof(message_type), &seconds, sizeof(uint32_t));
 	return serializedSubscribe;
 }
 
@@ -352,8 +352,8 @@ t_subscribe* deserializarSubscribe(t_buffer* buffer) {
 	return subscribe;
 }
 
-t_gameboy_queue_to_suscribe* deserializarSubscribeGameboy(t_buffer* buffer) {
-	t_gameboy_queue_to_suscribe* subscribe = malloc(sizeof(t_gameboy_queue_to_suscribe));
+t_gameboy_queue_to_subscribe* deserializarSubscribeGameboy(t_buffer* buffer) {
+	t_gameboy_queue_to_subscribe* subscribe = malloc(sizeof(t_gameboy_queue_to_subscribe));
 	void* stream = buffer -> stream;
 
 	message_type type;
@@ -366,7 +366,7 @@ t_gameboy_queue_to_suscribe* deserializarSubscribeGameboy(t_buffer* buffer) {
 	memcpy(&seconds, stream + offset, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	subscribe -> queue_to_suscribe = type;
+	subscribe -> queue_to_subscribe = type;
 	subscribe -> seconds = seconds;
 
 	free(stream);
@@ -402,10 +402,97 @@ t_pokemon* crearPokemon(char* name) {
 	return pokemon;
 }
 
-t_paquete* crearPaquete(void) {
+t_paquete* crearPaquete(void) { //TODO: Pasar a notación con _
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 	paquete->id = 0;
 	paquete->correlative_id = 0;
 	return paquete;
 }
+
+void* crear_paquete(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t* paquete_size){
+
+	return crear_paquete_con_id_correlativo(cod_op, serialized_message, message_bytes, 0, paquete_size);
+}
+
+void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t id_correlativo, uint32_t* paquete_size) {
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer -> buffer_size = message_bytes;
+	buffer -> stream = serialized_message;
+
+	t_paquete* paquete = crearPaquete();
+	paquete -> type = cod_op;
+	paquete -> correlative_id = id_correlativo;
+	paquete -> buffer = buffer;
+
+	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
+
+	return serialized_paquete;
+}
+
+// Testear!
+t_coords* crear_coordenadas_from_int(uint32_t posX, uint32_t posY){
+	t_coords* coords = malloc(sizeof(t_coords));
+	coords -> posX = posX;
+	coords -> posY = posY;
+
+
+	return coords;
+}
+
+t_new_pokemon* new_pokemon(t_pokemon* pokemon, uint32_t posX, uint32_t posY, uint32_t cantidad){
+
+	t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
+	t_coords* coords = crear_coordenadas_from_int(posX, posY);
+
+	new_pokemon -> pokemon = pokemon;
+	new_pokemon -> coords = coords;
+	new_pokemon -> cantidad = cantidad;
+
+	return new_pokemon;
+}
+
+t_appeared_pokemon* appeared_pokemon(t_pokemon* pokemon, uint32_t posX, uint32_t posY){
+
+	t_appeared_pokemon* appeared_pokemon = malloc(sizeof(t_appeared_pokemon));
+	t_coords* coords = crear_coordenadas_from_int(posX, posY);
+
+	appeared_pokemon -> pokemon = pokemon;
+	appeared_pokemon -> coords = coords;
+
+	return appeared_pokemon;
+}
+
+t_catch_pokemon* catch_pokemon(t_pokemon* pokemon, uint32_t posX, uint32_t posY){
+
+	t_catch_pokemon* catch_pokemon = malloc(sizeof(t_catch_pokemon));
+	t_coords* coords = crear_coordenadas_from_int(posX, posY);
+
+	catch_pokemon -> pokemon = pokemon;
+	catch_pokemon -> coords = coords;
+
+	return catch_pokemon;
+
+}
+
+t_caught_pokemon* caught_pokemon(uint32_t* caught) {
+	return caught; // Solo por mantener coherencia
+}
+
+t_get_pokemon* get_pokemon(t_pokemon* pokemon) {
+	return pokemon; // Solo por mantener coherencia
+}
+
+// TODO: Localized pokemon, el gameboy no lo usa.
+
+t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type queue, uint32_t seconds) {
+
+	t_gameboy_queue_to_subscribe* gameboy_queue_subscribe = malloc(sizeof(t_gameboy_queue_to_subscribe));
+	gameboy_queue_subscribe -> queue_to_subscribe = queue;
+	gameboy_queue_subscribe -> seconds = seconds;
+
+	return gameboy_queue_subscribe;
+
+}
+
+
 
