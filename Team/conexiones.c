@@ -29,48 +29,27 @@ int crear_conexion(char *ip, char* puerto)
 	return socket_cliente;
 }
 
-
-void enviar_mensaje(char* mensaje, int socket_cliente)
-{
-
-	//creacion del buffer
-
-	int longitud = strlen(mensaje);
-
-	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->buffer_size = longitud + 1;
-
-	void* stream = malloc(buffer->buffer_size);
-
-	memcpy(stream, mensaje, longitud + 1);
-
-	buffer->stream = stream;
-
-	//creacion del paquete
-
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-	paquete->buffer = buffer;
-	paquete->type = CONFIRMATION;
-
-	int tamanio = 0;
-
-	void* serializado = NULL;
-
-	send(socket_cliente, serializado, tamanio, 0);
-
-	free(serializado);
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
-
-
-
+int crear_conexion_con_config(void) {
+	char* ip = config_get_string_value(config,"IP_BROKER");
+	char* puerto = config_get_string_value(config, "PUERTO_BROKER");
+	// Abro conexion
+	return crear_conexion(ip, puerto);
 }
 
 void liberar_conexion(int socket_cliente)
 {
 	close(socket_cliente);
 }
+
+void liberar_paquete(t_paquete* paquete) {
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
+}
+
+//////////////////////////////////////////////
+//				SUSCRIPCIONES				//
+//////////////////////////////////////////////
 
 void suscribirseAlBroker(void) {
 	char* ip = config_get_string_value(config,"IP_BROKER");
@@ -100,13 +79,11 @@ void suscribirseAlBroker(void) {
 	send(conexion, paquete_serializado, paquete_size, 0);
 
 	pthread_t thread;
-	pthread_create(&thread, NULL, escucharAlBroker, &conexion);
+	pthread_create(&thread, NULL, escucharAlBroker, &conexion); // Hilo para escuchar al broker
 	pthread_detach(thread);
 
 	free(subscripcion);
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
+	liberar_paquete(paquete);
 
 	return;
 }
@@ -132,11 +109,13 @@ void *escucharAlBroker(void* socket) {
 	return NULL;
 }
 
+
+//////////////////////////////////////////////
+//					GET						//
+//////////////////////////////////////////////
+
 void enviarGetPokemon(t_pokemon* pokemon) {
-	char* ip = config_get_string_value(config,"IP_BROKER");
-	char* puerto = config_get_string_value(config, "PUERTO_BROKER");
-	// Abro conexion
-	int conexion = crear_conexion(ip, puerto);
+	int conexion = crear_conexion_con_config();
 
 	uint32_t get_pokemon_size;
 
@@ -152,15 +131,13 @@ void enviarGetPokemon(t_pokemon* pokemon) {
 
 	uint32_t paquete_size;
 	void* paquete_serializado = serializarPaquete(paquete, &paquete_size);
-	printf("envio pokemon: %s\n", pokemon->name);
 
-	send(conexion, paquete_serializado, paquete_size, 0); // TODO ver si tengo que esperar a que envie todo el mensaje para recien cerrar la conexion
+	int status = send(conexion, paquete_serializado, paquete_size, 0); // TODO ver si tengo que esperar a que envie todo el mensaje para recien cerrar la conexion
 
 	liberar_conexion(conexion);
 
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
+	free(paquete_serializado);
+	liberar_paquete(paquete);
 	return;
 }
 

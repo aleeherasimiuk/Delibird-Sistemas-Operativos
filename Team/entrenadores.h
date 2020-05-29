@@ -40,6 +40,13 @@ typedef struct {
 	t_list* pokes_objetivos;
 } t_entrenador;
 
+typedef struct {
+	t_entrenador* entrenador;
+	//pthread_t thread; // TODO Referencia al hilo=???
+	pthread_mutex_t mutex_ejecucion; // Solo se activa cuando pasa a exec
+	// TODO Agregar info para los distintos algoritmos de planificacion
+} t_tcb;
+
 // FIN ESTRUCTURAS
 
 // FUNCIONES PARA CREACION

@@ -22,11 +22,11 @@
 #include "var_globales.h"
 #include "../utils/mensajes.h"
 
-
 int crear_conexion(char* ip, char* puerto);
-void enviar_mensaje(char* mensaje, int socket_cliente);
-void* recibir_mensaje(int socket_cliente);
+int crear_conexion_con_config(void);
+
 void liberar_conexion(int socket_cliente);
+void liberar_paquete(t_paquete* paquete);
 
 void suscribirseAlBroker(void);
 void* escucharAlBroker(void*);

@@ -13,7 +13,6 @@ int main() {
 	logger = iniciar_logger(logfile);
 
 	inicializar_team();
-
 	return 1;
 }
 

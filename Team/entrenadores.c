@@ -7,6 +7,10 @@
 
 #include"entrenadores.h"
 
+//////////////////////////////////////
+//				HELPERS				//
+//////////////////////////////////////
+
 t_coords* crearCoordenadas(char* string_coord) {
 	char separador = '|';
 	char** coords_array = string_split(string_coord, &separador);
@@ -70,6 +74,11 @@ t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name) 
 
 	return actual;
 }
+
+
+//////////////////////////////////////
+//				EJECUCION			//
+//////////////////////////////////////
 
 void *entrenadorMain(void* arg) {
 	t_entrenador* entrenador = (t_entrenador*)arg;
