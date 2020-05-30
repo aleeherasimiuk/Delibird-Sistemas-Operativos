@@ -7,17 +7,15 @@
 
 #include"entrenadores.h"
 
-//////////////////////////////////////
-//				HELPERS				//
-//////////////////////////////////////
+//////////////////////////////////////////
+//				INICIALIZACION			//
+//////////////////////////////////////////
 
 t_coords* crearCoordenadas(char* string_coord) {
 	char separador = '|';
 	char** coords_array = string_split(string_coord, &separador);
-	t_coords* coords_nuevas = malloc(sizeof(t_coords));
+	t_coords* coords_nuevas = crear_coordenadas_from_int(atoi(coords_array[0]), atoi(coords_array[1]));
 
-	coords_nuevas->posX = atoi(coords_array[0]); // atoi transforma de char * a int
-	coords_nuevas->posY = atoi(coords_array[1]);
 	free(coords_array);
 	return coords_nuevas;
 }
@@ -26,8 +24,6 @@ t_list* crearListaDeInventario(char* pokemones_string, t_list* objetivo_global) 
 	char separador = '|';
 	char** pokemones_array = string_split(pokemones_string, &separador);
 	t_list* lista_inventario = list_create();
-
-
 
 	int i = 0;
 	while(pokemones_array[i] != NULL) {
@@ -41,6 +37,7 @@ t_list* crearListaDeInventario(char* pokemones_string, t_list* objetivo_global) 
 
 		i++;
 	}
+	free(pokemones_array);
 	return lista_inventario;
 }
 
@@ -81,7 +78,11 @@ t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name) 
 //////////////////////////////////////
 
 void *entrenadorMain(void* arg) {
-	t_entrenador* entrenador = (t_entrenador*)arg;
+	t_tcb* tcb = (t_tcb*)arg;
+	t_entrenador* entrenador = tcb->entrenador;
+	pthread_mutex_t mutex_ejecucion = tcb->mutex_ejecucion;
+
 	printf("Soy el entrenador %d\n", entrenador->id_entrenador);
+
 	return NULL;
 }
