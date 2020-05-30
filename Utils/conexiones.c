@@ -1,5 +1,6 @@
 #include "../Utils/conexiones.h"
 
+
 int crear_conexion(char *ip, char* puerto)
 {
 	struct addrinfo hints;
@@ -29,8 +30,16 @@ int crear_conexion_con_config(t_config* config, char* campo_ip, char* campo_puer
 	return crear_conexion(ip, puerto);
 }
 
+void liberar_paquete(t_paquete* paquete){
+	free(paquete->buffer->stream);
+	free(paquete->buffer);
+	free(paquete);
+}
+
+
 void liberar_conexion(int socket_cliente)
 {
 	close(socket_cliente);
 }
+
 

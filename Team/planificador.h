@@ -12,8 +12,8 @@
 #include<commons/string.h>
 #include<commons/collections/list.h>
 
+#include "conexionesTeam.h"
 #include "entrenadores.h"
-#include "conexiones.h"
 #include "var_globales.h"
 
 

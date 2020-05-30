@@ -21,10 +21,10 @@
 #include <pthread.h>
 #include<commons/config.h>
 #include "../Utils/conexiones.h"
-#include "../Utils/mensajes.h"
 #include "var_globales.h"
 
-void liberar_paquete(t_paquete* paquete);
+
+
 
 void suscribirseAlBroker(void);
 void* escucharAlBroker(void*);

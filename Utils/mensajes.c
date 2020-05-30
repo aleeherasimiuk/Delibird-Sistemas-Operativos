@@ -1,4 +1,4 @@
-#include "../Utils/mensajes.h"
+#include "conexiones.h"
 
 //Firmas de Serializacion
 void* serializarPokemon(t_pokemon* pokemon, uint32_t* bytes) {
@@ -59,7 +59,6 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 
 	uint32_t coords_size;
 	void* serialized_coords = serializarCoordenadas(coordenadas, &coords_size);
-
 
 	void* serialized_catch_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
@@ -427,6 +426,7 @@ void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_mes
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
 
 	return serialized_paquete;
+	liberar_paquete(paquete);
 }
 t_coords* crear_coordenadas_from_int(uint32_t posX, uint32_t posY){
 	t_coords* coords = malloc(sizeof(t_coords));

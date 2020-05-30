@@ -5,15 +5,8 @@
  *      Author: utnso
  */
 
-#include "conexiones.h"
+#include "conexionesTeam.h"
 
-
-
-void liberar_paquete(t_paquete* paquete) {
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
-}
 
 //////////////////////////////////////////////
 //				SUSCRIPCIONES				//

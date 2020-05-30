@@ -10,7 +10,8 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#include"../utils/mensajes.h"
+#include"../Utils/mensajes.h"
+
 
 int enviar_mensaje(int argc, char* argv[]);
 void* preparar_mensaje(int argc, char* argv[], uint32_t*);
