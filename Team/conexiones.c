@@ -7,39 +7,7 @@
 
 #include "conexiones.h"
 
-int crear_conexion(char *ip, char* puerto)
-{
-	struct addrinfo hints;
-	struct addrinfo *server_info;
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-
-	getaddrinfo(ip, puerto, &hints, &server_info);
-
-	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
-
-	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
-		printf("error");
-
-	freeaddrinfo(server_info);
-
-	return socket_cliente;
-}
-
-int crear_conexion_con_config(void) {
-	char* ip = config_get_string_value(config,"IP_BROKER");
-	char* puerto = config_get_string_value(config, "PUERTO_BROKER");
-	// Abro conexion
-	return crear_conexion(ip, puerto);
-}
-
-void liberar_conexion(int socket_cliente)
-{
-	close(socket_cliente);
-}
 
 void liberar_paquete(t_paquete* paquete) {
 	free(paquete->buffer->stream);
@@ -52,10 +20,10 @@ void liberar_paquete(t_paquete* paquete) {
 //////////////////////////////////////////////
 
 void suscribirseAlBroker(void) {
-	char* ip = config_get_string_value(config,"IP_BROKER");
-	char* puerto = config_get_string_value(config, "PUERTO_BROKER");
+	/* char* ip = config_get_string_value(config,"IP_BROKER");
+	char* puerto = config_get_string_value(config, "PUERTO_BROKER"); */
 	// Abro conexion
-	int conexion = crear_conexion(ip, puerto);
+	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 
 	// Creo el mensaje de subscripcion
 	t_subscribe* subscripcion = malloc(sizeof(t_subscribe));
@@ -115,7 +83,7 @@ void *escucharAlBroker(void* socket) {
 //////////////////////////////////////////////
 
 void enviarGetPokemon(t_pokemon* pokemon) {
-	int conexion = crear_conexion_con_config();
+	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 
 	uint32_t get_pokemon_size;
 

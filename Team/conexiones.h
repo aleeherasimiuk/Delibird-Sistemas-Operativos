@@ -8,6 +8,8 @@
 #ifndef CONEXIONES_H_
 #define CONEXIONES_H_
 
+
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<signal.h>
@@ -18,14 +20,10 @@
 #include<string.h>
 #include <pthread.h>
 #include<commons/config.h>
-
+#include "../Utils/conexiones.h"
+#include "../Utils/mensajes.h"
 #include "var_globales.h"
-#include "../utils/mensajes.h"
 
-int crear_conexion(char* ip, char* puerto);
-int crear_conexion_con_config(void);
-
-void liberar_conexion(int socket_cliente);
 void liberar_paquete(t_paquete* paquete);
 
 void suscribirseAlBroker(void);

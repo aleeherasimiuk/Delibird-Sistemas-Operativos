@@ -58,12 +58,12 @@ uint32_t suscribirCliente(t_buffer* msg, uint32_t cliente) {
 //TODO: Segundos!
 uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
 
-	t_gameboy_queue_to_suscribe* subscribe = deserializarSubscribeGameboy(msg);
+	t_gameboy_queue_to_subscribe* subscribe = deserializarSubscribeGameboy(msg);
 
 	t_client* client = malloc(sizeof(t_client));
 	client -> socket = cliente;
 
-	message_type type = subscribe -> queue_to_suscribe;
+	message_type type = subscribe -> queue_to_subscribe;
 
 	switch(type){
 

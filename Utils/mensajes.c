@@ -1,4 +1,4 @@
-#include "mensajes.h"
+#include "../Utils/mensajes.h"
 
 //Firmas de Serializacion
 void* serializarPokemon(t_pokemon* pokemon, uint32_t* bytes) {
@@ -76,10 +76,10 @@ void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_
 
 	*bytes = pokemon_size + sizeof(uint32_t) + cant_coordenadas * sizeof(t_coords);
 
-	void* serialized_localized_pokemon;
+	void* serialized_localized_pokemon = malloc(*bytes);
 
 	uint32_t offset = 0;
-	memcpy(serialized_localized_pokemon + offset, pokemon, pokemon_size);
+	memcpy(serialized_localized_pokemon + offset, serialized_pokemon, pokemon_size);
 	offset += pokemon_size;
 
 	memcpy(serialized_localized_pokemon + offset, &cant_coordenadas, sizeof(uint32_t));
@@ -223,11 +223,11 @@ t_new_pokemon* deserializarNewPokemon(t_buffer* buffer) {
 
 	uint32_t offset = 0;
 
-	void* serialized_pokemon;
+	void* serialized_pokemon = malloc(sizeof(t_pokemon));
 	memcpy(serialized_pokemon, stream, sizeof(t_pokemon));
 	offset += sizeof(t_pokemon);
 
-	void* serialized_coords;
+	void* serialized_coords = malloc(sizeof(t_coords));
 	memcpy(serialized_coords, stream + offset, sizeof(t_coords));
 	offset += sizeof(t_coords);
 
@@ -253,11 +253,11 @@ t_appeared_pokemon* deserializarAppearedPokemon(t_buffer* buffer) {
 
 	uint32_t offset = 0;
 
-	void* serialized_pokemon;
+	void* serialized_pokemon = malloc(sizeof(t_pokemon));
 	memcpy(serialized_pokemon, stream, sizeof(t_pokemon));
 	offset += sizeof(t_pokemon);
 
-	void* serialized_coords;
+	void* serialized_coords = malloc(sizeof(t_coords));
 	memcpy(serialized_coords, stream + offset, sizeof(t_coords));
 	offset += sizeof(t_coords);
 
@@ -279,11 +279,11 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer) {
 
 	uint32_t offset = 0;
 
-	void* serialized_pokemon;
+	void* serialized_pokemon = malloc(sizeof(t_pokemon));
 	memcpy(serialized_pokemon, stream, sizeof(t_pokemon));
 	offset += sizeof(t_pokemon);
 
-	void* serialized_coords;
+	void* serialized_coords = malloc(sizeof(t_coords));
 	memcpy(serialized_coords, stream + offset, sizeof(t_coords));
 	offset += sizeof(t_coords);
 
@@ -308,15 +308,15 @@ t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer) {
 
 	uint32_t offset = 0;
 
-	void* serialized_pokemon;
+	void* serialized_pokemon = malloc(sizeof(t_pokemon));
 	memcpy(serialized_pokemon, stream, sizeof(t_pokemon));
 	offset += sizeof(t_pokemon);
 
 	uint32_t count;
 	memcpy(&count, stream + offset, sizeof(uint32_t));
 
-	void* serialized_array;
-	memcpy(serialized_array, stream + offset, count *sizeof(t_coords));
+	void* serialized_array = malloc(count *sizeof(t_coords));
+	memcpy(serialized_array, stream + offset, count * sizeof(t_coords));
 
 	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
 
