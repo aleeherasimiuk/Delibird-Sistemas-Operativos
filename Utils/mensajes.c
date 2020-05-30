@@ -192,7 +192,7 @@ t_pokemon* deserializarPokemon(t_buffer* buffer) {
 	offset += sizeof(uint32_t);
 
 	pokemon -> name = malloc(pokemon -> name_size);
-	memcpy(&(pokemon -> name), stream + offset, sizeof(pokemon -> name_size));
+	memcpy(pokemon -> name, stream + offset, pokemon -> name_size);
 	offset += sizeof(pokemon -> name_size);
 
 	return pokemon;
@@ -396,8 +396,9 @@ t_paquete* recibirPaquete(int socket) {
 t_pokemon* crearPokemon(char* name) {
 	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
 	pokemon->name_size = strlen(name) + 1;
-	pokemon->name = malloc(pokemon->name_size);
-	memcpy(pokemon->name, name, pokemon->name_size);
+	pokemon->name = name;
+	//pokemon->name = malloc(pokemon->name_size);
+	//memcpy(pokemon->name, name, pokemon->name_size);
 
 	return pokemon;
 }
@@ -428,6 +429,7 @@ void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_mes
 
 	return serialized_paquete;
 }
+
 t_coords* crear_coordenadas_from_int(uint32_t posX, uint32_t posY){
 	t_coords* coords = malloc(sizeof(t_coords));
 	coords -> posX = posX;
