@@ -13,19 +13,19 @@ int enviar_mensaje(int argc, char* argv[]){
 	void* t_paquete = preparar_mensaje(--argc, &argv[1], &paquete_size);
 
 	//TODO: Usar Switch?
-	if(strcmp(proceso, "BROKER")){
+	if(!strcmp(proceso, "BROKER")){
 
 	}
 
-	if(strcmp(proceso, "GAME_CARD")){
+	if(!strcmp(proceso, "GAME_CARD")){
 
 	}
 
-	if(strcmp(proceso, "TEAM")){
+	if(!strcmp(proceso, "TEAM")){
 
 	}
 
-	if(strcmp(proceso, "SUSCRIPTOR")){
+	if(!strcmp(proceso, "SUSCRIPTOR")){
 
 	}
 
@@ -38,7 +38,7 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 	char* mensaje = argv[0];
 	void* serialized_paquete;
 
-	if(strcmp(mensaje, "NEW_POKEMON")){
+	if(!strcmp(mensaje, "NEW_POKEMON")){
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		uint32_t posX = atoi(argv[2]);
 		uint32_t posY = atoi(argv[3]);
@@ -51,7 +51,7 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 	}
 
-	if(strcmp(mensaje, "APPEARED_POKEMON")){
+	if(!strcmp(mensaje, "APPEARED_POKEMON")){
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		uint32_t posX = atoi(argv[2]);
 		uint32_t posY = atoi(argv[3]);
@@ -65,7 +65,7 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 	}
 
 
-	if(strcmp(mensaje, "CATCH_POKEMON")){
+	if(!strcmp(mensaje, "CATCH_POKEMON")){
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		uint32_t posX = atoi(argv[2]);
 		uint32_t posY = atoi(argv[3]);
@@ -77,15 +77,13 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 	}
 
-	if(strcmp(mensaje, "CAUGHT_POKEMON")) {
+	if(!strcmp(mensaje, "CAUGHT_POKEMON")) {
 
 		uint32_t id_correlativo = atoi(argv[1]);
 		uint32_t caught = 0;
 		char* ok = argv[2];
 
-		if(strcmp(ok, "OK")){
-			caught = 1;
-		}
+		caught = !strcmp(ok, "OK");
 
 		t_caught_pokemon* _caught_pokemon = caught_pokemon(&caught);
 
@@ -94,7 +92,7 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 	}
 
-	if(strcmp(mensaje, "GET_POKEMON")){
+	if(!strcmp(mensaje, "GET_POKEMON")){
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		t_get_pokemon* _get_pokemon = get_pokemon(pokemon);
 		void* serialized_message = _get_pokemon;

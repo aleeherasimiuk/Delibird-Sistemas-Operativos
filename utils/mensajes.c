@@ -428,8 +428,6 @@ void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_mes
 
 	return serialized_paquete;
 }
-
-// Testear!
 t_coords* crear_coordenadas_from_int(uint32_t posX, uint32_t posY){
 	t_coords* coords = malloc(sizeof(t_coords));
 	coords -> posX = posX;
