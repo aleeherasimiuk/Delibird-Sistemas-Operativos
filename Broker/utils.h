@@ -18,8 +18,7 @@
 #include<string.h>
 #include<pthread.h>
 #include"queues.h"
-
-#include"../utils/mensajes.h"
+#include"../Utils/mensajes.h"
 
 void* recibir_buffer(int*, int);
 

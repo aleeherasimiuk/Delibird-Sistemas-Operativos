@@ -13,8 +13,8 @@
 #include <commons/string.h>
 #include <commons/collections/list.h>
 
+#include "../Utils/mensajes.h"
 #include "var_globales.h"
-#include "../utils/mensajes.h"
 
 // STRUCT ENTRENADOR
 
