@@ -13,8 +13,6 @@
 //////////////////////////////////////////////
 
 void suscribirseAlBroker(void) {
-	/* char* ip = config_get_string_value(config,"IP_BROKER");
-	char* puerto = config_get_string_value(config, "PUERTO_BROKER"); */
 	// Abro conexion
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 
@@ -31,14 +29,14 @@ void suscribirseAlBroker(void) {
 	send(conexion, paquete_serializado, paquete_size, 0);
 
 	pthread_t thread;
-	pthread_create(&thread, NULL, escucharAlBroker, &conexion); // Hilo para escuchar al broker
+	pthread_create(&thread, NULL, escucharAlSocket, &conexion); // Hilo para escuchar al broker
 	pthread_detach(thread);
 
 	free(subscripcion);
 	return;
 }
 
-void *escucharAlBroker(void* socket) {
+void *escucharAlSocket(void* socket) {
 	int i = 1;
 	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
 		t_paquete* paquete = recibirPaquete(*((int*)socket));
@@ -73,7 +71,9 @@ void enviarGetPokemon(t_pokemon* pokemon) {
 	uint32_t paquete_size;
 	void* paquete_serializado = crear_paquete(GET_POKEMON, serialized_get_pokemon, get_pokemon_size, &paquete_size);
 
-	int status = send(conexion, paquete_serializado, paquete_size, 0); // TODO ver si tengo que esperar a que envie todo el mensaje para recien cerrar la conexion
+	int status = send(conexion, paquete_serializado, paquete_size, 0);
+
+	// TODO ESperar el ID del mensaje
 
 	liberar_conexion(conexion);
 

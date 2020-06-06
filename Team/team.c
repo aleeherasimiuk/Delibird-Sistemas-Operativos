@@ -22,9 +22,10 @@ int main() {
  */
 
 void inicializar_team(void) {
+	iniciarPlanificador();
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
-	suscribirseAlBroker(); // TODO Revisar el escucharAlBroker
-	enviarGetsAlBroker(); // InProgress
+	suscribirseAlBroker(); // TODO Revisar el escucharAlBroker TODO cambiar las suscripciones
+	enviarGetsAlBroker();
 	// abrirSocketParaGameboy(); TODO
 }
 

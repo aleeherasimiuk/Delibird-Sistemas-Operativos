@@ -73,6 +73,10 @@ t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name) 
 }
 
 
+int distanciaA(t_coords* desde, t_coords* hasta) {
+	return 1;
+}
+
 //////////////////////////////////////
 //				EJECUCION			//
 //////////////////////////////////////

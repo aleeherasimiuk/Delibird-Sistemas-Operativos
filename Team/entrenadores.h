@@ -58,6 +58,7 @@ t_coords* crearCoordenadas(char*);
 t_list* crearListaDeInventario(char*, t_list*);
 void cargarPokemonEnListaDeInventario(t_list*, char*);
 t_inventario* buscarInventarioPorPokemonName(t_list*, char*);
+int distanciaA(t_coords*, t_coords*);
 void *entrenadorMain(void*);
 
 #endif /* ENTRENADORES_H_ */
