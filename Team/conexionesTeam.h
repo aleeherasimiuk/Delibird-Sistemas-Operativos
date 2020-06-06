@@ -26,8 +26,8 @@
 
 
 
-void suscribirseAlBroker(void);
-void* escucharAlBroker(void*);
-void enviarGetPokemon(t_pokemon* pokemon);
+void  suscribirseAlBroker(void);
+void* escucharAlSocket(void*);
+void  enviarGetPokemon(t_pokemon* pokemon);
 
 #endif /* CONEXIONES_H_ */
