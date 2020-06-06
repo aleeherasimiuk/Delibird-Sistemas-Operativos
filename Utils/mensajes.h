@@ -13,7 +13,6 @@
 #include<stdarg.h> // Para argumentos variables en funciones
 #include<string.h>
 #include<sys/socket.h>
-#include "conexiones.h"
 
 
 typedef enum {

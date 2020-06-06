@@ -14,6 +14,7 @@
 #include<commons/string.h>
 #include<stdlib.h>
 #include<unistd.h> // Funcion close
+#include "var_globales.h"
 
 #include "../Utils/mensajes.h"
 

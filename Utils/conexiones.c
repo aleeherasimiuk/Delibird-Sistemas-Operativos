@@ -19,12 +19,11 @@ int crear_conexion(char *ip, char* puerto)
 		printf("error");
 
 	freeaddrinfo(server_info);
-
 	return socket_cliente;
 }
 
 int crear_conexion_con_config(t_config* config, char* campo_ip, char* campo_puerto) {
-	char* ip = config_get_string_value(config,campo_ip);
+	char* ip = config_get_string_value(config, campo_ip);
 	char* puerto = config_get_string_value(config, campo_puerto);
 	// Abro conexion
 	return crear_conexion(ip, puerto);

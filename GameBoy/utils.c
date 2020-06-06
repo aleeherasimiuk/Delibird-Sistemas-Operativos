@@ -7,28 +7,29 @@
 
 #include "utils.h"
 
+
+
 int enviar_mensaje(int argc, char* argv[]){
 	char* proceso = argv[0];
+	int conexion;
 	uint32_t paquete_size;
-	void* t_paquete = preparar_mensaje(--argc, &argv[1], &paquete_size);
+	void* paquete = preparar_mensaje(--argc, &argv[1], &paquete_size);
 
-	//TODO: Usar Switch?
-	if(!strcmp(proceso, "BROKER")){
+	if(compare_string(proceso, "SUSCRIPTOR")){
 
+	} else {
+
+		char* ip, *puerto;
+		ip = concat_string_config(proceso, IP);
+		puerto = concat_string_config(proceso, PUERTO);
+
+		conexion = crear_conexion_con_config(config, ip, puerto);
+
+		printf("IP: %s, PUERTO: %s", ip, puerto);
 	}
 
-	if(!strcmp(proceso, "GAME_CARD")){
 
-	}
-
-	if(!strcmp(proceso, "TEAM")){
-
-	}
-
-	if(!strcmp(proceso, "SUSCRIPTOR")){
-
-	}
-
+	//int status = send(conexion, paquete, paquete_size, 0);
 	return 0;
 
 }
@@ -38,11 +39,11 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 	char* mensaje = argv[0];
 	void* serialized_paquete;
 
-	if(!strcmp(mensaje, "NEW_POKEMON")){
+	if(compare_string(mensaje, "NEW_POKEMON")){
 		t_pokemon* pokemon = crearPokemon(argv[1]);
-		uint32_t posX = atoi(argv[2]);
-		uint32_t posY = atoi(argv[3]);
-		uint32_t cant = atoi(argv[4]);
+		uint32_t posX = convert_to_int(argv[2]);
+		uint32_t posY = convert_to_int(argv[3]);
+		uint32_t cant = convert_to_int(argv[4]);
 		t_new_pokemon* _new_pokemon = new_pokemon(pokemon, posX, posY, cant);
 
 		uint32_t message_bytes;
@@ -51,24 +52,24 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 	}
 
-	if(!strcmp(mensaje, "APPEARED_POKEMON")){
+	if(compare_string(mensaje, "APPEARED_POKEMON")){
 		t_pokemon* pokemon = crearPokemon(argv[1]);
-		uint32_t posX = atoi(argv[2]);
-		uint32_t posY = atoi(argv[3]);
+		uint32_t posX = convert_to_int(argv[2]);
+		uint32_t posY = convert_to_int(argv[3]);
 		t_appeared_pokemon* _appeared_pokemon = appeared_pokemon(pokemon, posX, posY);
 
 		uint32_t message_bytes;
 		void* serialized_message = serializarAppearedPokemon(_appeared_pokemon, &message_bytes);
-		uint32_t id_correlativo = atoi(argv[4]);
+		uint32_t id_correlativo = convert_to_int(argv[4]);
 		serialized_paquete = crear_paquete_con_id_correlativo(APPEARED_POKEMON, serialized_message, message_bytes, id_correlativo, paquete_size);
 
 	}
 
 
-	if(!strcmp(mensaje, "CATCH_POKEMON")){
+	if(compare_string(mensaje, "CATCH_POKEMON")){
 		t_pokemon* pokemon = crearPokemon(argv[1]);
-		uint32_t posX = atoi(argv[2]);
-		uint32_t posY = atoi(argv[3]);
+		uint32_t posX = convert_to_int(argv[2]);
+		uint32_t posY = convert_to_int(argv[3]);
 		t_catch_pokemon* _catch_pokemon = catch_pokemon(pokemon, posX, posY);
 
 		uint32_t message_bytes;
@@ -77,13 +78,13 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 	}
 
-	if(!strcmp(mensaje, "CAUGHT_POKEMON")) {
+	if(compare_string(mensaje, "CAUGHT_POKEMON")) {
 
-		uint32_t id_correlativo = atoi(argv[1]);
+		uint32_t id_correlativo = convert_to_int(argv[1]);
 		uint32_t caught = 0;
 		char* ok = argv[2];
 
-		caught = !strcmp(ok, "OK");
+		caught = compare_string(ok, "OK");
 
 		t_caught_pokemon* _caught_pokemon = caught_pokemon(&caught);
 
@@ -92,7 +93,7 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 	}
 
-	if(!strcmp(mensaje, "GET_POKEMON")){
+	if(compare_string(mensaje, "GET_POKEMON")){
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		t_get_pokemon* _get_pokemon = get_pokemon(pokemon);
 		void* serialized_message = _get_pokemon;
@@ -101,7 +102,24 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 	return serialized_paquete;
 
-	}
+}
+
+int compare_string(char* mensaje_recv, char* mensaje) {
+	return !strcmp(mensaje_recv, mensaje);
+}
+
+char* concat_string_config(char* proceso, char* campo) {
+	char* str = (char *) malloc(1 + strlen(campo)+ strlen(proceso));
+	strcpy(str, campo);
+	strcat(str, proceso);
+
+	return str;
+}
+
+
+
+
+
 
 
 
