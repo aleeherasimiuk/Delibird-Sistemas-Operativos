@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../Utils/conexiones.h"
-#include "var_globales.h"
+#include "var_globales_gameboy.h"
 
 #define convert_to_int atoi
 #define concat_string strcat
