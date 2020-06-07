@@ -16,20 +16,26 @@ int enviar_mensaje(int argc, char* argv[]){
 	void* paquete = preparar_mensaje(--argc, &argv[1], &paquete_size);
 
 	if(compare_string(proceso, "SUSCRIPTOR")){
+		//TODO: Que pasa cuando es suscriptor?
+
+
+		// indico tiempo de subscripción
+		uint32_t tiempoDeRetardo;
+		sleep(tiempoDeRetardo);
 
 	} else {
-
 		char* ip, *puerto;
 		ip = concat_string_config(proceso, IP);
 		puerto = concat_string_config(proceso, PUERTO);
 
+		// Abro conexión con el proceso en cuestión
 		conexion = crear_conexion_con_config(config, ip, puerto);
 
 		printf("IP: %s, PUERTO: %s", ip, puerto);
 	}
 
 
-	//int status = send(conexion, paquete, paquete_size, 0);
+	int status = send(conexion, paquete, paquete_size, 0);
 	return 0;
 
 }
@@ -104,10 +110,12 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 }
 
+// compara si el mensaje recibido es igual a: BROKER, GAMECARD o TEAM.
 int compare_string(char* mensaje_recv, char* mensaje) {
 	return !strcmp(mensaje_recv, mensaje);
 }
 
+// retorna un string donde es la combinación del campo(IP o PUERTO) y el proceso(TEAM, BROKER o GAMECARD)
 char* concat_string_config(char* proceso, char* campo) {
 	char* str = (char *) malloc(1 + strlen(campo)+ strlen(proceso));
 	strcpy(str, campo);
@@ -115,7 +123,6 @@ char* concat_string_config(char* proceso, char* campo) {
 
 	return str;
 }
-
 
 
 
