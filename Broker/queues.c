@@ -27,31 +27,14 @@ uint32_t suscribirCliente(t_buffer* msg, uint32_t cliente) {
 
 	t_subscribe* subscribe = deserializarSubscribe(msg);
 
-	module_type type = subscribe -> module;
+	message_type type = subscribe -> queue_to_subscribe;
 
 	t_client* client = malloc(sizeof(t_client));
 	client -> socket = cliente;
+	client -> process_id = subscribe -> process_id;
 
-	switch(type){
+	suscribir(client, type);
 
-		// https://bit.ly/2KUNH6b
-		case TEAM:
-			list_add(subscribers -> appeared_pokemon, client);
-			list_add(subscribers -> localized_pokemon, client);
-			list_add(subscribers -> caught_pokemon, client);
-			printf("se conecto un team\n");
-			break;
-
-		// https://bit.ly/3feT1Pr
-		case GAME_CARD:
-			list_add(subscribers -> new_pokemon, client);
-			list_add(subscribers -> catch_pokemon, client);
-			list_add(subscribers -> get_pokemon, client);
-			break;
-
-		default:
-			return 1;
-	}
 	return 0;
 }
 
@@ -62,10 +45,19 @@ uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
 
 	t_client* client = malloc(sizeof(t_client));
 	client -> socket = cliente;
+	client -> process_id = 0;
 
 	message_type type = subscribe -> queue_to_subscribe;
 
-	switch(type){
+	suscribir(client, type);
+
+	return 0;
+
+
+}
+
+void suscribir(t_client* client, message_type queue) {
+	switch(queue){
 
 		case NEW_POKEMON:
 			list_add(subscribers -> new_pokemon, client);
@@ -92,10 +84,6 @@ uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
 			break;
 
 		default:
-			return 1; // Devuelve unsigned int, entonces no debería devolver -1 no?
+			break; // Devuelve unsigned int, entonces no debería devolver -1 no?
 	}
-
-	return 0;
-
-
 }

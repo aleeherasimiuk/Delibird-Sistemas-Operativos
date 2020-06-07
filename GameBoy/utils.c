@@ -18,7 +18,6 @@ int enviar_mensaje(int argc, char* argv[]){
 	if(compare_string(proceso, "SUSCRIPTOR")){
 		//TODO: Que pasa cuando es suscriptor?
 
-
 		// indico tiempo de subscripción
 		uint32_t tiempoDeRetardo;
 		sleep(tiempoDeRetardo);
@@ -31,11 +30,10 @@ int enviar_mensaje(int argc, char* argv[]){
 		// Abro conexión con el proceso en cuestión
 		conexion = crear_conexion_con_config(config, ip, puerto);
 
-		printf("IP: %s, PUERTO: %s", ip, puerto);
 	}
 
 
-	int status = send(conexion, paquete, paquete_size, 0);
+	//int status = send(conexion, paquete, paquete_size, 0);
 	return 0;
 
 }

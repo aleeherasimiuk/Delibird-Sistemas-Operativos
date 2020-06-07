@@ -29,5 +29,6 @@
 void  suscribirseAlBroker(void);
 void* escucharAlSocket(void*);
 void  enviarGetPokemon(t_pokemon* pokemon);
+void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id);
 
 #endif /* CONEXIONES_H_ */

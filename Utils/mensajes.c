@@ -98,8 +98,9 @@ void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_
 
 void* serializarSubscribe(t_subscribe* subscribe, uint32_t* bytes) {
 
-	module_type type = subscribe -> module;
-	void* serializedSubscribe = serializarGenerico(bytes, 1, &type, sizeof(module_type));
+	uint32_t process_id = subscribe -> process_id;
+	message_type message = subscribe -> queue_to_subscribe;
+	void* serializedSubscribe = serializarGenerico(bytes, 2, &process_id, sizeof(uint32_t), &message, sizeof(message_type));
 	return serializedSubscribe;
 
 }
@@ -338,12 +339,18 @@ t_subscribe* deserializarSubscribe(t_buffer* buffer) {
 	t_subscribe* subscribe = malloc(sizeof(t_subscribe));
 	void* stream = buffer -> stream;
 
-	module_type type;
+	uint32_t process_id;
+	message_type message;
 	uint32_t offset = 0;
-	memcpy(&type, stream + offset, sizeof(module_type));
-	offset += sizeof(module_type);
 
-	subscribe -> module = type;
+	memcpy(&process_id, stream + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(&message, stream + offset, sizeof(message_type));
+	offset += sizeof(message_type);
+
+	subscribe -> queue_to_subscribe = message;
+	subscribe -> process_id = process_id;
 
 	free(stream);
 	free(buffer);
@@ -360,7 +367,7 @@ t_gameboy_queue_to_subscribe* deserializarSubscribeGameboy(t_buffer* buffer) {
 
 	uint32_t offset = 0;
 	memcpy(&type, stream + offset, sizeof(message_type));
-	offset += sizeof(module_type);
+	offset += sizeof(message_type);
 
 	memcpy(&seconds, stream + offset, sizeof(uint32_t));
 	offset += sizeof(uint32_t);

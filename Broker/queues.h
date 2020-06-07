@@ -38,6 +38,7 @@ typedef struct{
 
 // Es probable que haya que poder identificar de otra manera a los clientes
 typedef struct{
+	uint32_t process_id;
 	uint32_t socket;
 } t_client;
 
@@ -49,6 +50,7 @@ typedef struct{
 
 
 uint32_t suscribirCliente(t_buffer* msg, uint32_t size);
+void suscribir(t_client* client, message_type queue);
 
 
 

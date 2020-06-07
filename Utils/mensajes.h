@@ -27,12 +27,6 @@ typedef enum {
 	GAMEBOY_SUBSCRIBE
 } message_type;
 
-typedef enum{
-	TEAM,
-	GAME_CARD,
-	GAME_BOY
-}module_type;
-
 typedef struct {
 	uint32_t name_size;
 	char* name;
@@ -92,9 +86,8 @@ typedef struct {
 
 
 typedef struct {
-	// En el futuro podría llevar información extra para identificar el proceso.
-	module_type module;
-
+	uint32_t process_id; // Se asigna, por ahora en el archivo de configuración
+	message_type queue_to_subscribe;
 } t_subscribe;
 
 // Gameboy Modo Suscriptor: https://bit.ly/3c1R6Md
