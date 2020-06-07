@@ -85,5 +85,8 @@ void suscribir(t_client* client, message_type queue) {
 
 		default:
 			break; // Devuelve unsigned int, entonces no debería devolver -1 no?
+
+		//log_info(logger, "UN cliente se suscribió a: %d", queue);
+		printf("UN cliente se suscribió a: %d", queue);
 	}
 }

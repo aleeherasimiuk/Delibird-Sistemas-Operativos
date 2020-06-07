@@ -22,13 +22,9 @@ int main() {
  */
 
 void inicializar_team(void) {
-	printf("Hola!");
 	iniciarPlanificador();
-	printf("Hola2!");
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
-	printf("Hola3!");
 	suscribirseAlBroker(); // TODO Revisar el escucharAlBroker
-	printf("Hola4!");
 	enviarGetsAlBroker();
 	// abrirSocketParaGameboy(); TODO
 }

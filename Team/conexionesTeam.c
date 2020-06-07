@@ -15,6 +15,7 @@
 void suscribirseAlBroker(void) {
 	// Abro conexion
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
+	log_info(logger, "Conexión Abierta");
 
 	uint32_t process_id = 25; // TODO: TRAER DEL CONFIG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -22,6 +23,8 @@ void suscribirseAlBroker(void) {
 	suscribirAUnaCola(conexion, APPEARED_POKEMON, process_id);
 	suscribirAUnaCola(conexion, LOCALIZED_POKEMON, process_id);
 	suscribirAUnaCola(conexion, CAUGHT_POKEMON, process_id);
+
+
 
 
 	pthread_t thread;
@@ -47,6 +50,7 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 
 	send(conexion, paquete_serializado, paquete_size, 0);
 	free(subscripcion);
+	log_info(logger, "Me suscribí a %d", cola);
 }
 
 
@@ -58,18 +62,19 @@ void *escucharAlSocket(void* socket) {
 		switch(paquete->type) {
 			case APPEARED_POKEMON:
 				// procesarAppeared(paquete); TODO
-				printf("Llegó un APPEARED_POKEMON");
+				log_info(logger, "Llegó un APPEARED_POKEMON");
 				break;
 			case LOCALIZED_POKEMON:
 				// procesarLocalized(paquete); TODO
-				printf("Llegó un LOCALIZED_POKEMON");
+				log_info(logger, "Llegó un LOCALIZED_POKEMON");
 				break;
 			case CAUGHT_POKEMON:
-				printf("Llegó un CAUGHT_POKEMON");
+				log_info(logger, "Llegó un CAUGHT_POKEMON");
 				break;
 			default:
-				printf("Codigo no valido: %d \n", paquete->type);
-				i = 0;
+				//printf("Codigo no valido: %d \n", paquete->type);
+				//i = 0;
+				break;
 		}
 	}
 	// TODO DESTRUIR EL HILO?

@@ -99,7 +99,7 @@ void* sacarDeLista(t_tcb* tcb, t_list* lista) {
 	return list_remove(lista, index);
 }
 
-void cambiarDeLista(t_tcb tcb, t_list* lista_actual, t_list* lista_destino) {
+void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
 	sacarDeLista(tcb, lista_actual);
 	list_add(lista_destino, tcb);
 }
@@ -113,7 +113,7 @@ void *entrenadorMain(void* arg) {
 	t_entrenador* entrenador = tcb->entrenador;
 	pthread_mutex_t mutex_ejecucion = tcb->mutex_ejecucion;
 	printf("Soy el entrenador %d\n", entrenador->id_entrenador);
-	white(1) {	// TODO proceso no esté en finalizado
+	while(1){	// TODO proceso no esté en finalizado
 		pthread_mutex_lock(&mutex_ejecucion);
 	}
 

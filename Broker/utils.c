@@ -63,11 +63,17 @@ void esperar_cliente(int socket_servidor)
 
 void serve_client(int* socket)
 {
-	message_type msg_type;
-	int status = recv(*socket, &msg_type, sizeof(message_type), MSG_WAITALL);
-	if(status == -1)
-		msg_type = -1;
-	process_request(msg_type, *socket);
+	while(1){
+		message_type msg_type;
+		int status = recv(*socket, &msg_type, sizeof(message_type), MSG_WAITALL);
+		if(status == -1)
+			msg_type = -1;
+		else{
+			printf("Procesando solicitud");
+			process_request(msg_type, *socket);
+		}
+		//printf("Sirviendo a un cliente: %d\n", *socket);
+	}
 	free(socket);
 }
 
@@ -76,6 +82,7 @@ void process_request(int cod_op, int cliente_fd) {
 	t_buffer* msg;
 	switch (cod_op) {
 		case SUBSCRIBE:
+			printf("Alguien ha intentado suscribirse");
 			msg = recibir_mensaje(cliente_fd, &size);
 			suscribirCliente(msg, cliente_fd);
 			free(msg);
@@ -98,6 +105,7 @@ void process_request(int cod_op, int cliente_fd) {
 			printf("codigo -1\n");
 			close(cliente_fd); // Ante error cerrar el socket
 			pthread_exit(NULL);
+			break;
 	}
 	// Cierro la conexion con ese cliente
 	close(cliente_fd);
