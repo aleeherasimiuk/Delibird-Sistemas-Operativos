@@ -74,7 +74,34 @@ t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name) 
 
 
 int distanciaA(t_coords* desde, t_coords* hasta) {
-	return 1;
+	int distX = abs(desde->posX - hasta->posX);
+	int distY = abs(desde->posY - hasta->posY);
+
+	return distX + distY;
+}
+
+//////////////////////////////////////
+//				ESTADOS				//
+//////////////////////////////////////
+
+int indexOf(t_tcb* tcb, t_list* lista) {
+	int index;
+	for (index = 0; index < list_size(lista); index++) {
+		if (tcb == (t_tcb*)list_get(lista, index)) {
+			return index;
+		}
+	}
+	return -1;
+}
+
+void* sacarDeLista(t_tcb* tcb, t_list* lista) {
+	int index = indexOf(tcb, lista); // Busco el indice donde se encuentra el elemento
+	return list_remove(lista, index);
+}
+
+void cambiarDeLista(t_tcb tcb, t_list* lista_actual, t_list* lista_destino) {
+	sacarDeLista(tcb, lista_actual);
+	list_add(lista_destino, tcb);
 }
 
 //////////////////////////////////////
@@ -85,8 +112,10 @@ void *entrenadorMain(void* arg) {
 	t_tcb* tcb = (t_tcb*)arg;
 	t_entrenador* entrenador = tcb->entrenador;
 	pthread_mutex_t mutex_ejecucion = tcb->mutex_ejecucion;
-
 	printf("Soy el entrenador %d\n", entrenador->id_entrenador);
+	white(1) {	// TODO proceso no esté en finalizado
+		pthread_mutex_lock(&mutex_ejecucion);
+	}
 
 	return NULL;
 }

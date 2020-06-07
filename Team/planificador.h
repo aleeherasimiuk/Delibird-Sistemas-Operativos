@@ -9,6 +9,7 @@
 #define PLANIFICADOR_H_
 
 #include <pthread.h>
+#include <semaphore.h>
 #include <commons/string.h>
 #include <commons/config.h>
 #include <commons/collections/list.h>
@@ -34,7 +35,7 @@ void iniciarPlanificador(void);
 
 //		EJECUCION
 	// Planificacion largo plazo
-t_entrenador* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon);
+t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list* lista);
 void *mandarABuscarPokemones(void);
 
 

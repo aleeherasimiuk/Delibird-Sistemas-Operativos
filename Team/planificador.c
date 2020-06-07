@@ -22,8 +22,8 @@ t_queue* pokemones_en_el_mapa; // Lista de t_pokemon_en_mapa*
 int retardo_ciclo_cpu;
 
 // VER DE USAR SEM_T para hacer contadores
-pthread_mutex_t mutex_pokemones_libres; // para ver si hay pokemones que no están siendo buscados por algún entrenador
-pthread_mutex_t mutex_entrenadores_disponibles; // para ver si hay entrenadores disponibles (new/blocked_idle)
+sem_t counter_pokemones_libres; // para ver si hay pokemones que no están siendo buscados por algún entrenador
+sem_t counter_entrenadores_disponibles; // para ver si hay entrenadores disponibles (new/blocked_idle)
 
 //////////////////////////////////////
 //				STRUCTS				//
@@ -62,6 +62,7 @@ void cargarEntrenadores(void) {
 
 		tcb_nuevo->entrenador->id_entrenador = i + 1;
 		tcb_nuevo->entrenador->posicion = crearCoordenadas(posiciones_entrenadores[i]);
+		tcb_nuevo->entrenador->destino = NULL;
 		tcb_nuevo->entrenador->pokes_actuales = crearListaDeInventario(pokemon_entrenadores[i], NULL);
 		tcb_nuevo->entrenador->pokes_objetivos = crearListaDeInventario(objetivos_entrenadores[i], objetivo_global);
 
@@ -74,6 +75,8 @@ void cargarEntrenadores(void) {
 		pthread_detach(thread);
 		i++;
 	}
+
+	sem_init(&counter_entrenadores_disponibles, 0, i); // i es la cantidad de entrenadores cargados, que siempre seria la misma.
 }
 
 void enviarGetsAlBroker(void) {
@@ -90,8 +93,7 @@ void iniciarPlanificador(void) {
 	pokemones_en_el_mapa = queue_create();
 	retardo_ciclo_cpu = config_get_int_value(config, "RETARDO_CICLO_CPU");
 
-	pthread_mutex_init(&mutex_pokemones_libres, NULL);
-	pthread_mutex_lock(&mutex_pokemones_libres); // Lo lockeo porque todavía no hay pokemones en la lista
+	sem_init(&counter_pokemones_libres, 0, 0);	// inicio el semaforo en 0 ya que todavia no tengo pokemones.
 
 	pthread_t thread;
 
@@ -107,42 +109,46 @@ void iniciarPlanificador(void) {
 	//			PLANI LARGO PLAZO		//
 	//////////////////////////////////////
 
-t_entrenador* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon) {
+t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list* lista) {
 
-	t_entrenador* entrenador_temp;
+	t_tcb* entrenador_temp;
 	int distancia_temp;
+	int menor_distancia;
+	t_tcb* entrenador_mas_cercano;
+	int index;
 
-	if (list_is_empty(entrenadores_new)) {
-		// TODO if (list_is_empty(entrenadores_blocked_idle))
-	}
-	t_entrenador* entrenador_mas_cercano = list_get(entrenadores_new, 0);
-	int menor_distancia = distanciaA(entrenador_mas_cercano->posicion, pokemon->posicion);
+	if (!list_is_empty(entrenadores_new)) {
+		lista = entrenadores_new;
+		entrenador_mas_cercano = list_get(entrenadores_new, 0);
+		menor_distancia = distanciaA(entrenador_mas_cercano->entrenador->posicion, pokemon->posicion);
 
-	int index; // Para recorrer los entrenadores
-	// Recorro en los de estado new
-	for (index = 1; index < entrenadores_new->elements_count; index++) {
-		if (menor_distancia == 0) break;	// corto porque sería la distancia minima, entonces dejo de recorrer
+		// Recorro en los de estado new
+		for (index = 1; index < entrenadores_new->elements_count; index++) {
+			if (menor_distancia == 0) break;	// corto porque sería la distancia minima, entonces dejo de recorrer
 
-		entrenador_temp = list_get(entrenadores_new, index);
-		distancia_temp = distanciaA(entrenador_temp->posicion, pokemon->posicion);
-		if (distancia_temp < menor_distancia) {
-			entrenador_mas_cercano = entrenador_temp;
-			menor_distancia = distancia_temp;
+			entrenador_temp = list_get(entrenadores_new, index);
+			distancia_temp = distanciaA(entrenador_temp->entrenador->posicion, pokemon->posicion);
+			if (distancia_temp < menor_distancia) {
+				entrenador_mas_cercano = entrenador_temp;
+				menor_distancia = distancia_temp;
+			}
 		}
+		// Si ya tengo al minimo, directamente salgo
+		if (menor_distancia == 0) return entrenador_mas_cercano;
 	}
-
-	// Si ya tengo al minimo, directamente salgo
-	if (menor_distancia == 0) return entrenador_mas_cercano;
 
 	// busco en blocked_idle
-	for (index = 0; index < entrenadores_blocked_idle->elements_count; index++) {
-		if (menor_distancia == 0) break;	// corto porque sería la distancia minima, entonces dejo de recorrer
+	if (!list_is_empty(entrenadores_blocked_idle)) {
+		lista = entrenadores_blocked_idle;
+		for (index = 0; index < entrenadores_blocked_idle->elements_count; index++) {
+			if (menor_distancia == 0) break;	// corto porque sería la distancia minima, entonces dejo de recorrer
 
-		entrenador_temp = list_get(entrenadores_blocked_idle, index);
-		distancia_temp = distanciaA(entrenador_temp->posicion, pokemon->posicion);
-		if (distancia_temp < menor_distancia) {
-			entrenador_mas_cercano = entrenador_temp;
-			menor_distancia = distancia_temp;
+			entrenador_temp = list_get(entrenadores_blocked_idle, index);
+			distancia_temp = distanciaA(entrenador_temp->entrenador->posicion, pokemon->posicion);
+			if (distancia_temp < menor_distancia) {
+				entrenador_mas_cercano = entrenador_temp;
+				menor_distancia = distancia_temp;
+			}
 		}
 	}
 
@@ -150,13 +156,19 @@ t_entrenador* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon) {
 }
 
 void *mandarABuscarPokemones(void) { //Pasar de new/blocked_idle a ready (Planificador a largo plazo)
-	t_entrenador* entrenador; // entrenador a pasar a ready - desde new o blocked_idle
+	t_tcb* tcb_entrenador; // entrenador a pasar a ready - desde new o blocked_idle
 	t_pokemon_en_mapa* pokemon;
+	t_list* lista_actual; // Lista en la que se encuentra el entrenador mas cercano
+
 	while(1)  { // TODO no esté en exit el team
-		pthread_mutex_lock(&mutex_pokemones_libres);
-		pthread_mutex_lock(&mutex_entrenadores_disponibles);
+		sem_wait(&counter_pokemones_libres);
+		sem_wait(&counter_entrenadores_disponibles);
+
 		pokemon = queue_pop(pokemones_en_el_mapa);
-		entrenador = entrenadorMasCercanoA(pokemon);
+		tcb_entrenador = entrenadorMasCercanoA(pokemon, lista_actual);
+
+		tcb_entrenador->entrenador->destino = pokemon->posicion;
+		cambiarDeLista(tcb_entrenador, lista_actual, entrenadores_ready);
 	}
 }
 

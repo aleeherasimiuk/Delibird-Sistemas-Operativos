@@ -36,6 +36,7 @@ typedef struct {
 typedef struct {
 	uint32_t id_entrenador;
 	t_coords* posicion;
+	t_coords* destino;
 	t_list* pokes_actuales;
 	t_list* pokes_objetivos;
 } t_entrenador;
@@ -54,11 +55,19 @@ typedef struct {
 /*
  * Crea un t_coords a partir de la posiciones de la config, formato "x|y"
  */
+// Inicializacion
 t_coords* crearCoordenadas(char*);
 t_list* crearListaDeInventario(char*, t_list*);
 void cargarPokemonEnListaDeInventario(t_list*, char*);
 t_inventario* buscarInventarioPorPokemonName(t_list*, char*);
 int distanciaA(t_coords*, t_coords*);
+
+// Estados
+int indexOf(t_tcb* tcb, t_list* lista);
+void* sacarDeLista(t_tcb* tcb, t_list* lista);
+void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino);
+
+// Ejecución
 void *entrenadorMain(void*);
 
 #endif /* ENTRENADORES_H_ */
