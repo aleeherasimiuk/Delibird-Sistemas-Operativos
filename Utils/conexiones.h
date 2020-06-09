@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include "mensajes.h"
 
+#define CANT_CONNECT -10
+
 
 int crear_conexion(char* ip, char* puerto);
 int crear_conexion_con_config(t_config* config, char* campo_ip, char* campo_puerto);

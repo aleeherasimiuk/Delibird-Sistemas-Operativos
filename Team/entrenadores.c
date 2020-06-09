@@ -112,7 +112,7 @@ void *entrenadorMain(void* arg) {
 	t_tcb* tcb = (t_tcb*)arg;
 	t_entrenador* entrenador = tcb->entrenador;
 	pthread_mutex_t mutex_ejecucion = tcb->mutex_ejecucion;
-	printf("Soy el entrenador %d\n", entrenador->id_entrenador);
+	log_debug(logger, "Soy el entrenador %d", entrenador->id_entrenador);
 	while(1){	// TODO proceso no esté en finalizado
 		pthread_mutex_lock(&mutex_ejecucion);
 	}

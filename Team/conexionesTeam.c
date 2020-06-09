@@ -53,7 +53,12 @@ void suscribirseAlBroker(void) {
 
 int abrirUnaConexion(t_config* config) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
-	log_debug(logger, "Conexión Abierta");
+	if(conexion == CANT_CONNECT){
+		log_debug(logger, "No pude conectar :(");
+		terminar_programa(conexion, logger, config);
+	} else {
+		log_debug(logger, "Conexión Abierta");
+	}
 	return conexion;
 }
 
@@ -83,7 +88,6 @@ void *escucharAlSocket(void* socket) {
 		t_paquete* paquete = recibirPaquete(*((int*)socket));
 
 		if(paquete != NULL){
-			log_debug(logger, "Llegó algo");
 
 			switch(paquete->type) {
 				case APPEARED_POKEMON:

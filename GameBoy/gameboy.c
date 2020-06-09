@@ -39,8 +39,14 @@ t_config* leer_config(void) {
 }
 
 void terminar_programa(int socket, t_log* logger, t_config* config) {
-	close(socket);
-	log_destroy(logger);
-	config_destroy(config);
+	if(socket != CANT_CONNECT){
+		close(socket);
+	}
+	if(logger != NULL){
+		log_destroy(logger);
+	}
+	if(config != NULL){
+		config_destroy(config);
+	}
 }
 

@@ -30,12 +30,19 @@ int enviar_mensaje(int argc, char* argv[]){
 		// Abro conexión con el proceso en cuestión
 		conexion = crear_conexion_con_config(config, ip, puerto);
 
-	}
+		if(conexion == CANT_CONNECT){
+			log_debug(logger, "No pude conectar :(");
+			terminar_programa(conexion, logger, config);
+		} else {
+			log_debug(logger, "Conexión Abierta");
+		}
+		return conexion;
 
+	}
 
 	int status = send(conexion, paquete, paquete_size, 0);
 	log_debug(logger, "Envié un mensaje con status: %d", status);
-	close(conexion);
+	terminar_programa(conexion, logger, config);
 	return 0;
 
 }

@@ -37,3 +37,16 @@ t_log* iniciar_logger(char* logfile)
 t_config* leer_config(void) {
 	return config_create("team.config");
 }
+
+void terminar_programa(int socket, t_log* logger, t_config* config) {
+	if(socket != CANT_CONNECT){
+		close(socket);
+	}
+	if(logger != NULL){
+		log_destroy(logger);
+	}
+	if(config != NULL){
+		config_destroy(config);
+	}
+	exit(1);
+}

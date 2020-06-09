@@ -89,20 +89,6 @@ void suscribir(t_client* client, message_type queue) {
 		case APPEARED_POKEMON:
 			cliente_a_guardar = serializarCliente(client);
 			list_add(subscribers -> appeared_pokemon, cliente_a_guardar);
-			//void* element = list_get(subscribers -> appeared_pokemon, 0);
-			//t_client* cliente_que_guardo = (t_client*) element;
-			//log_debug(logger, "UN cliente se suscribió: %d", *(cliente_que_guardo -> socket));
-
-			/*
-			 * t_pokemon* pok = crearPokemon("PIKACHU");
-			t_appeared_pokemon* ap_pok = appeared_pokemon(pok, 10, 10);
-			int bytes;
-			void* ser = serializarAppearedPokemon(ap_pok, &bytes);
-			int bytes_p;
-			void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, ser, bytes, 10, &bytes_p);
-
-			send(cliente_que_guardo -> socket, a_enviar, bytes_p, 0);
-			 * */
 			break;
 
 		default:

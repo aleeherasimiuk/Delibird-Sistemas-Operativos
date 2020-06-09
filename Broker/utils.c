@@ -82,7 +82,6 @@ void process_request(int cod_op, int cliente_fd) {
 	t_buffer* msg;
 	switch (cod_op) {
 		case SUBSCRIBE:
-			log_debug(logger, "Alguien ha intentado suscribirse");
 			msg = recibir_mensaje(cliente_fd, &size);
 			suscribirCliente(msg, cliente_fd);
 			free(msg);
