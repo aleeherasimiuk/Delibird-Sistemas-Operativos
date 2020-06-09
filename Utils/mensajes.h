@@ -120,6 +120,19 @@ typedef struct {
 
 //TODO: Ver si los typedef sin struct deben ser serializados
 
+
+// Es probable que haya que poder identificar de otra manera a los clientes
+typedef struct{
+	uint32_t* process_id;
+	uint32_t* socket;
+} t_client;
+
+typedef struct{
+	uint32_t client;
+	uint32_t id;
+	uint32_t received;
+}t_message_by_client;
+
 //Firmas de Serializacion
 void* serializarPokemon(t_pokemon* pokemon, uint32_t* bytes);
 void* serializarCoordenadas(t_coords* coordenadas, uint32_t* bytes);
@@ -131,6 +144,9 @@ void* serializarSubscribe(t_subscribe* subscribe, uint32_t* bytes);
 void* serializarSubscribeGameboy(t_gameboy_queue_to_subscribe* subscribe, uint32_t* bytes);
 void* serializarBuffer(t_buffer* buffer, uint32_t* bytes);
 void* serializarPaquete(t_paquete* paquete, uint32_t* bytes);
+
+//Test
+void* serializarCliente(t_client* cliente);
 
 /*
  * serializarGenerico:
@@ -151,6 +167,7 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer);
 t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer);
 t_subscribe* deserializarSubscribe(t_buffer* buffer);
 t_gameboy_queue_to_subscribe* deserializarSubscribeGameboy(t_buffer* buffer);
+t_client* deserializarCliente(void*);
 
 t_paquete* recibirPaquete(int socket);
 

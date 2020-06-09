@@ -143,6 +143,17 @@ void* serializarPaquete(t_paquete* paquete, uint32_t* bytes){
 
 }
 
+void* serializarCliente(t_client* cliente){
+
+	uint32_t socket = *(cliente -> socket);
+	uint32_t process_id = *(cliente -> process_id);
+
+	uint32_t bytes; //No se usa, creo
+	void* serialized_client = serializarGenerico(&bytes, 2, &socket, sizeof(uint32_t), &process_id, sizeof(uint32_t));
+
+	return serialized_client;
+}
+
 void* serializarGenerico(uint32_t* bytes, uint32_t num_args, ...) {
 
 	// va_list es la lista para guardar los argumentos variables
@@ -379,6 +390,30 @@ t_gameboy_queue_to_subscribe* deserializarSubscribeGameboy(t_buffer* buffer) {
 	free(buffer);
 
 	return subscribe;
+}
+
+t_client* deserializarCliente(void* stream){
+
+	t_client* client = malloc(sizeof(t_client));
+
+	uint32_t* sock = malloc(sizeof(uint32_t));
+	uint32_t* process_id = malloc(sizeof(uint32_t));
+
+	uint32_t offset = 0;
+
+	memcpy(sock, stream + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(process_id, stream + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	client -> socket = sock;
+	client -> process_id = process_id;
+
+	free(stream);
+
+	return client;
+
 }
 
 t_paquete* recibirPaquete(int socket) {

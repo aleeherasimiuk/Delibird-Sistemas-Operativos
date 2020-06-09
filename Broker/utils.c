@@ -55,6 +55,7 @@ void esperar_cliente(int socket_servidor)
 		return;
 	}
 
+	log_debug(logger, "Yo soy el servidor y tengo socket: %d", socket_servidor);
 	log_debug(logger, "Se ha conectado un cliente al socket %d", *socket_cliente);
 
 	pthread_create(&thread,NULL,(void*)serve_client,socket_cliente);
@@ -103,10 +104,9 @@ void process_request(int cod_op, int cliente_fd) {
 
 			t_list* app_subscribers = subscribers -> appeared_pokemon;
 
-			// TODO: Lo dejo acá porque no se que mas hacer, es probable que el broker tenga que iniciar conexiones hacia los distintos modulos
 			for(int i = 0; i < list_size(app_subscribers); i++){
-				void* list_element = list_get(subscribers -> appeared_pokemon, i);
-				t_client* client = (t_client*) list_element;
+				void* list_element = list_get(app_subscribers, i);
+				t_client* client = deserializarCliente(list_element);
 				log_debug(logger, "Intentaré enviar APPEARED_POKEMON al cliente %d", *(client -> socket));
 				t_pokemon* pok = crearPokemon("PIKACHU");
 				t_appeared_pokemon* ap_pok = appeared_pokemon(pok, 10, 10);

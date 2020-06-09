@@ -36,17 +36,7 @@ typedef struct{
 	t_list* localized_pokemon;
 }t_subscribers;
 
-// Es probable que haya que poder identificar de otra manera a los clientes
-typedef struct{
-	uint32_t* process_id;
-	uint32_t* socket;
-} t_client;
-
-typedef struct{
-	uint32_t client;
-	uint32_t id;
-	uint32_t received;
-}t_message_by_client;
+// Cliente movido a mensajes.h
 
 
 uint32_t suscribirCliente(t_buffer* msg, uint32_t size);
