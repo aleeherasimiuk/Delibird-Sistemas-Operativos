@@ -6,6 +6,7 @@
  */
 
 #include"utils.h"
+#include"var_globales.h"
 
 
 //TODO: Implementación de threads
@@ -54,7 +55,7 @@ void esperar_cliente(int socket_servidor)
 		return;
 	}
 
-	printf("socket %d\n", *socket_cliente);
+	log_debug(logger, "Se ha conectado un cliente al socket %d", *socket_cliente);
 
 	pthread_create(&thread,NULL,(void*)serve_client,socket_cliente);
 	pthread_detach(thread);
@@ -63,16 +64,14 @@ void esperar_cliente(int socket_servidor)
 
 void serve_client(int* socket)
 {
-	while(1){
-		message_type msg_type;
-		int status = recv(*socket, &msg_type, sizeof(message_type), MSG_WAITALL);
-		if(status == -1)
-			msg_type = -1;
-		else{
-			printf("Procesando solicitud");
-			process_request(msg_type, *socket);
-		}
-		//printf("Sirviendo a un cliente: %d\n", *socket);
+
+	message_type msg_type;
+	int status = recv(*socket, &msg_type, sizeof(message_type), MSG_WAITALL);
+	if(status == -1)
+		msg_type = -1;
+	else{
+		log_debug(logger, "Procesando solicitud");
+		process_request(msg_type, *socket);
 	}
 	free(socket);
 }
@@ -82,7 +81,7 @@ void process_request(int cod_op, int cliente_fd) {
 	t_buffer* msg;
 	switch (cod_op) {
 		case SUBSCRIBE:
-			printf("Alguien ha intentado suscribirse");
+			log_debug(logger, "Alguien ha intentado suscribirse");
 			msg = recibir_mensaje(cliente_fd, &size);
 			suscribirCliente(msg, cliente_fd);
 			free(msg);
@@ -97,18 +96,54 @@ void process_request(int cod_op, int cliente_fd) {
 			//t_pokemon* pokemon = deserializarPokemon(msg);
 			// procesarGet(pokemon);
 			break;
+
+		case APPEARED_POKEMON:
+			log_debug(logger, "Alguien ha enviado un APPEARED_POKEMON");
+			msg = recibir_mensaje(cliente_fd, &size);
+
+			t_list* app_subscribers = subscribers -> appeared_pokemon;
+
+			// TODO: Lo dejo acá porque no se que mas hacer, es probable que el broker tenga que iniciar conexiones hacia los distintos modulos
+			for(int i = 0; i < list_size(app_subscribers); i++){
+				void* list_element = list_get(subscribers -> appeared_pokemon, i);
+				t_client* client = (t_client*) list_element;
+				log_debug(logger, "Intentaré enviar APPEARED_POKEMON al cliente %d", client -> socket);
+				t_pokemon* pok = crearPokemon("PIKACHU");
+				t_appeared_pokemon* ap_pok = appeared_pokemon(pok, 10, 10);
+				int bytes;
+				void* ser = serializarAppearedPokemon(ap_pok, &bytes);
+				int bytes_p;
+				void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, ser, bytes, 10, &bytes_p);
+
+				int status = send(client -> socket, a_enviar, bytes_p, 0);
+				log_debug(logger, "Envié APPEARED_POKEMON al suscriptor %d con status: %d", client -> socket ,status);
+			}
+
+			break;
+
+		case CATCH_POKEMON:
+			break;
+
+		case CAUGHT_POKEMON:
+			break;
+
+		case LOCALIZED_POKEMON:
+			break;
+
+
 		case 0:
-			printf("codigo 0\n");
-			close(cliente_fd); // Ante error cerrar el socket
-			pthread_exit(NULL);
+			//printf("codigo 0\n");
+			//close(cliente_fd); // Ante error cerrar el socket
+			//pthread_exit(NULL);
+			break;
 		case -1:
-			printf("codigo -1\n");
-			close(cliente_fd); // Ante error cerrar el socket
-			pthread_exit(NULL);
+			//printf("codigo -1\n");
+			//close(cliente_fd); // Ante error cerrar el socket
+			//pthread_exit(NULL);
 			break;
 	}
 	// Cierro la conexion con ese cliente
-	close(cliente_fd);
+	//close(cliente_fd);
 }
 
 //TODO: Controlar los recv

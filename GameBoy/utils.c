@@ -33,7 +33,9 @@ int enviar_mensaje(int argc, char* argv[]){
 	}
 
 
-	//int status = send(conexion, paquete, paquete_size, 0);
+	int status = send(conexion, paquete, paquete_size, 0);
+	log_debug(logger, "Envié un mensaje con status: %d", status);
+	close(conexion);
 	return 0;
 
 }

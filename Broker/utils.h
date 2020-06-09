@@ -19,6 +19,7 @@
 #include<pthread.h>
 #include"queues.h"
 #include"../Utils/mensajes.h"
+#include"var_globales.h"
 
 void* recibir_buffer(int*, int);
 

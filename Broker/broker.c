@@ -8,22 +8,23 @@
 #include"broker.h"
 
 
-//TODO: SACAR LA VARIABLE GLOBAL!
-t_subscribers* subscribers;
+t_config* config = NULL;
+t_log* logger = NULL;
 
 int main(void) {
 
 	char* ip;
 	char* puerto;
-
-	t_config* config;
+	char* logfile;
 
 	config = leer_config();
 
 	ip = config_get_string_value(config, "IP");
 	puerto = config_get_string_value(config, "PUERTO");
+	logfile = config_get_string_value(config, "LOG_FILE");
 
-	subscribers = iniciarSubscribers();
+	logger = iniciar_logger(logfile);
+	iniciarSubscribers();
 	iniciar_servidor(ip, puerto);
 
 
@@ -37,7 +38,7 @@ t_config* leer_config(void)
 
 t_log* iniciar_logger(char* logfile)
 {
-	return log_create(logfile, "Team", true, LOG_LEVEL_INFO);
+	return log_create(logfile, "Broker", true, LOG_LEVEL_DEBUG);
 }
 
 

@@ -17,9 +17,11 @@
 #include "../Utils/mensajes.h"
 #include "utils.h"
 #include "queues.h"
+#include "var_globales.h"
 
 t_config* leer_config(void);
 t_subscribers* iniciarSubscribers(void);
+t_log* iniciar_logger(char*);
 
 
 

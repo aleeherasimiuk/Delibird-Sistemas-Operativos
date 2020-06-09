@@ -385,18 +385,24 @@ t_paquete* recibirPaquete(int socket) {
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
 	// Recibo tipo de mensaje
-	recv(socket, &(paquete->type), sizeof(paquete->type), MSG_WAITALL);
-	// Recibo IDs
-	recv(socket, &(paquete->id), sizeof(paquete->id), 0);
-	recv(socket, &(paquete->correlative_id), sizeof(paquete->correlative_id), MSG_WAITALL);
+	int status = recv(socket, &(paquete->type), sizeof(paquete->type), MSG_WAITALL);
+	if(status > 0){
+		printf("Status: %d", status);
+		printf("Recibí un mensaje de tipo %d", paquete -> type);
+		// Recibo IDs
+		//recv(socket, &(paquete->id), sizeof(paquete->id), MSG_WAITALL);
+		recv(socket, &(paquete->correlative_id), sizeof(paquete->correlative_id), MSG_WAITALL);
 
-	paquete->buffer = malloc(sizeof(t_buffer));
-	recv(socket, &(paquete->buffer->buffer_size), sizeof(paquete->buffer->buffer_size), MSG_WAITALL);
+		paquete->buffer = malloc(sizeof(t_buffer));
+		recv(socket, &(paquete->buffer->buffer_size), sizeof(paquete->buffer->buffer_size), MSG_WAITALL);
 
-	paquete->buffer->stream = malloc(paquete->buffer->buffer_size);
-	recv(socket, paquete->buffer->stream, paquete->buffer->buffer_size, MSG_WAITALL);
+		paquete -> buffer-> stream = malloc(paquete->buffer->buffer_size);
+		recv(socket, paquete -> buffer -> stream, paquete -> buffer -> buffer_size, MSG_WAITALL);
+		return paquete;
+	} else {
+		return NULL;
+	}
 
-	return paquete;
 }
 
 t_pokemon* crearPokemon(char* name) {
@@ -434,7 +440,7 @@ void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_mes
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
 
 	return serialized_paquete;
-	liberar_paquete(paquete);
+	//TODO: liberar_paquete(paquete);
 }
 
 t_coords* crear_coordenadas_from_int(uint32_t posX, uint32_t posY){

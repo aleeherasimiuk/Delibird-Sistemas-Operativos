@@ -6,11 +6,13 @@
  */
 
 #include "queues.h"
+#include "var_globales.h"
+t_subscribers* subscribers = NULL;
+t_list* suscriptores_app;
 
-extern t_subscribers* subscribers;
 
-t_subscribers* iniciarSubscribers(){
-	t_subscribers* subscribers = malloc(sizeof(t_subscribers));
+void iniciarSubscribers(){
+	subscribers = malloc(sizeof(t_subscribers));
 
 	subscribers -> new_pokemon = list_create();
 	subscribers -> get_pokemon = list_create();
@@ -19,7 +21,7 @@ t_subscribers* iniciarSubscribers(){
 	subscribers -> appeared_pokemon = list_create();
 	subscribers -> localized_pokemon = list_create();
 
-	return subscribers;
+	//return subscribers;
 
 }
 
@@ -49,6 +51,7 @@ uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
 
 	message_type type = subscribe -> queue_to_subscribe;
 
+
 	suscribir(client, type);
 
 	return 0;
@@ -57,6 +60,7 @@ uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
 }
 
 void suscribir(t_client* client, message_type queue) {
+	log_debug(logger, "Voy a suscribir al cliente %d, a la cola %d", client -> socket, queue);
 	switch(queue){
 
 		case NEW_POKEMON:
@@ -81,12 +85,25 @@ void suscribir(t_client* client, message_type queue) {
 
 		case APPEARED_POKEMON:
 			list_add(subscribers -> appeared_pokemon, client);
+			void* element = list_get(subscribers -> appeared_pokemon, 0);
+			t_client* cliente_que_guardo = (t_client*) element;
+			log_debug(logger, "UN cliente se suscribió: %d", cliente_que_guardo -> socket);
+
+			/*
+			 * t_pokemon* pok = crearPokemon("PIKACHU");
+			t_appeared_pokemon* ap_pok = appeared_pokemon(pok, 10, 10);
+			int bytes;
+			void* ser = serializarAppearedPokemon(ap_pok, &bytes);
+			int bytes_p;
+			void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, ser, bytes, 10, &bytes_p);
+
+			send(cliente_que_guardo -> socket, a_enviar, bytes_p, 0);
+			 * */
 			break;
 
 		default:
 			break; // Devuelve unsigned int, entonces no debería devolver -1 no?
 
-		//log_info(logger, "UN cliente se suscribió a: %d", queue);
-		printf("UN cliente se suscribió a: %d", queue);
+
 	}
 }

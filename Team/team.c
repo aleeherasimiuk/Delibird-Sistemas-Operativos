@@ -31,7 +31,7 @@ void inicializar_team(void) {
 
 t_log* iniciar_logger(char* logfile)
 {
-	return log_create(logfile, "Team", true, LOG_LEVEL_INFO);
+	return log_create(logfile, "Team", true, LOG_LEVEL_DEBUG);
 }
 
 t_config* leer_config(void) {
