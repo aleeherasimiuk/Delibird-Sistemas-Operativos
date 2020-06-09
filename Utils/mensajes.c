@@ -423,7 +423,7 @@ t_paquete* recibirPaquete(int socket) {
 	int status = recv(socket, &(paquete->type), sizeof(paquete->type), MSG_WAITALL);
 	if(status > 0){
 		// Recibo IDs
-		//recv(socket, &(paquete->id), sizeof(paquete->id), MSG_WAITALL);
+		recv(socket, &(paquete->id), sizeof(paquete->id), MSG_WAITALL);
 		recv(socket, &(paquete->correlative_id), sizeof(paquete->correlative_id), MSG_WAITALL);
 
 		paquete->buffer = malloc(sizeof(t_buffer));

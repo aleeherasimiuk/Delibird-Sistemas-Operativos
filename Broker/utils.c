@@ -65,54 +65,50 @@ void esperar_cliente(int socket_servidor)
 
 void serve_client(int* socket)
 {
-
-	message_type msg_type;
-	int status = recv(*socket, &msg_type, sizeof(message_type), MSG_WAITALL);
-	if(status == -1)
-		msg_type = -1;
-	else{
+	t_paquete* paquete = recibirPaquete(*socket);
+	if(paquete != NULL){
 		log_debug(logger, "Procesando solicitud");
-		process_request(msg_type, *socket);
+		process_request(paquete, *socket);
+	}else {
+		log_debug(logger, "No puedo procesar la solicitud");
 	}
 	free(socket);
 }
 
-void process_request(int cod_op, int cliente_fd) {
+void process_request(t_paquete* paquete, uint32_t socket_cliente) {
 	uint32_t size;
-	t_buffer* msg;
+	t_buffer* buffer = paquete -> buffer;
+	message_type cod_op = paquete -> type;
+	log_debug(logger, "Código de operacion: %d", cod_op);
 	switch (cod_op) {
 		case SUBSCRIBE:
-			msg = recibir_mensaje(cliente_fd, &size);
-			suscribirCliente(msg, cliente_fd);
-			free(msg);
+			suscribirCliente(buffer, socket_cliente);
+			free(buffer);
 			break;
 		case NEW_POKEMON:
-			//msg = recibir_mensaje(cliente_fd, &size);
-			//devolver_mensaje(msg, size, cliente_fd);
-			//free(msg);
 			break;
 		case GET_POKEMON:
-			//msg = recibir_mensaje(cliente_fd, &size);
-			//t_pokemon* pokemon = deserializarPokemon(msg);
-			// procesarGet(pokemon);
 			break;
 
 		case APPEARED_POKEMON:
 			log_debug(logger, "Alguien ha enviado un APPEARED_POKEMON");
-			msg = recibir_mensaje(cliente_fd, &size);
+			//msg = recibir_mensaje(cliente_fd, &size);
 
+			t_appeared_pokemon* appeared_pokemon_msg = deserializarAppearedPokemon(buffer);
 			t_list* app_subscribers = subscribers -> appeared_pokemon;
+
+			log_debug(logger, "Apareció un pokemon: %s", appeared_pokemon_msg -> pokemon -> name);
 
 			for(int i = 0; i < list_size(app_subscribers); i++){
 				void* list_element = list_get(app_subscribers, i);
 				t_client* client = deserializarCliente(list_element);
 				log_debug(logger, "Intentaré enviar APPEARED_POKEMON al cliente %d", *(client -> socket));
-				t_pokemon* pok = crearPokemon("PIKACHU");
-				t_appeared_pokemon* ap_pok = appeared_pokemon(pok, 10, 10);
+//				t_pokemon* pok = crearPokemon("PIKACHU");
+//				t_appeared_pokemon* ap_pok = appeared_pokemon(pok, 10, 10);
 				int bytes;
-				void* ser = serializarAppearedPokemon(ap_pok, &bytes);
+				void* ser = serializarAppearedPokemon(appeared_pokemon_msg, &bytes);
 				int bytes_p;
-				void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, ser, bytes, 10, &bytes_p);
+				void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, ser, bytes, paquete -> correlative_id, &bytes_p);
 
 				int status = send(*(client -> socket), a_enviar, bytes_p, 0);
 				log_debug(logger, "Envié APPEARED_POKEMON al suscriptor %d con status: %d", *(client -> socket) ,status);

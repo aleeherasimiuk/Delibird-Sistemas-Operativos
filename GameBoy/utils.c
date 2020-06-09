@@ -36,7 +36,6 @@ int enviar_mensaje(int argc, char* argv[]){
 		} else {
 			log_debug(logger, "Conexión Abierta");
 		}
-		return conexion;
 
 	}
 
