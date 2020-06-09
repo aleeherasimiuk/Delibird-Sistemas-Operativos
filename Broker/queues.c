@@ -63,31 +63,30 @@ uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
 
 void suscribir(t_client* client, message_type queue) {
 	log_debug(logger, "Voy a suscribir al cliente %d, a la cola %d", *(client -> socket), queue);
-	void* cliente_a_guardar;
+	void* cliente_a_guardar = serializarCliente(client);
 	switch(queue){
 
 		case NEW_POKEMON:
-			list_add(subscribers -> new_pokemon, client);
+			list_add(subscribers -> new_pokemon, cliente_a_guardar);
 			break;
 
 		case GET_POKEMON:
-			list_add(subscribers -> get_pokemon, client);
+			list_add(subscribers -> get_pokemon, cliente_a_guardar);
 			break;
 
 		case CATCH_POKEMON:
-			list_add(subscribers -> catch_pokemon, client);
+			list_add(subscribers -> catch_pokemon, cliente_a_guardar);
 			break;
 
 		case CAUGHT_POKEMON:
-			list_add(subscribers -> caught_pokemon, client);
+			list_add(subscribers -> caught_pokemon, cliente_a_guardar);
 			break;
 
 		case LOCALIZED_POKEMON:
-			list_add(subscribers -> localized_pokemon, client);
+			list_add(subscribers -> localized_pokemon, cliente_a_guardar);
 			break;
 
 		case APPEARED_POKEMON:
-			cliente_a_guardar = serializarCliente(client);
 			list_add(subscribers -> appeared_pokemon, cliente_a_guardar);
 			break;
 
