@@ -38,8 +38,8 @@ typedef struct{
 
 // Es probable que haya que poder identificar de otra manera a los clientes
 typedef struct{
-	uint32_t process_id;
-	uint32_t socket;
+	uint32_t* process_id;
+	uint32_t* socket;
 } t_client;
 
 typedef struct{

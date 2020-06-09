@@ -32,8 +32,11 @@ uint32_t suscribirCliente(t_buffer* msg, uint32_t cliente) {
 	message_type type = subscribe -> queue_to_subscribe;
 
 	t_client* client = malloc(sizeof(t_client));
-	client -> socket = cliente;
-	client -> process_id = subscribe -> process_id;
+	client -> socket = malloc(sizeof(uint32_t));
+	memcpy(client -> socket, &cliente, sizeof(uint32_t));
+	log_debug(logger, "Hola soy un log muy extraño que siempre digo que el socket es el: %d", *(client -> socket));
+	client -> process_id = malloc(sizeof(uint32_t));
+	memcpy(client -> process_id, &(subscribe -> process_id), sizeof(uint32_t));
 
 	suscribir(client, type);
 
@@ -60,7 +63,7 @@ uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
 }
 
 void suscribir(t_client* client, message_type queue) {
-	log_debug(logger, "Voy a suscribir al cliente %d, a la cola %d", client -> socket, queue);
+	log_debug(logger, "Voy a suscribir al cliente %d, a la cola %d", *(client -> socket), queue);
 	switch(queue){
 
 		case NEW_POKEMON:
@@ -87,7 +90,7 @@ void suscribir(t_client* client, message_type queue) {
 			list_add(subscribers -> appeared_pokemon, client);
 			void* element = list_get(subscribers -> appeared_pokemon, 0);
 			t_client* cliente_que_guardo = (t_client*) element;
-			log_debug(logger, "UN cliente se suscribió: %d", cliente_que_guardo -> socket);
+			log_debug(logger, "UN cliente se suscribió: %d", *(cliente_que_guardo -> socket));
 
 			/*
 			 * t_pokemon* pok = crearPokemon("PIKACHU");

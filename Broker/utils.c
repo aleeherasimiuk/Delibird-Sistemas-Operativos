@@ -107,7 +107,7 @@ void process_request(int cod_op, int cliente_fd) {
 			for(int i = 0; i < list_size(app_subscribers); i++){
 				void* list_element = list_get(subscribers -> appeared_pokemon, i);
 				t_client* client = (t_client*) list_element;
-				log_debug(logger, "Intentaré enviar APPEARED_POKEMON al cliente %d", client -> socket);
+				log_debug(logger, "Intentaré enviar APPEARED_POKEMON al cliente %d", *(client -> socket));
 				t_pokemon* pok = crearPokemon("PIKACHU");
 				t_appeared_pokemon* ap_pok = appeared_pokemon(pok, 10, 10);
 				int bytes;
@@ -115,8 +115,8 @@ void process_request(int cod_op, int cliente_fd) {
 				int bytes_p;
 				void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, ser, bytes, 10, &bytes_p);
 
-				int status = send(client -> socket, a_enviar, bytes_p, 0);
-				log_debug(logger, "Envié APPEARED_POKEMON al suscriptor %d con status: %d", client -> socket ,status);
+				int status = send(*(client -> socket), a_enviar, bytes_p, 0);
+				log_debug(logger, "Envié APPEARED_POKEMON al suscriptor %d con status: %d", *(client -> socket) ,status);
 			}
 
 			break;
@@ -201,4 +201,6 @@ void devolver_mensaje(void* payload, int size, int socket_cliente)
 	free(paquete->buffer);
 	free(paquete);
 }
+
+
 
