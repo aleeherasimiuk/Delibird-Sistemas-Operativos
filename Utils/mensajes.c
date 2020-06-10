@@ -38,6 +38,9 @@ void* serializarNewPokemon(t_new_pokemon* new_pokemon, uint32_t* bytes) {
 
 		void* serialized_new_pokemon = serializarGenerico(bytes, 3, serialized_pokemon, pokemon_size, serialized_coords, coords_size, &pokemon_count, sizeof(uint32_t));
 
+		//free(pokemon -> name);
+		free(coordenadas);
+
 		return serialized_new_pokemon;
 }
 
@@ -275,8 +278,8 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer) {
 
 	t_coords* deserialized_coords = deserializarCoordenadas(&buffer);
 
-	uint32_t count;
-	memcpy(&count, buffer -> stream, sizeof(uint32_t));
+	//uint32_t count;
+	//memcpy(&count, buffer -> stream, sizeof(uint32_t));
 
 	catch_pokemon -> pokemon = deserialized_pokemon;
 	catch_pokemon -> coords = deserialized_coords;
