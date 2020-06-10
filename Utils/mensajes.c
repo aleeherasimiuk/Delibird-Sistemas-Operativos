@@ -536,6 +536,15 @@ t_get_pokemon* get_pokemon(t_pokemon* pokemon) {
 	return pokemon; // Solo por mantener coherencia
 }
 
+t_subscribe* subscribe(message_type queue, uint32_t process_id) {
+
+	t_subscribe* suscripcion = malloc(sizeof(t_subscribe));
+	suscripcion -> queue_to_subscribe = queue;
+	suscripcion -> process_id = process_id;
+	return suscripcion;
+
+}
+
 // TODO: Localized pokemon, el gameboy no lo usa.
 
 t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type queue, uint32_t seconds) {

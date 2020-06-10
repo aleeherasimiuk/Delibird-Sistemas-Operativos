@@ -187,5 +187,6 @@ t_appeared_pokemon* appeared_pokemon(t_pokemon*, uint32_t, uint32_t);
 t_catch_pokemon* catch_pokemon(t_pokemon*, uint32_t, uint32_t);
 t_caught_pokemon* caught_pokemon(uint32_t*);
 t_get_pokemon* get_pokemon(t_pokemon*);
+t_subscribe suscribe(message_type, uint32_t);
 t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type, uint32_t);
 #endif /* MENSAJES_H_ */

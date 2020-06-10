@@ -63,10 +63,9 @@ int abrirUnaConexion(t_config* config) {
 }
 
 void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
+
 	// Creo el mensaje de subscripcion
-	t_subscribe* subscripcion = malloc(sizeof(t_subscribe));
-	subscripcion -> queue_to_subscribe = cola;
-	subscripcion -> process_id = process_id;
+	t_subscribe* subscripcion = subscribe(cola, process_id);
 
 	uint32_t subscripcion_size;
 	void* serialized_subscribe = serializarSubscribe(subscripcion, &subscripcion_size);
