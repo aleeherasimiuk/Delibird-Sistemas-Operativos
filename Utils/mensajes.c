@@ -334,8 +334,8 @@ t_subscribe* deserializarSubscribe(t_buffer* buffer) {
 	subscribe -> queue_to_subscribe = message;
 	subscribe -> process_id = process_id;
 
-	free(stream);
-	free(buffer);
+	//free(stream);
+	//free(buffer);
 
 	return subscribe;
 }

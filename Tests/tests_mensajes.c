@@ -376,6 +376,15 @@ context (TestsMensajes) {
 
 		} end
 
+		skip("Serializar Caught Pokemon") {
+
+			t_caught_pokemon* cau_pok = caught_pokemon(YES);
+			free(cau_pok);
+
+		} end
+
+
+
 		skip("Serializar Localized Pokemon") {
 
 			t_coords* cord1 = malloc(sizeof(t_coords));
@@ -425,6 +434,58 @@ context (TestsMensajes) {
 //			should_int(deserialized_loc_pokemon -> coords_array[3] -> posY) be equal to (80);
 //			should_int(deserialized_loc_pokemon -> coords_array[4] -> posX) be equal to (90);
 //			should_int(deserialized_loc_pokemon -> coords_array[4] -> posY) be equal to (100);
+
+
+		} end
+
+		it("Serializar Subscribe") {
+
+			t_subscribe* sub = subscribe(NEW_POKEMON, 10);
+
+			uint32_t bytes;
+			void* serialized_subscribe = serializarSubscribe(sub, &bytes);
+
+			t_buffer* buffer = crearBuffer(serialized_subscribe, bytes);
+
+			t_subscribe* deserialized_subscribe = deserializarSubscribe(buffer);
+
+			should_int(deserialized_subscribe -> process_id) be equal to (10);
+			should_int(deserialized_subscribe -> queue_to_subscribe) be equal to (NEW_POKEMON);
+
+			free(sub);
+			free(serialized_subscribe);
+			free(deserialized_subscribe);
+			free(buffer);
+
+
+		} end
+
+		it("Serializar Gameboy Subscribing") {
+
+			t_gameboy_queue_to_subscribe* sub = gameboy_queue_subscribe(NEW_POKEMON, 10);
+
+			uint32_t bytes;
+			void* serialized_subscribe = serializarSubscribeGameboy(sub, &bytes);
+
+			t_buffer* buffer = crearBuffer(serialized_subscribe, bytes);
+
+			t_gameboy_queue_to_subscribe* deserialized_subscribe = deserializarSubscribe(buffer);
+
+
+			should_int(deserialized_subscribe -> seconds) be equal to (10);
+			should_int(deserialized_subscribe -> queue_to_subscribe) be equal to (NEW_POKEMON);
+
+			free(sub);
+			free(serialized_subscribe);
+			free(deserialized_subscribe);
+			free(buffer);
+
+
+		} end
+
+		// Se usa?????
+		skip("Serializar Buffer") {
+
 
 
 		} end
