@@ -162,8 +162,8 @@ void* serializarCliente(t_client* cliente);
 void* serializarGenerico(uint32_t* bytes, uint32_t num_args, ...);
 
 //Firmas de Deserialización
-t_pokemon* deserializarPokemon(t_buffer* buffer);
-t_coords* deserializarCoordenadas(t_buffer* buffer);
+t_pokemon* deserializarPokemon(t_buffer** buffer);
+t_coords* deserializarCoordenadas(t_buffer** buffer);
 t_new_pokemon* deserializarNewPokemon(t_buffer* buffer);
 t_appeared_pokemon* deserializarAppearedPokemon(t_buffer* buffer);
 t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer);

@@ -170,10 +170,10 @@ context (TestsMensajes) {
 			void* serialized_pokemon = serializarPokemon(pikachu, &bytes);
 			t_buffer* buffer = crearBuffer(serialized_pokemon, bytes);
 
-			t_pokemon* deserialized_pokemon = deserializarPokemon(buffer);
+			t_pokemon* deserialized_pokemon = deserializarPokemon(&buffer);
 			should_string("Pikachu") be equal to(deserialized_pokemon -> name);
 			free(deserialized_pokemon);
-			free(buffer -> stream);
+			//free(buffer -> stream);
 			free(buffer);
 			//should_ptr(buffer) be equal to (NULL);
 		} end
@@ -185,11 +185,10 @@ context (TestsMensajes) {
 
 			t_buffer* buffer = crearBuffer(serialized_coords, bytes);
 
-			t_coords* deserialized_coords = deserializarCoordenadas(buffer);
+			t_coords* deserialized_coords = deserializarCoordenadas(&buffer);
 			should_int(posicion_x) be equal to (deserialized_coords -> posX);
 			should_int(posicion_y) be equal to (deserialized_coords -> posY);
 			free(deserialized_coords);
-			free(buffer -> stream);
 			free(buffer);
 
 		} end
@@ -207,12 +206,35 @@ context (TestsMensajes) {
 
 			t_new_pokemon* deserialized_new_pokemon = deserializarNewPokemon(buffer);
 			should_string(deserialized_new_pokemon -> pokemon -> name) be equal to ("Pikachu");
+			should_int(deserialized_new_pokemon -> pokemon -> name_size) be equal to (8);
 			should_int(deserialized_new_pokemon -> coords -> posX) be equal to (posicion_x);
 			should_int(deserialized_new_pokemon -> coords -> posY) be equal to (posicion_y);
 			should_int(deserialized_new_pokemon -> cantidad) be equal to (una_cantidad);
 
 			free(new_pok);
 			free(deserialized_new_pokemon);
+			free(buffer);
+
+		} end
+
+		skip("Serializar Appeared Pokemon"){
+
+			t_appeared_pokemon* app_pok = appeared_pokemon(pikachu, posicion_x, posicion_y);
+
+			uint32_t bytes;
+			void* serialized_appeared_pokemon = serializarAppearedPokemon(app_pok, &bytes);
+
+//			should_int(sizeof(serialized_new_pokemon)) be equal to(sizeof(t_new_pokemon));
+
+			t_buffer* buffer = crearBuffer(serialized_appeared_pokemon, bytes);
+
+			t_appeared_pokemon* deserialized_appeared_pokemon = deserializarAppearedPokemon(buffer);
+			should_string(deserialized_appeared_pokemon -> pokemon -> name) be equal to ("Pikachu");
+			should_int(deserialized_appeared_pokemon -> coords -> posX) be equal to (posicion_x);
+			should_int(deserialized_appeared_pokemon -> coords -> posY) be equal to (posicion_y);
+
+			free(app_pok);
+			free(deserialized_appeared_pokemon);
 
 		} end
 

@@ -9,6 +9,7 @@
 #define TESTS_TESTS_MENSAJES_H_
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <cspecs/cspec.h>
 #include "../Utils/mensajes.h"

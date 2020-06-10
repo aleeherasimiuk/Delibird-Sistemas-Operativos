@@ -52,7 +52,10 @@ Mkfile.old
 dkms.conf
 /.metadata/
 
+
+/.cproject
+*.xml
 *.project
 *.cproject
-*.settings*
+*.settings/
 RemoteSystemsTempFiles
