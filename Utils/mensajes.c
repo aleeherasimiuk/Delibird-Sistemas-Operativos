@@ -1,5 +1,12 @@
 #include "conexiones.h"
 
+t_buffer* crearBuffer(void* algoSerializado, uint32_t bytes){
+	t_buffer* buffer = malloc(sizeof(uint32_t) + bytes);
+	buffer -> buffer_size = bytes;
+	buffer -> stream = algoSerializado;
+	return buffer;
+}
+
 //Firmas de Serializacion
 void* serializarPokemon(t_pokemon* pokemon, uint32_t* bytes) {
 
@@ -205,6 +212,7 @@ t_pokemon* deserializarPokemon(t_buffer* buffer) {
 	pokemon -> name = malloc(pokemon -> name_size);
 	memcpy(pokemon -> name, stream + offset, pokemon -> name_size);
 	offset += sizeof(pokemon -> name_size);
+	free(buffer);
 
 	return pokemon;
 }

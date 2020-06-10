@@ -69,6 +69,7 @@ typedef struct {
 //Acá sacamos las struct ya que de momento los mensajes llevan un solo campo.
 
 typedef uint32_t t_caught_pokemon;
+typedef enum {NO, YES} caught_msg;
 
 // Este mensaje tendrá el nombre del pokemon.
 
@@ -132,6 +133,8 @@ typedef struct{
 	uint32_t id;
 	uint32_t received;
 }t_message_by_client;
+
+t_buffer* crearBuffer(void* stream, uint32_t bytes);
 
 //Firmas de Serializacion
 void* serializarPokemon(t_pokemon* pokemon, uint32_t* bytes);
