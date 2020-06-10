@@ -38,11 +38,6 @@ context (TestsMensajes) {
             should_string("Pikachu") be equal to(deserialized_pokemon -> name);
         } end
 
-		it("Serializar Coordenadas") {
-
-        } end
-
-
 
         skip("this test will fail because \"Hello\" is not \"Bye\"") {
             should_string("Hello") be equal to("Bye");

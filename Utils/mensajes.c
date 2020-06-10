@@ -232,27 +232,20 @@ t_new_pokemon* deserializarNewPokemon(t_buffer* buffer) {
 
 	void* stream = buffer -> stream;
 
-	uint32_t offset = 0;
+	t_pokemon* pokemon = deserializarPokemon(buffer);
 
-	void* serialized_pokemon = malloc(sizeof(t_pokemon));
-	memcpy(serialized_pokemon, stream, sizeof(t_pokemon));
-	offset += sizeof(t_pokemon);
-
-	void* serialized_coords = malloc(sizeof(t_coords));
-	memcpy(serialized_coords, stream + offset, sizeof(t_coords));
-	offset += sizeof(t_coords);
+	t_coords* coords = deserializarCoordenadas(buffer);
 
 	uint32_t count;
-	memcpy(&count, stream + offset, sizeof(uint32_t));
-
-	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
-	t_coords* coords = deserializarCoordenadas(serialized_coords);
+	memcpy(&count, stream, sizeof(uint32_t));
 
 	new_pokemon -> pokemon = pokemon;
 	new_pokemon -> coords = coords;
 	new_pokemon -> cantidad = count;
 
 	return new_pokemon;
+	free(buffer -> stream);
+    free(buffer);
 
 }
 
@@ -260,25 +253,16 @@ t_appeared_pokemon* deserializarAppearedPokemon(t_buffer* buffer) {
 
 	t_appeared_pokemon* appeared_pokemon = malloc(sizeof(t_appeared_pokemon));
 
-	void* stream = buffer -> stream;
+	t_pokemon* pokemon = deserializarPokemon(buffer);
 
-	uint32_t offset = 0;
-
-	void* serialized_pokemon = malloc(sizeof(t_pokemon));
-	memcpy(serialized_pokemon, stream, sizeof(t_pokemon));
-	offset += sizeof(t_pokemon);
-
-	void* serialized_coords = malloc(sizeof(t_coords));
-	memcpy(serialized_coords, stream + offset, sizeof(t_coords));
-	offset += sizeof(t_coords);
-
-	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
-	t_coords* coords = deserializarCoordenadas(serialized_coords);
+	t_coords* coords = deserializarCoordenadas(buffer);
 
 	appeared_pokemon -> pokemon = pokemon;
 	appeared_pokemon -> coords = coords;
 
 	return appeared_pokemon;
+	free(buffer -> stream);
+	free(buffer);
 }
 
 

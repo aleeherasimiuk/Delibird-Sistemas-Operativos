@@ -95,6 +95,7 @@ void process_request(t_paquete* paquete, uint32_t socket_cliente) {
 			//msg = recibir_mensaje(cliente_fd, &size);
 
 			t_appeared_pokemon* appeared_pokemon_msg = deserializarAppearedPokemon(buffer);
+			log_debug(logger, "Pude deserializar");
 			t_list* app_subscribers = subscribers -> appeared_pokemon;
 
 			log_debug(logger, "Apareció un pokemon: %s", appeared_pokemon_msg -> pokemon -> name);
