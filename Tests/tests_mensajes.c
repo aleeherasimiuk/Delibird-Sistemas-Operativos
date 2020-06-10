@@ -385,7 +385,7 @@ context (TestsMensajes) {
 
 
 
-		skip("Serializar Localized Pokemon") {
+		it("Serializar Localized Pokemon") {
 
 			t_coords* cord1 = malloc(sizeof(t_coords));
 			t_coords* cord2 = malloc(sizeof(t_coords));
@@ -413,28 +413,47 @@ context (TestsMensajes) {
 
 			t_localized_pokemon* loc_pok = localized_pokemon(pikachu, 5, coords);
 
-			uint32_t bytes;
+			uint32_t bytes = 0;
 			void* serialized_localized = serializarLocalizedPokemon(loc_pok, &bytes);
 			t_buffer* buffer = crearBuffer(serialized_localized, bytes);
 
+
 			t_localized_pokemon* deserialized_loc_pokemon = deserializarLocalizedPokemon(buffer);
 
-//			should_string(deserialized_loc_pokemon -> pokemon -> name) be equal to ("Pikachu");
-//			should_int(deserialized_loc_pokemon -> cant_coords) be equal to (5);
-//
-//			should_string(deserialized_loc_pokemon -> pokemon -> name) be equal to ("Pikachu");
-//			should_int(deserialized_loc_pokemon -> cant_coords) be equal to (5);
-//			should_int(deserialized_loc_pokemon -> coords_array[0] -> posX) be equal to (10);
-//			should_int(deserialized_loc_pokemon -> coords_array[0] -> posY) be equal to (20);
-//			should_int(deserialized_loc_pokemon -> coords_array[1] -> posX) be equal to (30);
-//			should_int(deserialized_loc_pokemon -> coords_array[1] -> posY) be equal to (40);
-//			should_int(deserialized_loc_pokemon -> coords_array[2] -> posX) be equal to (50);
-//			should_int(deserialized_loc_pokemon -> coords_array[2] -> posY) be equal to (60);
-//			should_int(deserialized_loc_pokemon -> coords_array[3] -> posX) be equal to (70);
-//			should_int(deserialized_loc_pokemon -> coords_array[3] -> posY) be equal to (80);
-//			should_int(deserialized_loc_pokemon -> coords_array[4] -> posX) be equal to (90);
-//			should_int(deserialized_loc_pokemon -> coords_array[4] -> posY) be equal to (100);
+			should_string(deserialized_loc_pokemon -> pokemon -> name) be equal to ("Pikachu");
+			should_int(deserialized_loc_pokemon -> cant_coords) be equal to (5);
 
+			should_string(deserialized_loc_pokemon -> pokemon -> name) be equal to ("Pikachu");
+			should_int(deserialized_loc_pokemon -> cant_coords) be equal to (5);
+			should_int(deserialized_loc_pokemon -> coords_array[0] -> posX) be equal to (10);
+			should_int(deserialized_loc_pokemon -> coords_array[0] -> posY) be equal to (20);
+			should_int(deserialized_loc_pokemon -> coords_array[1] -> posX) be equal to (30);
+			should_int(deserialized_loc_pokemon -> coords_array[1] -> posY) be equal to (40);
+			should_int(deserialized_loc_pokemon -> coords_array[2] -> posX) be equal to (50);
+			should_int(deserialized_loc_pokemon -> coords_array[2] -> posY) be equal to (60);
+			should_int(deserialized_loc_pokemon -> coords_array[3] -> posX) be equal to (70);
+			should_int(deserialized_loc_pokemon -> coords_array[3] -> posY) be equal to (80);
+			should_int(deserialized_loc_pokemon -> coords_array[4] -> posX) be equal to (90);
+			should_int(deserialized_loc_pokemon -> coords_array[4] -> posY) be equal to (100);
+
+			free(cord1);
+			free(cord2);
+			free(cord3);
+			free(cord4);
+			free(cord5);
+			free(loc_pok);
+
+			free(serialized_localized);
+			free(buffer);
+			free(deserialized_loc_pokemon -> pokemon -> name);
+			free(deserialized_loc_pokemon -> pokemon);
+
+			for(int i = 0; i < 5; i++){
+				free(deserialized_loc_pokemon -> coords_array[i]);
+			}
+
+			free(deserialized_loc_pokemon -> coords_array);
+			free(deserialized_loc_pokemon);
 
 		} end
 
