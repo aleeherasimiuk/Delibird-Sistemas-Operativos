@@ -39,6 +39,8 @@ void* serializarNewPokemon(t_new_pokemon* new_pokemon, uint32_t* bytes) {
 		void* serialized_new_pokemon = serializarGenerico(bytes, 3, serialized_pokemon, pokemon_size, serialized_coords, coords_size, &pokemon_count, sizeof(uint32_t));
 
 		//free(pokemon -> name);
+		free(serialized_pokemon);
+		free(serialized_coords);
 		free(coordenadas);
 
 		return serialized_new_pokemon;
@@ -57,6 +59,9 @@ void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t *
 
 		void* serialized_appeared_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
+		free(serialized_pokemon);
+		free(serialized_coords);
+
 		return serialized_appeared_pokemon;
 }
 
@@ -72,6 +77,8 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 
 	void* serialized_catch_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
+	free(serialized_pokemon);
+	free(serialized_coords);
 	return serialized_catch_pokemon;
 }
 
