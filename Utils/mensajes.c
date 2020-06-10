@@ -271,26 +271,15 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer) {
 
 	t_catch_pokemon* catch_pokemon = malloc(sizeof(t_catch_pokemon));
 
-	void* stream = buffer -> stream;
+	t_pokemon* deserialized_pokemon = deserializarPokemon(&buffer);
 
-	uint32_t offset = 0;
-
-	void* serialized_pokemon = malloc(sizeof(t_pokemon));
-	memcpy(serialized_pokemon, stream, sizeof(t_pokemon));
-	offset += sizeof(t_pokemon);
-
-	void* serialized_coords = malloc(sizeof(t_coords));
-	memcpy(serialized_coords, stream + offset, sizeof(t_coords));
-	offset += sizeof(t_coords);
+	t_coords* deserialized_coords = deserializarCoordenadas(&buffer);
 
 	uint32_t count;
-	memcpy(&count, stream + offset, sizeof(uint32_t));
+	memcpy(&count, buffer -> stream, sizeof(uint32_t));
 
-	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
-	t_coords* coords = deserializarCoordenadas(serialized_coords);
-
-	catch_pokemon -> pokemon = pokemon;
-	catch_pokemon -> coords = coords;
+	catch_pokemon -> pokemon = deserialized_pokemon;
+	catch_pokemon -> coords = deserialized_coords;
 
 	return catch_pokemon;
 }
@@ -300,33 +289,20 @@ t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer) {
 
 	t_localized_pokemon* localized_pokemon = malloc(sizeof(t_localized_pokemon));
 
-	void* stream = buffer -> stream;
-
-	uint32_t offset = 0;
-
-	void* serialized_pokemon = malloc(sizeof(t_pokemon));
-	memcpy(serialized_pokemon, stream, sizeof(t_pokemon));
-	offset += sizeof(t_pokemon);
+	t_pokemon* pokemon = deserializarPokemon(&buffer);
+	printf("Me llegó un: %s", pokemon -> name);
 
 	uint32_t count;
-	memcpy(&count, stream + offset, sizeof(uint32_t));
-
-	void* serialized_array = malloc(count *sizeof(t_coords));
-	memcpy(serialized_array, stream + offset, count * sizeof(t_coords));
-
-	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
-
-	t_coords** coords_array = malloc(count * sizeof(t_coords));
-
-	offset = 0;
-	for(int i = 0; i < count; i++){
-		coords_array[i] = deserializarCoordenadas(serialized_array + offset);
-		offset += sizeof(t_coords);
-	}
+	memcpy(&count, buffer -> stream, sizeof(uint32_t));
+	buffer -> stream += sizeof(uint32_t);
+	printf("Me llegaron: %d", &count);
 
 	localized_pokemon -> pokemon = pokemon;
 	localized_pokemon -> cant_coords = count;
-	localized_pokemon -> coords_array = coords_array;
+
+	for(int i = 0; i < count; i++){
+		localized_pokemon -> coords_array[i] = deserializarCoordenadas(&buffer);
+	}
 
 	return localized_pokemon;
 }
@@ -521,6 +497,37 @@ t_subscribe* subscribe(message_type queue, uint32_t process_id) {
 	return suscripcion;
 
 }
+
+t_localized_pokemon* localized_pokemon(t_pokemon* pokemon, uint32_t cant_coords, t_coords** coords_array) {
+
+	t_localized_pokemon* loc_pok = malloc(sizeof(t_localized_pokemon));
+
+	loc_pok -> pokemon = pokemon;
+	loc_pok -> cant_coords = cant_coords;
+	loc_pok -> coords_array = coords_array;
+
+	return loc_pok;
+}
+
+t_coords** coords_array(uint32_t cant_coords, ...){
+
+	// va_list es la lista para guardar los argumentos variables
+	va_list args;
+	// cargo los argumentos en args
+	va_start(args, cant_coords);
+
+	t_coords** array = malloc(cant_coords * sizeof(t_coords));
+
+	for(int i = 0; i < cant_coords; i++){
+		array[i] = va_arg(args, t_coords*);
+	}
+
+	va_end(args);
+
+	return array;
+
+}
+
 
 // TODO: Localized pokemon, el gameboy no lo usa.
 
