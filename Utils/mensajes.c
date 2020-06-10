@@ -205,14 +205,13 @@ t_pokemon* deserializarPokemon(t_buffer* buffer) {
 
 	void* stream = buffer -> stream;
 
-	uint32_t offset = 0;
 	memcpy(&(pokemon -> name_size), stream, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
+	stream += sizeof(uint32_t);
 
 	pokemon -> name = malloc(pokemon -> name_size);
-	memcpy(pokemon -> name, stream + offset, pokemon -> name_size);
-	offset += sizeof(pokemon -> name_size);
-	free(buffer);
+	memcpy(pokemon -> name, stream, pokemon -> name_size);
+	stream += sizeof(pokemon -> name_size);
+	//free(buffer);
 
 	return pokemon;
 }
@@ -221,43 +220,31 @@ t_coords* deserializarCoordenadas(t_buffer* buffer) {
 
 	t_coords* coords = malloc(sizeof(t_coords));
 
-	void* stream = buffer -> stream;
+	memcpy(&(coords -> posX), buffer -> stream, sizeof(uint32_t));
+	buffer -> stream += sizeof(uint32_t);
 
-	uint32_t offset = 0;
-	memcpy(&(coords -> posX), stream, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-
-	memcpy(&(coords -> posY), stream + offset, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
+	memcpy(&(coords -> posY), buffer -> stream, sizeof(uint32_t));
+	buffer -> stream += sizeof(uint32_t);
 
 	return coords;
 }
+
+
 
 
 t_new_pokemon* deserializarNewPokemon(t_buffer* buffer) {
 
 	t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
 
-	void* stream = buffer -> stream;
+	t_pokemon* deserialized_pokemon = deserializarPokemon(buffer);
 
-	uint32_t offset = 0;
-
-	void* serialized_pokemon = malloc(sizeof(t_pokemon));
-	memcpy(serialized_pokemon, stream, sizeof(t_pokemon));
-	offset += sizeof(t_pokemon);
-
-	void* serialized_coords = malloc(sizeof(t_coords));
-	memcpy(serialized_coords, stream + offset, sizeof(t_coords));
-	offset += sizeof(t_coords);
+	t_coords* deserialized_coords = deserializarCoordenadas(buffer);
 
 	uint32_t count;
-	memcpy(&count, stream + offset, sizeof(uint32_t));
+	memcpy(&count, buffer -> stream, sizeof(uint32_t));
 
-	t_pokemon* pokemon = deserializarPokemon(serialized_pokemon);
-	t_coords* coords = deserializarCoordenadas(serialized_coords);
-
-	new_pokemon -> pokemon = pokemon;
-	new_pokemon -> coords = coords;
+	new_pokemon -> pokemon = deserialized_pokemon;
+	new_pokemon -> coords = deserialized_coords;
 	new_pokemon -> cantidad = count;
 
 	return new_pokemon;

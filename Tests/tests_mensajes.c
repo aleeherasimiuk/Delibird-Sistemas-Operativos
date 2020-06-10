@@ -10,7 +10,6 @@
 
 context (TestsMensajes) {
 
-
     describe("Pruebas de Mensajes") {
 
     	t_pokemon* pikachu;
@@ -45,35 +44,9 @@ context (TestsMensajes) {
         	should_int(8) be equal to(pikachu -> name_size);
         } end
 
-
-        it("Serializar Pokemon") {
-
-        	uint32_t bytes;
-        	void* serialized_pokemon = serializarPokemon(pikachu, &bytes);
-        	t_buffer* buffer = crearBuffer(serialized_pokemon, bytes);
-
-        	t_pokemon* deserialized_pokemon = deserializarPokemon(buffer);
-            should_string("Pikachu") be equal to(deserialized_pokemon -> name);
-            free(deserialized_pokemon);
-        } end
-
 		it("Crear Coordenadas") {
         	should_int(posicion_x) be equal to (coords -> posX);
         	should_int(posicion_y) be equal to (coords -> posY);
-        } end
-
-		it("Serializar Coordenadas") {
-
-			uint32_t bytes;
-			void* serialized_coords = serializarCoordenadas(coords, &bytes);
-
-			t_buffer* buffer = crearBuffer(serialized_coords, bytes);
-
-			t_coords* deserialized_coords = deserializarCoordenadas(buffer);
-			should_int(posicion_x) be equal to (deserialized_coords -> posX);
-			should_int(posicion_y) be equal to (deserialized_coords -> posY);
-			free(deserialized_coords);
-
         } end
 
 		it("New Pokemon") {
@@ -139,6 +112,15 @@ context (TestsMensajes) {
 
 		} end
 
+		it("Subscribing") {
+
+			t_subscribe* sub = subscribe(NEW_POKEMON, 10);
+
+			should_int(sub -> process_id) be equal to(10);
+			should_int(sub -> queue_to_subscribe) be equal to (NEW_POKEMON);
+
+		} end
+
 		it("GameBoy Subscribing") {
 
 			t_gameboy_queue_to_subscribe* sub = gameboy_queue_subscribe(NEW_POKEMON, 10);
@@ -153,6 +135,90 @@ context (TestsMensajes) {
         skip("this test will fail because \"Hello\" is not \"Bye\"") {
             should_string("Hello") be equal to("Bye");
         } end
+
+
+
+    } end
+
+	 describe("Pruebas de Serializacion") {
+
+		t_pokemon* pikachu;
+		t_coords* coords;
+
+		uint32_t posicion_x = 150;
+		uint32_t posicion_y = 320;
+		uint32_t una_cantidad = 2;
+
+		before{
+
+			pikachu = crearPokemon("Pikachu");
+			coords = crear_coordenadas_from_int(posicion_x, posicion_y);
+
+
+		} end
+
+		after{
+
+			free(pikachu);
+			free(coords);
+
+		} end
+
+		it("Serializar Pokemon") {
+
+			uint32_t bytes;
+			void* serialized_pokemon = serializarPokemon(pikachu, &bytes);
+			t_buffer* buffer = crearBuffer(serialized_pokemon, bytes);
+
+			t_pokemon* deserialized_pokemon = deserializarPokemon(buffer);
+			should_string("Pikachu") be equal to(deserialized_pokemon -> name);
+			free(deserialized_pokemon);
+			free(buffer -> stream);
+			free(buffer);
+			//should_ptr(buffer) be equal to (NULL);
+		} end
+
+		it("Serializar Coordenadas") {
+
+			uint32_t bytes;
+			void* serialized_coords = serializarCoordenadas(coords, &bytes);
+
+			t_buffer* buffer = crearBuffer(serialized_coords, bytes);
+
+			t_coords* deserialized_coords = deserializarCoordenadas(buffer);
+			should_int(posicion_x) be equal to (deserialized_coords -> posX);
+			should_int(posicion_y) be equal to (deserialized_coords -> posY);
+			free(deserialized_coords);
+			free(buffer -> stream);
+			free(buffer);
+
+		} end
+
+		it("Serializar New Pokemon"){
+
+			t_new_pokemon* new_pok = new_pokemon(pikachu, posicion_x, posicion_y, una_cantidad);
+
+			uint32_t bytes;
+			void* serialized_new_pokemon = serializarNewPokemon(new_pok, &bytes);
+
+//			should_int(sizeof(serialized_new_pokemon)) be equal to(sizeof(t_new_pokemon));
+
+			t_buffer* buffer = crearBuffer(serialized_new_pokemon, bytes);
+
+			t_new_pokemon* deserialized_new_pokemon = deserializarNewPokemon(buffer);
+			should_string(deserialized_new_pokemon -> pokemon -> name) be equal to ("Pikachu");
+			should_int(deserialized_new_pokemon -> coords -> posX) be equal to (posicion_x);
+			should_int(deserialized_new_pokemon -> coords -> posY) be equal to (posicion_y);
+			should_int(deserialized_new_pokemon -> cantidad) be equal to (una_cantidad);
+
+			free(new_pok);
+			free(deserialized_new_pokemon);
+
+		} end
+
+
+
+
 
     } end
 
