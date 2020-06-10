@@ -217,7 +217,7 @@ context (TestsMensajes) {
 
 		} end
 
-		skip("Serializar Appeared Pokemon"){
+		it("Serializar Appeared Pokemon"){
 
 			t_appeared_pokemon* app_pok = appeared_pokemon(pikachu, posicion_x, posicion_y);
 
@@ -235,6 +235,7 @@ context (TestsMensajes) {
 
 			free(app_pok);
 			free(deserialized_appeared_pokemon);
+			free(buffer);
 
 		} end
 

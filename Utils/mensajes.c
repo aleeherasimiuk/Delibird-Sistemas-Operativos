@@ -210,8 +210,6 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 	memcpy(pokemon -> name, (*buffer) -> stream, pokemon -> name_size);
 	(*buffer) -> stream += pokemon -> name_size * sizeof(char);
 
-	printf("Dejé el stream en el puntero %d\n", (*buffer) -> stream);
-	//free(buffer);
 
 	return pokemon;
 }
@@ -232,14 +230,14 @@ t_coords* deserializarCoordenadas(t_buffer** buffer) {
 
 t_new_pokemon* deserializarNewPokemon(t_buffer* buffer) {
 
-	printf("El puntero del stream está en: %d\n", (buffer -> stream));
+
 	t_new_pokemon* new_pokemon = malloc(sizeof(t_new_pokemon));
 
 	t_pokemon* deserialized_pokemon = deserializarPokemon(&buffer);
-	printf("El puntero del stream está en: %d\n", (buffer -> stream));
+
 
 	t_coords* coords = deserializarCoordenadas(&buffer);
-	printf("El puntero del stream está en: %d\n", (buffer -> stream));
+
 
 	uint32_t count;
 	memcpy(&count, buffer -> stream, sizeof(uint32_t));
@@ -257,15 +255,13 @@ t_appeared_pokemon* deserializarAppearedPokemon(t_buffer* buffer) {
 
 	t_appeared_pokemon* appeared_pokemon = malloc(sizeof(t_appeared_pokemon));
 
-	t_pokemon* pokemon = deserializarPokemon(buffer);
+	t_pokemon* pokemon = deserializarPokemon(&buffer);
 
-	t_coords* coords = deserializarCoordenadas(buffer);
+	t_coords* coords = deserializarCoordenadas(&buffer);
 
 	appeared_pokemon -> pokemon = pokemon;
 	appeared_pokemon -> coords = coords;
 
-	free(buffer -> stream);
-	free(buffer);
 	return appeared_pokemon;
 
 }
