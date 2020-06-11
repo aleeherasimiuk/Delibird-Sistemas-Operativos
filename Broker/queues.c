@@ -25,17 +25,19 @@ void iniciarSubscribers(){
 
 }
 
-uint32_t suscribirCliente(t_buffer* msg, uint32_t cliente) {
+uint32_t suscribirCliente(t_buffer* msg, uint32_t cli) {
 
 	t_subscribe* subscribe = deserializarSubscribe(msg);
 
 	message_type type = subscribe -> queue_to_subscribe;
 
-	t_client* client = malloc(sizeof(t_client));
-	client -> socket = malloc(sizeof(uint32_t));
-	memcpy(client -> socket, &cliente, sizeof(uint32_t));
-	client -> process_id = malloc(sizeof(uint32_t));
-	memcpy(client -> process_id, &(subscribe -> process_id), sizeof(uint32_t));
+//	t_client* client = malloc(sizeof(t_client));
+//	client -> socket = malloc(sizeof(uint32_t));
+//	memcpy(client -> socket, &cliente, sizeof(uint32_t));
+//	client -> process_id = malloc(sizeof(uint32_t));
+//	memcpy(client -> process_id, &(subscribe -> process_id), sizeof(uint32_t));
+
+	t_client* client = cliente(subscribe -> process_id, cli);
 
 	suscribir(client, type);
 
@@ -43,16 +45,13 @@ uint32_t suscribirCliente(t_buffer* msg, uint32_t cliente) {
 }
 
 //TODO: Segundos!
-uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
+uint32_t suscribirGameboy(t_buffer* msg, uint32_t cli) {
 
 	t_gameboy_queue_to_subscribe* subscribe = deserializarSubscribeGameboy(msg);
 
-	t_client* client = malloc(sizeof(t_client));
-	client -> socket = cliente;
-	client -> process_id = 0;
+	t_client* client = cliente(0, cli);
 
 	message_type type = subscribe -> queue_to_subscribe;
-
 
 	suscribir(client, type);
 
@@ -62,7 +61,7 @@ uint32_t suscribirGameboy(t_buffer* msg, uint32_t cliente) {
 }
 
 void suscribir(t_client* client, message_type queue) {
-	log_debug(logger, "Voy a suscribir al cliente %d, a la cola %d", *(client -> socket), queue);
+	log_debug(logger, "Voy a suscribir al cliente %d, a la cola %d", client -> socket, queue);
 	void* cliente_a_guardar = serializarCliente(client);
 	switch(queue){
 

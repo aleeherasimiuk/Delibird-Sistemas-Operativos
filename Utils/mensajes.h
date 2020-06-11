@@ -108,7 +108,7 @@ typedef struct {
  * data: un puntero al struct correspondiente del tipo del mensaje
  */
 typedef struct {
-	uint32_t buffer_size;
+	uint32_t stream_size;
 	void* stream;
 }t_buffer;
 
@@ -124,8 +124,8 @@ typedef struct {
 
 // Es probable que haya que poder identificar de otra manera a los clientes
 typedef struct{
-	uint32_t* process_id;
-	uint32_t* socket;
+	uint32_t process_id;
+	uint32_t socket;
 } t_client;
 
 typedef struct{
@@ -191,4 +191,5 @@ t_subscribe* subscribe(message_type, uint32_t);
 t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type, uint32_t);
 t_localized_pokemon* localized_pokemon(t_pokemon*, uint32_t, t_coords**);
 t_coords** coords_array(uint32_t, ...);
+t_client* cliente(uint32_t, uint32_t);
 #endif /* MENSAJES_H_ */

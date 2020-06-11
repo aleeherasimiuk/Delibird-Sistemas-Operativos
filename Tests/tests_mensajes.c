@@ -241,6 +241,17 @@ context (TestsMensajes) {
 
 		} end
 
+		it("Cliente") {
+
+			t_client* cli = cliente(10, 5);
+
+			should_int(cli -> process_id) be equal to (10);
+			should_int(cli -> socket) be equal to (5);
+
+			free(cli);
+
+		} end
+
     } end
 
 	 describe("Pruebas de Serializacion") {
@@ -499,6 +510,21 @@ context (TestsMensajes) {
 			free(deserialized_subscribe);
 			free(buffer);
 
+
+		} end
+
+		it("Serializar Cliente") {
+
+			t_client* client = cliente(789, 2456);
+			void* serialized_client = serializarCliente(client);
+
+			t_client* deserialized_client = deserializarCliente(serialized_client);
+
+			should_int(deserialized_client -> process_id) be equal to (789);
+			should_int(deserialized_client -> socket) be equal to (2456);
+
+			free(client);
+			free(deserialized_client);
 
 		} end
 

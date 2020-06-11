@@ -2,7 +2,7 @@
 
 t_buffer* crearBuffer(void* algoSerializado, uint32_t bytes){
 	t_buffer* buffer = malloc(sizeof(uint32_t) + bytes);
-	buffer -> buffer_size = bytes;
+	buffer -> stream_size = bytes;
 	buffer -> stream = algoSerializado;
 	return buffer;
 }
@@ -141,11 +141,11 @@ void* serializarSubscribeGameboy(t_gameboy_queue_to_subscribe* subscribe, uint32
 void* serializarBuffer(t_buffer* buffer, uint32_t* bytes) {
 
 	void* stream = buffer -> stream;
-	uint32_t buffer_size = buffer -> buffer_size;
+	uint32_t buffer_size = buffer -> stream_size;
 
-	void* serialized_buffer = serializarGenerico(bytes, 2, &buffer_size, sizeof(uint32_t), stream, buffer-> buffer_size);
+	void* serialized_buffer = serializarGenerico(bytes, 2, &buffer_size, sizeof(uint32_t), stream, buffer-> stream_size);
 
-	*bytes = buffer -> buffer_size + sizeof(uint32_t);
+	*bytes = buffer -> stream_size + sizeof(uint32_t);
 
 	return serialized_buffer;
 }
@@ -168,11 +168,8 @@ void* serializarPaquete(t_paquete* paquete, uint32_t* bytes){
 
 void* serializarCliente(t_client* cliente){
 
-	uint32_t socket = *(cliente -> socket);
-	uint32_t process_id = *(cliente -> process_id);
-
-	uint32_t bytes; //No se usa, creo
-	void* serialized_client = serializarGenerico(&bytes, 2, &socket, sizeof(uint32_t), &process_id, sizeof(uint32_t));
+	uint32_t bytes;
+	void* serialized_client = serializarGenerico(&bytes, 2, &(cliente -> process_id), sizeof(uint32_t), &(cliente -> socket), sizeof(uint32_t));
 
 	return serialized_client;
 }
@@ -375,25 +372,23 @@ t_gameboy_queue_to_subscribe* deserializarSubscribeGameboy(t_buffer* buffer) {
 
 t_client* deserializarCliente(void* stream){
 
-	t_client* client = malloc(sizeof(t_client));
-
-	uint32_t* sock = malloc(sizeof(uint32_t));
-	uint32_t* process_id = malloc(sizeof(uint32_t));
+	uint32_t pid;
+	uint32_t sock;
 
 	uint32_t offset = 0;
 
-	memcpy(sock, stream + offset, sizeof(uint32_t));
+	memcpy(&pid, stream + offset, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	memcpy(process_id, stream + offset, sizeof(uint32_t));
+	memcpy(&sock, stream + offset, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	client -> socket = sock;
-	client -> process_id = process_id;
+	t_client* cli = cliente(pid, sock);
 
-	free(stream);
+	//NOTA: No liberar el stream, se necesita para poder enviar cada vez que se necesite
+	//free(stream);
 
-	return client;
+	return cli;
 
 }
 
@@ -401,17 +396,17 @@ t_paquete* recibirPaquete(int socket) {
 	t_paquete* paquete = malloc(sizeof(t_paquete));
 
 	// Recibo tipo de mensaje
-	int status = recv(socket, &(paquete->type), sizeof(paquete->type), MSG_WAITALL);
+	int status = recv(socket, &(paquete -> type), sizeof(paquete -> type), MSG_WAITALL);
 	if(status > 0){
 		// Recibo IDs
-		recv(socket, &(paquete->id), sizeof(paquete->id), MSG_WAITALL);
-		recv(socket, &(paquete->correlative_id), sizeof(paquete->correlative_id), MSG_WAITALL);
+		recv(socket, &(paquete -> id), sizeof(paquete->id), MSG_WAITALL);
+		recv(socket, &(paquete -> correlative_id), sizeof(paquete -> correlative_id), MSG_WAITALL);
 
 		paquete->buffer = malloc(sizeof(t_buffer));
-		recv(socket, &(paquete->buffer->buffer_size), sizeof(paquete->buffer->buffer_size), MSG_WAITALL);
+		recv(socket, &(paquete -> buffer -> stream_size), sizeof(paquete -> buffer -> stream_size), MSG_WAITALL);
 
-		paquete -> buffer-> stream = malloc(paquete->buffer->buffer_size);
-		recv(socket, paquete -> buffer -> stream, paquete -> buffer -> buffer_size, MSG_WAITALL);
+		paquete -> buffer-> stream = malloc(paquete -> buffer -> stream_size);
+		recv(socket, paquete -> buffer -> stream, paquete -> buffer -> stream_size, MSG_WAITALL);
 		return paquete;
 	} else {
 		return NULL;
@@ -443,7 +438,7 @@ void* crear_paquete(message_type cod_op, void* serialized_message, uint32_t mess
 
 void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t id_correlativo, uint32_t* paquete_size) {
 	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer -> buffer_size = message_bytes;
+	buffer -> stream_size = message_bytes;
 	buffer -> stream = serialized_message;
 
 	t_paquete* paquete = crearPaquete();
@@ -545,6 +540,19 @@ t_coords** coords_array(uint32_t cant_coords, ...){
 	va_end(args);
 
 	return array;
+
+}
+
+t_client* cliente(uint32_t process_id, uint32_t socket){
+
+	t_client* client = malloc(sizeof(t_client));
+
+	client -> process_id = process_id;
+	client -> socket = socket;
+
+	return client;
+
+
 
 }
 
