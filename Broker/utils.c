@@ -121,6 +121,25 @@ void process_request(t_paquete* paquete, uint32_t socket_cliente) {
 			break;
 
 		case CAUGHT_POKEMON:
+			log_debug(logger, "Alguien ha enviado un CAUGHT_POKEMON");
+			t_caught_pokemon* cau_pokemon = deserializarCaughtPokemon(buffer);
+			t_list* cau_subscribers = subscribers -> caught_pokemon;
+			log_debug(logger, "Pudo el cliente atrapar a un pokemon?: %d", *((uint32_t*)(paquete -> buffer -> stream)));
+
+			for(int i = 0; i < list_size(cau_subscribers); i++){
+				void* list_element = list_get(cau_subscribers, i);
+				t_client* client = deserializarCliente(list_element);
+				log_debug(logger, "Intentaré enviar CAUGHT_POKEMON al cliente %d", client -> socket);
+				int bytes;
+				void* ser = serializarCaughtPokemon(cau_pokemon, &bytes);
+
+				int bytes_p;
+				void* a_enviar = crear_paquete_con_id_correlativo(CAUGHT_POKEMON, ser, bytes, paquete -> correlative_id, &bytes_p);
+
+				int status = send(client -> socket, a_enviar, bytes_p, 0);
+				log_debug(logger, "Envié CAUGHT_POKEMON al suscriptor %d con status: %d", client -> socket ,status);
+			}
+
 			break;
 
 		case LOCALIZED_POKEMON:

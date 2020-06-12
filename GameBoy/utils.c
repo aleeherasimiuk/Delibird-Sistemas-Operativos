@@ -96,13 +96,16 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 		uint32_t caught = 0;
 		char* ok = argv[2];
 
-		caught = compare_string(ok, "OK");
+		caught = compare_string(ok, "YES");
 
 		t_caught_pokemon* _caught_pokemon = caught_pokemon(&caught);
 
-		void* serialized_message = _caught_pokemon;
-		serialized_paquete = crear_paquete_con_id_correlativo(CAUGHT_POKEMON, serialized_message,sizeof(serialized_message) ,id_correlativo, paquete_size);
 
+		uint32_t bytes;
+		void* serialized_message = serializarCaughtPokemon(_caught_pokemon, &bytes);
+		serialized_paquete = crear_paquete_con_id_correlativo(CAUGHT_POKEMON, serialized_message, bytes, id_correlativo, paquete_size);
+
+		log_debug(logger, "Envié un Caught con el mensaje: %d", *((uint32_t*) serialized_message));
 	}
 
 	if(compare_string(mensaje, "GET_POKEMON")){

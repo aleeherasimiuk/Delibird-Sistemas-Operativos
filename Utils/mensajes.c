@@ -82,6 +82,12 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 	return serialized_catch_pokemon;
 }
 
+void* serializarCaughtPokemon(t_caught_pokemon* caught_pokemon, uint32_t* bytes){
+
+	*bytes = sizeof(uint32_t);
+	return (void*) caught_pokemon;
+}
+
 void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_t * bytes) {
 	t_pokemon* pokemon = localized_pokemon -> pokemon;
 	uint32_t cant_coordenadas = localized_pokemon -> cant_coords;
@@ -295,6 +301,15 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer) {
 	catch_pokemon -> coords = deserialized_coords;
 
 	return catch_pokemon;
+}
+
+t_caught_pokemon* deserializarCaughtPokemon(t_buffer* buffer){
+
+	t_caught_pokemon* caught_pok = malloc(sizeof(t_caught_pokemon));
+	caught_pok = (uint32_t*) buffer -> stream;
+
+	return caught_pok;
+
 }
 
 

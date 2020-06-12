@@ -387,10 +387,20 @@ context (TestsMensajes) {
 
 		} end
 
-		skip("Serializar Caught Pokemon") {
+		it("Serializar Caught Pokemon") {
 
 			t_caught_pokemon* cau_pok = caught_pokemon(YES);
-			free(cau_pok);
+
+			uint32_t bytes;
+			void* serialized_cau_pok = serializarCaughtPokemon(cau_pok, &bytes);
+
+			t_buffer* buffer = crearBuffer(serialized_cau_pok, bytes);
+
+			t_caught_pokemon* deserialized_cau_pok = deserializarCaughtPokemon(buffer);
+			should_int(deserialized_cau_pok) be equal to (YES);
+
+			//free(deserialized_cau_pok);
+			free(buffer);
 
 		} end
 
@@ -524,9 +534,11 @@ context (TestsMensajes) {
 			should_int(deserialized_client -> socket) be equal to (2456);
 
 			free(client);
+			free(serialized_client);
 			free(deserialized_client);
 
 		} end
+
 
 		// Se usa?????
 		skip("Serializar Buffer") {

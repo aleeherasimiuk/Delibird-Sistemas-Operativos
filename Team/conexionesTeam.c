@@ -20,24 +20,22 @@ void suscribirseAlBroker(void) {
 
 	conexiones[0] = abrirUnaConexion(config);
 	suscribirAUnaCola(conexiones[0], APPEARED_POKEMON, process_id);
-	//close(conexion);
 
-	//conexiones[1] = abrirUnaConexion(config);
-	//suscribirAUnaCola(conexiones[1], LOCALIZED_POKEMON, process_id);
-	//close(conexion);
+	conexiones[1] = abrirUnaConexion(config);
+	suscribirAUnaCola(conexiones[1], LOCALIZED_POKEMON, process_id);
 
-	//conexiones[2] = abrirUnaConexion(config);
-	//suscribirAUnaCola(conexiones[2], CAUGHT_POKEMON, process_id);
-	//close(conexion);
+	conexiones[2] = abrirUnaConexion(config);
+	suscribirAUnaCola(conexiones[2], CAUGHT_POKEMON, process_id);
+
 
 	pthread_t thread1, thread2, thread3;
 	pthread_create(&thread1, NULL, escucharAlSocket, &conexiones[0]);
-	//pthread_create(&thread2, NULL, escucharAlSocket, &conexiones[1]);
-	//pthread_create(&thread3, NULL, escucharAlSocket, &conexiones[2]);
+	pthread_create(&thread2, NULL, escucharAlSocket, &conexiones[1]);
+	pthread_create(&thread3, NULL, escucharAlSocket, &conexiones[2]);
 
 	pthread_join(thread1, NULL);
-	//pthread_join(thread2, NULL);
-	//pthread_join(thread3, NULL);
+	pthread_join(thread2, NULL);
+	pthread_join(thread3, NULL);
 
 //	for(int i = 0; i < 3; i++){
 //		pthread_t thread;
@@ -91,20 +89,36 @@ void *escucharAlSocket(void* socket) {
 			switch(paquete->type) {
 				case APPEARED_POKEMON:
 					// procesarAppeared(paquete); TODO
-					log_debug(logger, "Llegó un APPEARED_POKEMON");
+					log_debug(logger, "Wow! Apareció un Pokemon!");
 					break;
 				case LOCALIZED_POKEMON:
 					// procesarLocalized(paquete); TODO
-					log_debug(logger, "Llegó un LOCALIZED_POKEMON");
+					log_debug(logger, "Que Google Maps ni Google Maps!. Localized Pokemon PAPÁ");
 					break;
 				case CAUGHT_POKEMON:
-					log_debug(logger, "Llegó un CAUGHT_POKEMON");
+					procesarCaughtPokemon(paquete);
+
+					break;
+				default:
+					log_debug(logger, "What is this SHIT?.");
 					break;
 			}
 		}
 	}
 	// TODO DESTRUIR EL HILO?
 	return NULL;
+}
+
+void procesarCaughtPokemon(t_paquete* paquete){
+	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
+
+	if(*cau_pok == YES){
+		log_debug(logger, "Yey! Atrapé un Pokemon!");
+	} else if(*cau_pok == NO){
+		log_debug(logger, "Ufa! No pude atraparlo :(");
+	} else {
+		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
+	}
 }
 
 
