@@ -412,6 +412,7 @@ t_paquete* recibirPaquete(int socket) {
 
 	// Recibo tipo de mensaje
 	int status = recv(socket, &(paquete -> type), sizeof(paquete -> type), MSG_WAITALL);
+	//printf("Status: %d\n", status);
 	if(status > 0){
 		// Recibo IDs
 		recv(socket, &(paquete -> id), sizeof(paquete->id), MSG_WAITALL);

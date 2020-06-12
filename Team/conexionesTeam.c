@@ -103,6 +103,10 @@ void *escucharAlSocket(void* socket) {
 					log_debug(logger, "What is this SHIT?.");
 					break;
 			}
+		} else {
+			// Políticas de reconexión
+			close(*((int*)socket));
+			i = 0;
 		}
 	}
 	// TODO DESTRUIR EL HILO?
