@@ -52,6 +52,9 @@ void esperar_cliente(int socket_servidor)
 	int* socket_cliente = malloc(sizeof(int));  // Hicimos un malloc porque siempre le pasaba la misma direccion a los hilos
 	*socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
 	if(*socket_cliente == -1) {
+		close(*socket_cliente);
+		free(socket_cliente);
+		//log_debug(logger, "Estoy adentro del if");
 		return;
 	}
 
@@ -104,14 +107,17 @@ void process_request(t_paquete* paquete, uint32_t socket_cliente) {
 				void* list_element = list_get(app_subscribers, i);
 				t_client* client = deserializarCliente(list_element);
 				log_debug(logger, "Intentaré enviar APPEARED_POKEMON al cliente %d", client -> socket);
-//				t_pokemon* pok = crearPokemon("PIKACHU");
-//				t_appeared_pokemon* ap_pok = appeared_pokemon(pok, 10, 10);
 				int bytes;
 				void* ser = serializarAppearedPokemon(appeared_pokemon_msg, &bytes);
 				int bytes_p;
 				void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, ser, bytes, paquete -> correlative_id, &bytes_p);
 
-				int status = send(client -> socket, a_enviar, bytes_p, 0);
+				log_debug(logger, "Antes del send");
+				/*
+				 * MSG_NOSIGNAL logrará hacer que en el caso de que el socket esté cerrado porque cayó la conexión
+				 * con el cliente, el broker no caiga
+				 * */
+				int status = send(client -> socket, a_enviar, bytes_p, MSG_NOSIGNAL);
 				log_debug(logger, "Envié APPEARED_POKEMON al suscriptor %d con status: %d", client -> socket ,status);
 			}
 
@@ -136,7 +142,7 @@ void process_request(t_paquete* paquete, uint32_t socket_cliente) {
 				int bytes_p;
 				void* a_enviar = crear_paquete_con_id_correlativo(CAUGHT_POKEMON, ser, bytes, paquete -> correlative_id, &bytes_p);
 
-				int status = send(client -> socket, a_enviar, bytes_p, 0);
+				int status = send(client -> socket, a_enviar, bytes_p, MSG_NOSIGNAL);
 				log_debug(logger, "Envié CAUGHT_POKEMON al suscriptor %d con status: %d", client -> socket ,status);
 			}
 
