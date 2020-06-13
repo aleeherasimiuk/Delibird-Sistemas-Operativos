@@ -42,6 +42,20 @@ typedef struct{
 uint32_t suscribirCliente(t_buffer* msg, uint32_t size);
 void suscribir(t_client* client, message_type queue);
 
+void iniciarColas();
+void* new_pokemon_queue();
+void* appeared_pokemon_queue();
+void* catch_pokemon_queue();
+void* caught_pokemon_queue();
+void* localized_pokemon_queue();
+void* get_pokemon_queue();
+void iniciarVectorDeSemaforos();
+void iniciarVectorDeSockets();
+
+void* queue(void*);
+
+void appeared_pokemon_to_subscribers(t_paquete*);
+
 
 
 

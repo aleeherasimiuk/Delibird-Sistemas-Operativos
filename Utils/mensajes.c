@@ -430,6 +430,37 @@ t_paquete* recibirPaquete(int socket) {
 
 }
 
+message_type recibirCodigoDeOperacion(int socket){
+	message_type type;
+	// Recibo tipo de mensaje
+	int status = recv(socket, &(type), sizeof(message_type), MSG_WAITALL);
+	if(status > 0){
+		return type;
+	} else {
+		return -1;
+	}
+}
+
+
+t_paquete* recibirPaqueteSi(int socket, message_type type) {
+
+	t_paquete* paquete = malloc(sizeof(t_paquete));
+	paquete -> type = type;
+
+	// Recibo IDs
+	recv(socket, &(paquete -> id), sizeof(paquete->id), MSG_WAITALL);
+	recv(socket, &(paquete -> correlative_id), sizeof(paquete -> correlative_id), MSG_WAITALL);
+
+	paquete->buffer = malloc(sizeof(t_buffer));
+	recv(socket, &(paquete -> buffer -> stream_size), sizeof(paquete -> buffer -> stream_size), MSG_WAITALL);
+
+	paquete -> buffer-> stream = malloc(paquete -> buffer -> stream_size);
+	recv(socket, paquete -> buffer -> stream, paquete -> buffer -> stream_size, MSG_WAITALL);
+	return paquete;
+
+
+}
+
 t_pokemon* crearPokemon(char* name) {
 	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
 	pokemon->name_size = strlen(name) + 1;

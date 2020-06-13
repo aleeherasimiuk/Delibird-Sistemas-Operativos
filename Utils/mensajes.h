@@ -174,7 +174,9 @@ t_subscribe* deserializarSubscribe(t_buffer* buffer);
 t_gameboy_queue_to_subscribe* deserializarSubscribeGameboy(t_buffer* buffer);
 t_client* deserializarCliente(void*);
 
+message_type recibirCodigoDeOperacion(int socket);
 t_paquete* recibirPaquete(int socket);
+t_paquete* recibirPaqueteSi(int socket, message_type cod_op);
 
 
 t_pokemon* crearPokemon(char*);

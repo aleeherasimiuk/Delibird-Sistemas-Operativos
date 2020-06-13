@@ -68,25 +68,40 @@ void esperar_cliente(int socket_servidor)
 
 void serve_client(int* socket)
 {
-	t_paquete* paquete = recibirPaquete(*socket);
-	if(paquete != NULL){
+	//t_paquete* paquete = recibirPaquete(*socket);
+	message_type type = recibirCodigoDeOperacion(*socket);
+	if(type != NULL){
 		log_debug(logger, "Procesando solicitud");
-		process_request(paquete, *socket);
+		process_request(type, *socket);
 	}else {
 		log_debug(logger, "No puedo procesar la solicitud");
 	}
 	//free(socket);
 }
 
-void process_request(t_paquete* paquete, uint32_t socket_cliente) {
+void process_request(message_type type, uint32_t socket_cliente){
+
+	log_debug(logger, "Código de operacion: %d", type);
+
+	if(type == SUBSCRIBE){
+		t_paquete* paquete = recibirPaqueteSi(socket_cliente, type);
+		suscribirCliente(paquete -> buffer, socket_cliente);
+		free(paquete -> buffer);
+	}
+
+	next_socket[type] = socket_cliente;
+	pthread_mutex_unlock(&(sem_sockets[type]));
+
+}
+
+void process_request2(t_paquete* paquete, uint32_t socket_cliente) {
 	uint32_t size;
 	t_buffer* buffer = paquete -> buffer;
 	message_type cod_op = paquete -> type;
 	log_debug(logger, "Código de operacion: %d", cod_op);
 	switch (cod_op) {
 		case SUBSCRIBE:
-			suscribirCliente(buffer, socket_cliente);
-			free(buffer);
+
 			break;
 		case NEW_POKEMON:
 			break;
@@ -94,32 +109,7 @@ void process_request(t_paquete* paquete, uint32_t socket_cliente) {
 			break;
 
 		case APPEARED_POKEMON:
-			log_debug(logger, "Alguien ha enviado un APPEARED_POKEMON");
-			//msg = recibir_mensaje(cliente_fd, &size);
 
-			t_appeared_pokemon* appeared_pokemon_msg = deserializarAppearedPokemon(buffer);
-			log_debug(logger, "Pude deserializar");
-			t_list* app_subscribers = subscribers -> appeared_pokemon;
-
-			log_debug(logger, "Apareció un pokemon: %s", appeared_pokemon_msg -> pokemon -> name);
-
-			for(int i = 0; i < list_size(app_subscribers); i++){
-				void* list_element = list_get(app_subscribers, i);
-				t_client* client = deserializarCliente(list_element);
-				log_debug(logger, "Intentaré enviar APPEARED_POKEMON al cliente %d", client -> socket);
-				int bytes;
-				void* ser = serializarAppearedPokemon(appeared_pokemon_msg, &bytes);
-				int bytes_p;
-				void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, ser, bytes, paquete -> correlative_id, &bytes_p);
-
-				log_debug(logger, "Antes del send");
-				/*
-				 * MSG_NOSIGNAL logrará hacer que en el caso de que el socket esté cerrado porque cayó la conexión
-				 * con el cliente, el broker no caiga
-				 * */
-				int status = send(client -> socket, a_enviar, bytes_p, MSG_NOSIGNAL);
-				log_debug(logger, "Envié APPEARED_POKEMON al suscriptor %d con status: %d", client -> socket ,status);
-			}
 
 			break;
 

@@ -88,8 +88,7 @@ void *escucharAlSocket(void* socket) {
 
 			switch(paquete->type) {
 				case APPEARED_POKEMON:
-					// procesarAppeared(paquete); TODO
-					log_debug(logger, "Wow! Apareció un Pokemon!");
+					procesarAppeared(paquete);
 					break;
 				case LOCALIZED_POKEMON:
 					// procesarLocalized(paquete); TODO
@@ -123,6 +122,11 @@ void procesarCaughtPokemon(t_paquete* paquete){
 	} else {
 		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
 	}
+}
+
+void procesarAppeared(t_paquete* paquete){
+	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
+	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
 }
 
 

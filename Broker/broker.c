@@ -25,6 +25,9 @@ int main(void) {
 
 	logger = iniciar_logger(logfile);
 	iniciarSubscribers();
+	iniciarVectorDeSockets();
+	iniciarVectorDeSemaforos();
+	iniciarColas();
 	iniciar_servidor(ip, puerto);
 
 
