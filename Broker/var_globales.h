@@ -16,7 +16,6 @@
 
 extern t_config* config;
 extern t_log* logger;
-extern t_subscribers* subscribers;
 
 extern pthread_t thread_new_pokemon;
 extern pthread_t thread_appeared_pokemon;
@@ -25,6 +24,8 @@ extern pthread_t thread_caught_pokemon;
 extern pthread_t thread_localized_pokemon;
 extern pthread_t thread_get_pokemon;
 
+
+extern t_list* subscribers[7];
 uint32_t next_socket[9];
 pthread_mutex_t sem_sockets[9];
 

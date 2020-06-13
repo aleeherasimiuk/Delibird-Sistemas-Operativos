@@ -54,7 +54,6 @@ void esperar_cliente(int socket_servidor)
 	if(*socket_cliente == -1) {
 		close(*socket_cliente);
 		free(socket_cliente);
-		//log_debug(logger, "Estoy adentro del if");
 		return;
 	}
 
@@ -81,7 +80,7 @@ void serve_client(int* socket)
 
 void process_request(message_type type, uint32_t socket_cliente){
 
-	log_debug(logger, "Código de operacion: %d", type);
+	log_debug(logger, "Procesando código de operacion: %d", type);
 
 	if(type == SUBSCRIBE){
 		t_paquete* paquete = recibirPaqueteSi(socket_cliente, type);
@@ -94,124 +93,6 @@ void process_request(message_type type, uint32_t socket_cliente){
 
 }
 
-void process_request2(t_paquete* paquete, uint32_t socket_cliente) {
-	uint32_t size;
-	t_buffer* buffer = paquete -> buffer;
-	message_type cod_op = paquete -> type;
-	log_debug(logger, "Código de operacion: %d", cod_op);
-	switch (cod_op) {
-		case SUBSCRIBE:
-
-			break;
-		case NEW_POKEMON:
-			break;
-		case GET_POKEMON:
-			break;
-
-		case APPEARED_POKEMON:
-
-
-			break;
-
-		case CATCH_POKEMON:
-			break;
-
-		case CAUGHT_POKEMON:
-			log_debug(logger, "Alguien ha enviado un CAUGHT_POKEMON");
-			t_caught_pokemon* cau_pokemon = deserializarCaughtPokemon(buffer);
-			t_list* cau_subscribers = subscribers -> caught_pokemon;
-			log_debug(logger, "Pudo el cliente atrapar a un pokemon?: %d", *((uint32_t*)(paquete -> buffer -> stream)));
-
-			for(int i = 0; i < list_size(cau_subscribers); i++){
-				void* list_element = list_get(cau_subscribers, i);
-				t_client* client = deserializarCliente(list_element);
-				log_debug(logger, "Intentaré enviar CAUGHT_POKEMON al cliente %d", client -> socket);
-				int bytes;
-				void* ser = serializarCaughtPokemon(cau_pokemon, &bytes);
-
-				int bytes_p;
-				void* a_enviar = crear_paquete_con_id_correlativo(CAUGHT_POKEMON, ser, bytes, paquete -> correlative_id, &bytes_p);
-
-				int status = send(client -> socket, a_enviar, bytes_p, MSG_NOSIGNAL);
-				log_debug(logger, "Envié CAUGHT_POKEMON al suscriptor %d con status: %d", client -> socket ,status);
-			}
-
-			break;
-
-		case LOCALIZED_POKEMON:
-			break;
-
-
-		case 0:
-			//printf("codigo 0\n");
-			//close(cliente_fd); // Ante error cerrar el socket
-			//pthread_exit(NULL);
-			break;
-		case -1:
-			//printf("codigo -1\n");
-			//close(cliente_fd); // Ante error cerrar el socket
-			//pthread_exit(NULL);
-			break;
-	}
-	// Cierro la conexion con ese cliente
-	//close(cliente_fd);
-}
-
-//TODO: Controlar los recv
-// Todos los mensajes vienen empaquetados en t_paquete
-t_buffer* recibir_mensaje(int socket_cliente,uint32_t* size){
-	uint32_t id;
-	uint32_t correlative_id;
-	t_buffer* buffer = malloc(sizeof(t_buffer));
-
-	recv(socket_cliente, &id, sizeof(uint32_t), MSG_WAITALL);
-	recv(socket_cliente, &correlative_id, sizeof(uint32_t), MSG_WAITALL);
-
-	//buffer -> stream_size = malloc(sizeof(uint32_t));
-	recv(socket_cliente, &(buffer -> stream_size), sizeof(uint32_t), MSG_WAITALL);
-	buffer -> stream = malloc((buffer -> stream_size));
-	recv(socket_cliente, buffer -> stream, (buffer -> stream_size), MSG_WAITALL);
-
-	return buffer;
-}
-
-
-void* serializar_paquete(t_paquete* paquete, int bytes)
-{
-	void * magic = malloc(bytes);
-	int desplazamiento = 0;
-
-	memcpy(magic + desplazamiento, &(paquete->type), sizeof(int));
-	desplazamiento+= sizeof(int);
-	memcpy(magic + desplazamiento, &(paquete->buffer->stream_size), sizeof(int));
-	desplazamiento+= sizeof(int);
-	memcpy(magic + desplazamiento, paquete->buffer->stream, paquete->buffer->stream_size);
-	desplazamiento+= paquete->buffer->stream_size;
-
-	return magic;
-}
-
-void devolver_mensaje(void* payload, int size, int socket_cliente)
-{
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-
-	paquete->type = NEW_POKEMON;
-	paquete->buffer = malloc(sizeof(t_buffer));
-	paquete->buffer->stream_size = size;
-	paquete->buffer->stream = malloc(paquete->buffer->stream_size);
-	memcpy(paquete->buffer->stream, payload, paquete->buffer->stream_size);
-
-	int bytes = paquete->buffer->stream_size + 2*sizeof(int);
-
-	void* a_enviar = serializar_paquete(paquete, bytes);
-
-	send(socket_cliente, a_enviar, bytes, 0);
-
-	free(a_enviar);
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
-}
 
 
 

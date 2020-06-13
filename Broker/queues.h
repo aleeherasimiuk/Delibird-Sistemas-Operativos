@@ -15,26 +15,6 @@
 #include<commons/collections/list.h>
 
 #include "../Utils/mensajes.h"
-/*
- typedef struct{
-	t_queue* new_pokemon;
-	t_queue* appeared_pokemon;
-	t_queue* catch_pokemon;
-	t_queue* caught_pokemon;
-	t_queue* get_pokemon;
-	t_queue* localized_pokemon;
-}t_queues;
-*/
-
-typedef struct{
-
-	t_list* new_pokemon;
-	t_list* appeared_pokemon;
-	t_list* catch_pokemon;
-	t_list* caught_pokemon;
-	t_list* get_pokemon;
-	t_list* localized_pokemon;
-}t_subscribers;
 
 // Cliente movido a mensajes.h
 

@@ -20,7 +20,7 @@
 #include "var_globales.h"
 
 t_config* leer_config(void);
-t_subscribers* iniciarSubscribers(void);
+void iniciarSubscribers(void);
 t_log* iniciar_logger(char*);
 
 
