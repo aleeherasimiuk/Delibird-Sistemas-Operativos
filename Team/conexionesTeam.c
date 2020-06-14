@@ -130,13 +130,20 @@ void procesarAppeared(t_paquete* paquete){
 }
 
 
-void abrirSocketParaGameboy(){
+
+void escucharAlGameboy(){
+
+	pthread_t thread;
+	pthread_create(&thread, NULL ,abrirSocketParaGameboy, NULL);
+	pthread_detach(&thread);
+}
+
+void* abrirSocketParaGameboy(){
 
 	char* ip = config_get_string_value(config, "IP");
 	char* puerto = config_get_string_value(config, "PUERTO");
 	log_debug(logger, "Estoy escuchando al gameboy en %s:%s", ip, puerto);
 	crear_servidor(ip, puerto, serve_client);
-
 
 }
 

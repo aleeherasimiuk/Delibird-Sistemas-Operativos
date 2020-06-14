@@ -32,8 +32,9 @@ void  enviarGetPokemon(t_pokemon* pokemon);
 void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id);
 int abrirUnaConexion(t_config*);
 void procesarAppeared(t_paquete* paquete);
-void abrirSocketParaGameboy();
+void* abrirSocketParaGameboy();
 void serve_client(int*);
 void process_request(message_type, int);
+void escucharAlGameboy();
 
 #endif /* CONEXIONES_H_ */
