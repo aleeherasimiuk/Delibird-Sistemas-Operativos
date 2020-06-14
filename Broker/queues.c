@@ -62,7 +62,6 @@ void iniciarColas(){
 	pthread_create(&thread_catch_pokemon,NULL,(void*)queue, CATCH_POKEMON);
 	pthread_create(&thread_caught_pokemon,NULL,(void*)queue, CAUGHT_POKEMON);
 	pthread_create(&thread_get_pokemon,NULL,(void*)queue, GET_POKEMON);
-	//Quedan hacer más threads
 
 	pthread_detach(&thread_new_pokemon);
 	pthread_detach(&thread_appeared_pokemon);
