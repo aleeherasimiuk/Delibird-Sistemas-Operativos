@@ -53,6 +53,17 @@ dkms.conf
 /.metadata/
 
 
+*.sh
+
+.cproject
+
+Team/team
+Broker/broker
+GameBoy/gameboy
+Tests/tests
+GameCard/gamecard
+
+
 /.cproject
 *.xml
 *.project
