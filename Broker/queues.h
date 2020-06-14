@@ -16,6 +16,9 @@
 
 #include "../Utils/mensajes.h"
 
+#include<pthread.h>
+#include<semaphore.h>
+
 // Cliente movido a mensajes.h
 
 
@@ -35,6 +38,12 @@ void iniciarVectorDeSockets();
 void* queue(void*);
 
 void appeared_pokemon_to_subscribers(t_paquete*);
+
+typedef struct{
+	pthread_mutex_t mx; // Acceso exclusivo
+	sem_t q; // Queue
+	sem_t c; // Recepción del cliente
+} queue_sem_t;
 
 
 

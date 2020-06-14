@@ -60,7 +60,7 @@ void esperar_cliente(int socket_servidor)
 	log_debug(logger, "Yo soy el servidor y tengo socket: %d", socket_servidor);
 	log_debug(logger, "Se ha conectado un cliente al socket %d", *socket_cliente);
 
-	pthread_create(&thread,NULL,(void*)serve_client,socket_cliente);
+	pthread_create(&thread,NULL,(void*)serve_client, socket_cliente);
 	pthread_detach(thread);
 
 }
@@ -88,8 +88,12 @@ void process_request(message_type type, uint32_t socket_cliente){
 		free(paquete -> buffer);
 	}
 
+	sem_wait(&(sem_sockets[type].c));
+	pthread_mutex_lock(&(sem_sockets[type].mx));
 	next_socket[type] = socket_cliente;
-	pthread_mutex_unlock(&(sem_sockets[type]));
+	pthread_mutex_unlock(&(sem_sockets[type].mx));
+	sem_post(&(sem_sockets[type].q));
+
 
 }
 

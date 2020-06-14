@@ -16,7 +16,7 @@ pthread_t thread_localized_pokemon;
 pthread_t thread_get_pokemon;
 
 uint32_t next_socket[9];
-pthread_mutex_t sem_sockets[9];
+queue_sem_t sem_sockets[9];
 t_list* subscribers[7];
 
 
@@ -84,8 +84,10 @@ void iniciarVectorDeSockets(){
 
 void iniciarVectorDeSemaforos(){
 	for(int i = 0; i < 9; i++){
-		pthread_mutex_init(&(sem_sockets[i]), NULL);
-		pthread_mutex_lock(&(sem_sockets[i]));
+
+		pthread_mutex_init(&(sem_sockets[i].mx), NULL);
+		sem_init(&(sem_sockets[i].c), 0, 1);
+		sem_init(&(sem_sockets[i].q), 0, 0);
 	}
 
 }
@@ -96,11 +98,11 @@ void* queue(void* message_type){
 
 	while(1){
 		t_paquete* paquete = NULL;
-		pthread_mutex_lock(&(sem_sockets[type]));
-		if(next_socket[type] != -1)
-			paquete = recibirPaqueteSi(next_socket[type], type);
-		next_socket[type] = -1;
-		pthread_mutex_unlock(&(sem_sockets[type]));
+		sem_wait(&(sem_sockets[type].q));
+		pthread_mutex_lock(&(sem_sockets[type].mx));
+		paquete = recibirPaqueteSi(next_socket[type], type);
+		pthread_mutex_unlock(&(sem_sockets[type].mx));
+		sem_post(&(sem_sockets[type].c));
 
 		if(paquete != NULL)
 			send_to_subscribers(paquete);

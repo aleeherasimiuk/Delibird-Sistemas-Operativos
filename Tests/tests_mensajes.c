@@ -400,6 +400,8 @@ context (TestsMensajes) {
 			should_int(deserialized_cau_pok) be equal to (YES);
 
 			//free(deserialized_cau_pok);
+			//free(buffer -> stream);
+//			free(cau_pok);
 			free(buffer);
 
 		} end
