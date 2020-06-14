@@ -24,9 +24,9 @@ int main() {
 void inicializar_team(void) {
 	iniciarPlanificador();
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
+	abrirSocketParaGameboy();
 	suscribirseAlBroker(); // TODO Revisar el escucharAlBroker
 	//enviarGetsAlBroker();
-	// abrirSocketParaGameboy(); TODO
 }
 
 t_log* iniciar_logger(char* logfile)

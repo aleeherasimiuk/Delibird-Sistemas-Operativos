@@ -130,6 +130,49 @@ void procesarAppeared(t_paquete* paquete){
 }
 
 
+void abrirSocketParaGameboy(){
+
+	char* ip = config_get_string_value(config, "IP");
+	char* puerto = config_get_string_value(config, "PUERTO");
+	log_debug(logger, "Estoy escuchando al gameboy en %s:%s", ip, puerto);
+	crear_servidor(ip, puerto, serve_client);
+
+
+}
+
+void serve_client(int* socket){
+	message_type type = recibirCodigoDeOperacion(*socket);
+	if(type != NULL){
+		log_debug(logger, "Procesando solicitud");
+		process_request(type, *socket);
+	}else {
+		log_debug(logger, "No puedo procesar la solicitud");
+	}
+}
+
+void process_request(message_type type, int socket){
+
+	t_paquete* paquete = recibirPaqueteSi(socket, type);
+
+	switch(type){
+
+		case APPEARED_POKEMON:
+			procesarAppeared(paquete);
+			break;
+
+		case CAUGHT_POKEMON:
+			procesarCaughtPokemon(paquete);
+			break;
+
+		default:
+			log_error(logger, "Código de operación inválido");
+
+
+	}
+
+}
+
+
 //////////////////////////////////////////////
 //					GET						//
 //////////////////////////////////////////////

@@ -33,6 +33,7 @@ int enviar_mensaje(int argc, char* argv[]){
 		if(conexion == CANT_CONNECT){
 			log_debug(logger, "No pude conectar :(");
 			terminar_programa(conexion, logger, config);
+			exit(1);
 		} else {
 			log_debug(logger, "Conexión Abierta");
 		}

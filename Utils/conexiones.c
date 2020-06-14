@@ -22,6 +22,55 @@ int crear_conexion(char *ip, char* puerto)
 	return socket_cliente;
 }
 
+void crear_servidor(char* ip, char* puerto, void* serve_client){
+	int socket_servidor;
+
+    struct addrinfo hints, *servinfo, *p;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    getaddrinfo(ip, puerto, &hints, &servinfo);
+
+    for (p=servinfo; p != NULL; p = p->ai_next) {
+        if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+            continue;
+
+        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
+            close(socket_servidor);
+            continue;
+        }
+        break;
+    }
+
+	listen(socket_servidor, SOMAXCONN);
+
+    freeaddrinfo(servinfo);
+
+    while(1)
+    	esperar_cliente(socket_servidor, serve_client);
+}
+
+void esperar_cliente(int socket_servidor, void* serve_client){
+	pthread_t thread;
+	struct sockaddr_in dir_cliente;
+
+	socklen_t tam_direccion = sizeof(struct sockaddr_in);
+	int* socket_cliente = malloc(sizeof(int));  // Hicimos un malloc porque siempre le pasaba la misma direccion a los hilos
+	*socket_cliente = accept(socket_servidor, (void*) &dir_cliente, &tam_direccion);
+	if(*socket_cliente == -1) {
+		close(*socket_cliente);
+		free(socket_cliente);
+		return;
+	}
+
+	pthread_create(&thread,NULL,(void*)serve_client, socket_cliente);
+	pthread_detach(thread);
+
+}
+
 int crear_conexion_con_config(t_config* config, char* campo_ip, char* campo_puerto) {
 	char* ip = config_get_string_value(config, campo_ip);
 	char* puerto = config_get_string_value(config, campo_puerto);

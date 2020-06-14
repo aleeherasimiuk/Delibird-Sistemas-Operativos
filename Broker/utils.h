@@ -18,19 +18,13 @@
 #include<string.h>
 #include<pthread.h>
 #include"queues.h"
-#include"../Utils/mensajes.h"
+#include"../Utils/conexiones.h"
 #include"var_globales.h"
 
-void* recibir_buffer(int*, int);
 
-void iniciar_servidor(char*, char*);
-void esperar_cliente(int);
-t_buffer* recibir_mensaje(int socket_cliente, uint32_t* size);
 int recibir_operacion(int);
 void process_request(message_type, uint32_t);
 void serve_client(int* socket);
-void* serializar_paquete(t_paquete* paquete, int bytes);
-void devolver_mensaje(void* payload, int size, int socket_cliente);
 
 
 #endif /* CONEXIONES_H_ */
