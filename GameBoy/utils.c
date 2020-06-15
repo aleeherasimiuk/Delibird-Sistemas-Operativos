@@ -10,10 +10,13 @@
 
 
 int enviar_mensaje(int argc, char* argv[]){
+
+	handleProcessPokemon(argc, argv);
+
 	char* proceso = argv[0];
 	int conexion;
 	uint32_t paquete_size;
-	void* paquete = preparar_mensaje(--argc, &argv[1], &paquete_size);
+	void* paquete = preparar_mensaje(proceso, --argc, &argv[1], &paquete_size);
 
 	if(compare_string(proceso, "SUSCRIPTOR")){
 		//TODO: Que pasa cuando es suscriptor?
@@ -47,12 +50,13 @@ int enviar_mensaje(int argc, char* argv[]){
 
 }
 
-void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
+void* preparar_mensaje(char* process, int argc, char* argv[], uint32_t* paquete_size){
 
 	char* mensaje = argv[0];
 	void* serialized_paquete;
 
 	if(compare_string(mensaje, "NEW_POKEMON")){
+		handleNewPokemon(process, argc, argv);
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		uint32_t posX = convert_to_int(argv[2]);
 		uint32_t posY = convert_to_int(argv[3]);
@@ -66,6 +70,7 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 	}
 
 	if(compare_string(mensaje, "APPEARED_POKEMON")){
+		handleAppearedPokemon(process, argc, argv);
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		uint32_t posX = convert_to_int(argv[2]);
 		uint32_t posY = convert_to_int(argv[3]);
@@ -80,6 +85,7 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 
 	if(compare_string(mensaje, "CATCH_POKEMON")){
+		handleCatchPokemon(process, argc, argv);
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		uint32_t posX = convert_to_int(argv[2]);
 		uint32_t posY = convert_to_int(argv[3]);
@@ -93,6 +99,7 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 	if(compare_string(mensaje, "CAUGHT_POKEMON")) {
 
+		handleCaughtPokemon(process, argc, argv);
 		uint32_t id_correlativo = convert_to_int(argv[1]);
 		uint32_t caught = 0;
 		char* ok = argv[2];
@@ -110,6 +117,7 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 	}
 
 	if(compare_string(mensaje, "GET_POKEMON")){
+		handleGetPokemon(process, argc, argv);
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		t_get_pokemon* _get_pokemon = get_pokemon(pokemon);
 		void* serialized_message = _get_pokemon;
@@ -118,20 +126,6 @@ void* preparar_mensaje(int argc, char* argv[], uint32_t* paquete_size){
 
 	return serialized_paquete;
 
-}
-
-// compara si el mensaje recibido es igual a: BROKER, GAMECARD o TEAM.
-int compare_string(char* mensaje_recv, char* mensaje) {
-	return !strcmp(mensaje_recv, mensaje);
-}
-
-// retorna un string donde es la combinación del campo(IP o PUERTO) y el proceso(TEAM, BROKER o GAMECARD)
-char* concat_string_config(char* proceso, char* campo) {
-	char* str = (char *) malloc(1 + strlen(campo)+ strlen(proceso));
-	strcpy(str, campo);
-	strcat(str, proceso);
-
-	return str;
 }
 
 

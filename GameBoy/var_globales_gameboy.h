@@ -11,6 +11,9 @@
 #include<commons/config.h>
 #include<commons/log.h>
 
+#define IP "IP_"
+#define PUERTO "PUERTO_"
+
 extern t_config* config;
 extern t_log* logger;
 

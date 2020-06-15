@@ -12,17 +12,15 @@
 #include <stdlib.h>
 #include "../Utils/conexiones.h"
 #include "var_globales_gameboy.h"
+#include "args_handler.h"
 
 #define convert_to_int atoi
 #define concat_string strcat
-#define IP "IP_"
-#define PUERTO "PUERTO_"
 
 
 int enviar_mensaje(int argc, char* argv[]);
-void* preparar_mensaje(int argc, char* argv[], uint32_t*);
-int compare_string(char*, char*);
-char* concat_string_config(char*, char*);
+void* preparar_mensaje(char* proceso, int argc, char* argv[], uint32_t*);
+
 
 
 
