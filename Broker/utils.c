@@ -31,6 +31,12 @@ void serve_client(int* socket) {
 void process_request(message_type type, uint32_t socket_cliente){
 
 	log_debug(logger, "Procesando código de operacion: %d", type);
+	log_debug(logger, "Recibiendo del socket: %d", socket_cliente);
+
+	if(type < 0){
+		log_error(logger, "Error al obtener el código de operacion");
+		return;
+	}
 
 	if(type == SUBSCRIBE){
 		t_paquete* paquete = recibirPaqueteSi(socket_cliente, type);
@@ -41,10 +47,7 @@ void process_request(message_type type, uint32_t socket_cliente){
 
 	if(type == ACK){
 		t_paquete* paquete = recibirPaqueteSi(socket_cliente, type);
-		uint32_t id_ack;
-		//procesarACK(); TODO: Implementar process_id para identificar al proceso
-		memcpy(&id_ack, paquete -> buffer -> stream, paquete -> buffer -> stream_size);
-		log_debug(logger, "El cliente %d recibió el paquete con el id: %d", socket_cliente, id_ack);
+		procesarACK(paquete -> buffer);
 		return;
 	}
 
@@ -68,6 +71,14 @@ void process_request(message_type type, uint32_t socket_cliente){
 	int status = send(socket_cliente, paquete, bytes, 0);
 	log_debug(logger, "Envié el ID: %d, con status: %d", next_socket[type].id_to_assing, status);
 
+
+}
+
+void procesarACK(t_buffer* buffer){
+
+	t_ack* ack = deserializarACK(buffer);
+	log_debug(logger, "El proceso %d, recibió el mensaje cuyo ID es: %d", ack -> process_id, ack -> id);
+	free(ack);
 
 }
 

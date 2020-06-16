@@ -142,6 +142,16 @@ void* serializarSubscribeGameboy(t_gameboy_queue_to_subscribe* subscribe, uint32
 	return serializedSubscribe;
 }
 
+void* serializarACK(t_ack* ack, uint32_t* bytes){
+
+	uint32_t pid = ack -> process_id;
+	uint32_t mid = ack -> id;
+
+	void* serializedACK = serializarGenerico(bytes, 2, &pid, sizeof(uint32_t), &mid, sizeof(uint32_t));
+	return serializedACK;
+
+}
+
 
 
 void* serializarBuffer(t_buffer* buffer, uint32_t* bytes) {
@@ -180,6 +190,8 @@ void* serializarCliente(t_client* cliente){
 	return serialized_client;
 }
 
+
+
 void* serializarGenerico(uint32_t* bytes, uint32_t num_args, ...) {
 
 	// va_list es la lista para guardar los argumentos variables
@@ -215,6 +227,23 @@ void* serializarGenerico(uint32_t* bytes, uint32_t num_args, ...) {
 	va_end(args);
 
 	return serialized;
+}
+
+t_ack* deserializarACK(t_buffer* buffer){
+
+	t_ack* ack = malloc(sizeof(t_ack));
+	void* stream = buffer -> stream;
+
+	memcpy(&(ack -> process_id), stream, sizeof(uint32_t));
+	stream += sizeof(uint32_t);
+
+	memcpy(&(ack -> id), stream, sizeof(uint32_t));
+	stream += sizeof(uint32_t);
+
+	free(buffer -> stream);
+	free(buffer);
+	return ack;
+
 }
 
 //Firmas de Deserialización
@@ -614,9 +643,16 @@ t_client* cliente(uint32_t process_id, uint32_t socket){
 	client -> socket = socket;
 
 	return client;
+}
 
+t_ack* ack(t_process_id pid, t_id mid){
 
+	t_ack* ack = malloc(sizeof(t_ack));
 
+	ack -> process_id = pid;
+	ack -> id = mid;
+
+	return ack;
 }
 
 

@@ -101,7 +101,14 @@ typedef struct {
 
 
 typedef uint32_t t_id;
-typedef t_id t_ack;
+typedef uint32_t t_process_id;
+
+typedef struct{
+
+	t_id id;
+	t_process_id process_id;
+
+} t_ack;
 
 
 // FIN STRUCTS MENSAJES
@@ -154,6 +161,7 @@ void* serializarSubscribe(t_subscribe* subscribe, uint32_t* bytes);
 void* serializarSubscribeGameboy(t_gameboy_queue_to_subscribe* subscribe, uint32_t* bytes);
 void* serializarBuffer(t_buffer* buffer, uint32_t* bytes);
 void* serializarPaquete(t_paquete* paquete, uint32_t* bytes);
+void* serializarACK(t_ack*, uint32_t* bytes);
 
 //Test
 void* serializarCliente(t_client* cliente);
@@ -179,6 +187,7 @@ t_localized_pokemon* deserializarLocalizedPokemon(t_buffer* buffer);
 t_subscribe* deserializarSubscribe(t_buffer* buffer);
 t_gameboy_queue_to_subscribe* deserializarSubscribeGameboy(t_buffer* buffer);
 t_client* deserializarCliente(void*);
+t_ack* deserializarACK(t_buffer*);
 
 message_type recibirCodigoDeOperacion(int socket);
 t_paquete* recibirPaquete(int socket);
@@ -203,5 +212,6 @@ t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type, uint32_t);
 t_localized_pokemon* localized_pokemon(t_pokemon*, uint32_t, t_coords**);
 t_coords** coords_array(uint32_t, ...);
 t_client* cliente(uint32_t, uint32_t);
+t_ack* ack(t_process_id, t_id);
 
 #endif /* MENSAJES_H_ */

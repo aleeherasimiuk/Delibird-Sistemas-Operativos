@@ -541,6 +541,24 @@ context (TestsMensajes) {
 
 		} end
 
+		it("Serializar ACK") {
+
+			t_ack* _ack = ack(10, 20);
+
+			uint32_t bytes;
+			void* serialized_ack = serializarACK(_ack, &bytes);
+
+			t_buffer* buffer = crearBuffer(serialized_ack, bytes);
+
+
+			t_ack* deserialized_ack = deserializarACK(buffer);
+
+
+			should_int(deserialized_ack -> process_id) be equal to (10);
+			should_int(deserialized_ack -> id) be equal to (20);
+
+		} end
+
 
 		// Se usa?????
 		skip("Serializar Buffer") {
