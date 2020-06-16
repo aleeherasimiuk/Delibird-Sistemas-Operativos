@@ -478,6 +478,22 @@ t_paquete* crearPaquete(void) { //TODO: Pasar a notación con _
 	return paquete;
 }
 
+void* crear_paquete_con_id(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t id, uint32_t* paquete_size){
+
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer -> stream_size = message_bytes;
+	buffer -> stream = serialized_message;
+
+	t_paquete* paquete = crearPaquete();
+	paquete -> type = cod_op;
+	paquete -> id = id;
+	paquete -> buffer = buffer;
+
+	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
+
+	return serialized_paquete;
+}
+
 void* crear_paquete(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t* paquete_size){
 
 	return crear_paquete_con_id_correlativo(cod_op, serialized_message, message_bytes, 0, paquete_size);

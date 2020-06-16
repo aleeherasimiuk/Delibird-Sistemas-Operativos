@@ -189,6 +189,7 @@ t_paquete* crearPaquete(void);	// Me crea un paquete con los id = 0 por defecto
 
 // Crear Mensajes
 void* crear_paquete(message_type, void*, uint32_t, uint32_t*);
+void* crear_paquete_con_id(message_type , void*, uint32_t, uint32_t, uint32_t*);
 void* crear_paquete_con_id_correlativo(message_type, void*, uint32_t, uint32_t, uint32_t*); //No se como sobrecargar funciones
 t_coords* crear_coordenadas_from_int(uint32_t, uint32_t);
 t_new_pokemon* new_pokemon(t_pokemon*, uint32_t, uint32_t, uint32_t);
