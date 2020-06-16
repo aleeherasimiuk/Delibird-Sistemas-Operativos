@@ -101,6 +101,7 @@ typedef struct {
 
 
 typedef uint32_t t_id;
+typedef t_id t_ack;
 
 
 // FIN STRUCTS MENSAJES
@@ -202,4 +203,5 @@ t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type, uint32_t);
 t_localized_pokemon* localized_pokemon(t_pokemon*, uint32_t, t_coords**);
 t_coords** coords_array(uint32_t, ...);
 t_client* cliente(uint32_t, uint32_t);
+
 #endif /* MENSAJES_H_ */

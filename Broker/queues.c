@@ -119,6 +119,7 @@ void* queue(void* message_type){
 	return NULL;
 }
 
+
 void send_to_subscribers(t_paquete* paquete){
 
 	message_type type = paquete -> type;
@@ -130,7 +131,8 @@ void send_to_subscribers(t_paquete* paquete){
 		log_debug(logger, "Intentaré enviar el mensaje al cliente %d", client -> socket);
 		int bytes;
 		int bytes_p;
-		void* a_enviar = crear_paquete_con_id_correlativo(type, paquete -> buffer -> stream, paquete -> buffer -> stream_size, paquete -> correlative_id, &bytes_p);
+		//TODO: ID Correlativo
+		void* a_enviar = crear_paquete_con_id(type, paquete -> buffer -> stream, paquete -> buffer -> stream_size, paquete -> id, &bytes_p);
 
 		/*
 		 * MSG_NOSIGNAL logrará hacer que en el caso de que el socket esté cerrado porque cayó la conexión

@@ -85,6 +85,7 @@ void *escucharAlSocket(void* socket) {
 		t_paquete* paquete = recibirPaquete(*((int*)socket));
 
 		if(paquete != NULL){
+			enviarACK(*((int*)socket), paquete -> id);
 
 			switch(paquete->type) {
 				case ID:
@@ -106,6 +107,8 @@ void *escucharAlSocket(void* socket) {
 					log_debug(logger, "What is this SHIT?.");
 					break;
 			}
+
+
 		} else {
 			// Políticas de reconexión
 			close(*((int*)socket));
@@ -184,6 +187,22 @@ void process_request(message_type type, int socket){
 
 
 	}
+
+}
+
+void enviarACK(uint32_t sock, uint32_t id){
+
+	int conexion = abrirUnaConexion(config);
+
+	log_debug(logger,"Enviaré un ACK por el id: %d",id);
+	uint32_t bytes;
+	void* ack = crear_paquete(ACK, &id, sizeof(uint32_t), &bytes);
+
+	int status = send(conexion, ack, bytes, 0);
+	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id ,status);
+	free(ack);
+	close(conexion);
+
 
 }
 

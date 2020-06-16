@@ -39,6 +39,15 @@ void process_request(message_type type, uint32_t socket_cliente){
 		return;
 	}
 
+	if(type == ACK){
+		t_paquete* paquete = recibirPaqueteSi(socket_cliente, type);
+		uint32_t id_ack;
+		//procesarACK(); TODO: Implementar process_id para identificar al proceso
+		memcpy(&id_ack, paquete -> buffer -> stream, paquete -> buffer -> stream_size);
+		log_debug(logger, "El cliente %d recibió el paquete con el id: %d", socket_cliente, id_ack);
+		return;
+	}
+
 	uint32_t id_message_to_module;
 
 	sem_wait(&(sem_sockets[type].c));

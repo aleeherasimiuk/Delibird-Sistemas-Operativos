@@ -620,6 +620,7 @@ t_client* cliente(uint32_t process_id, uint32_t socket){
 }
 
 
+
 // TODO: Localized pokemon, el gameboy no lo usa.
 
 t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type queue, uint32_t seconds) {
