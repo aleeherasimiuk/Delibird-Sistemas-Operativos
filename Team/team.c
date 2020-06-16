@@ -25,7 +25,7 @@ void inicializar_team(void) {
 	iniciarPlanificador();
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
 	escucharAlGameboy();
-	suscribirseAlBroker(); // TODO Revisar el escucharAlBroker
+	suscribirseAlBroker();
 	//enviarGetsAlBroker();
 }
 

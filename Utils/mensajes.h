@@ -24,7 +24,8 @@ typedef enum {
 	LOCALIZED_POKEMON,
 	CONFIRMATION,		// Para avisar al broker que se recibió el mensaje (el broker actualiza el ACK)
 	SUBSCRIBE,
-	GAMEBOY_SUBSCRIBE
+	GAMEBOY_SUBSCRIBE,
+	ID
 } message_type;
 
 typedef struct {
@@ -96,6 +97,10 @@ typedef struct {
 	message_type queue_to_subscribe; // Cola a la que se suscribe el gameboy
 	uint32_t seconds; // Tiempo en segundos
 } t_gameboy_queue_to_subscribe;
+
+
+
+typedef uint32_t t_id;
 
 
 // FIN STRUCTS MENSAJES

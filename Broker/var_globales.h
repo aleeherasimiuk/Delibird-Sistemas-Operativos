@@ -25,7 +25,7 @@ extern pthread_t thread_get_pokemon;
 
 
 extern t_list* subscribers[7];
-uint32_t next_socket[9];
+next_socket_t next_socket[9];
 queue_sem_t sem_sockets[9];
 
 

@@ -87,6 +87,10 @@ void *escucharAlSocket(void* socket) {
 		if(paquete != NULL){
 
 			switch(paquete->type) {
+				case ID:
+					procesarID(paquete);
+					break;
+
 				case APPEARED_POKEMON:
 					procesarAppeared(paquete);
 					break;
@@ -129,6 +133,10 @@ void procesarAppeared(t_paquete* paquete){
 	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
 }
 
+void procesarID(t_paquete* paquete){
+	t_id* id = paquete -> buffer -> stream;
+	log_debug(logger, "Recibí el ID: %d", id);
+}
 
 
 void escucharAlGameboy(){

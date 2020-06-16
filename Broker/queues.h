@@ -37,13 +37,20 @@ void iniciarVectorDeSockets();
 
 void* queue(void*);
 
-void appeared_pokemon_to_subscribers(t_paquete*);
+void asignar_id(t_paquete* paquete, uint32_t id);
 
 typedef struct{
 	pthread_mutex_t mx; // Acceso exclusivo
 	sem_t q; // Queue
 	sem_t c; // Recepción del cliente
 } queue_sem_t;
+
+typedef struct{
+
+	uint32_t socket_to_recv;
+	t_id id_to_assing;
+
+} next_socket_t;
 
 
 

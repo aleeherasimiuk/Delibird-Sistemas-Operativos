@@ -15,7 +15,7 @@ pthread_t thread_caught_pokemon;
 pthread_t thread_localized_pokemon;
 pthread_t thread_get_pokemon;
 
-uint32_t next_socket[9];
+next_socket_t next_socket[9];
 queue_sem_t sem_sockets[9];
 t_list* subscribers[7];
 
@@ -76,9 +76,10 @@ void iniciarSubscribers(){
 		subscribers[i] = list_create();
 }
 
+//TODO: BORRAR
 void iniciarVectorDeSockets(){
 	for(int i = 0; i < 9; i++)
-		next_socket[i] = -1;
+		next_socket[i].socket_to_recv = -1;
 }
 
 void iniciarVectorDeSemaforos(){
@@ -99,9 +100,15 @@ void* queue(void* message_type){
 		t_paquete* paquete = NULL;
 		sem_wait(&(sem_sockets[type].q));
 		pthread_mutex_lock(&(sem_sockets[type].mx));
-		paquete = recibirPaqueteSi(next_socket[type], type);
+
+		paquete = recibirPaqueteSi(next_socket[type].socket_to_recv, type);
+		asignar_id(paquete, next_socket[type].id_to_assing);
+
 		pthread_mutex_unlock(&(sem_sockets[type].mx));
 		sem_post(&(sem_sockets[type].c));
+
+		log_debug(logger, "Se asignó el ID: %d", paquete -> id);
+
 
 		if(paquete != NULL)
 			send_to_subscribers(paquete);
@@ -133,4 +140,8 @@ void send_to_subscribers(t_paquete* paquete){
 		log_debug(logger, "Envié el mensaje al suscriptor %d con status: %d", client -> socket ,status);
 		//NOTA DE MOU TODO: free()
 	}
+}
+
+void asignar_id(t_paquete* paquete, uint32_t id){
+	paquete -> id = id;
 }
