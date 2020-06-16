@@ -6,6 +6,7 @@
  */
 
 #include "conexionesTeam.h"
+uint32_t process_id;
 
 
 //////////////////////////////////////////////
@@ -15,8 +16,6 @@
 void suscribirseAlBroker(void) {
 	// Abro conexion
 	int conexiones[3];
-	uint32_t process_id = 25; // TODO: TRAER DEL CONFIG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 
 	conexiones[0] = abrirUnaConexion(config);
 	suscribirAUnaCola(conexiones[0], APPEARED_POKEMON, process_id);
@@ -195,7 +194,7 @@ void enviarACK(uint32_t id){
 	int conexion = abrirUnaConexion(config);
 
 	log_debug(logger,"Enviaré un ACK por el id: %d",id);
-	t_ack* _ack = ack(25, id);
+	t_ack* _ack = ack(process_id, id);
 
 	uint32_t bytes_ack;
 	void* serialized_ack = serializarACK(_ack, &bytes_ack);
