@@ -22,10 +22,10 @@ typedef enum {
 	CAUGHT_POKEMON,
 	GET_POKEMON,
 	LOCALIZED_POKEMON,
-	CONFIRMATION,		// Para avisar al broker que se recibió el mensaje (el broker actualiza el ACK)
 	SUBSCRIBE,
 	GAMEBOY_SUBSCRIBE,
-	ID
+	ID,
+	ACK
 } message_type;
 
 typedef struct {
