@@ -11,7 +11,10 @@
 
 int enviar_mensaje(int argc, char* argv[]){
 
-	handleProcessPokemon(argc, argv);
+
+	if(!handleProcessPokemon(argc, argv))
+		wrong_parameters();
+
 
 	char* proceso = argv[0];
 	int conexion;
@@ -51,12 +54,13 @@ int enviar_mensaje(int argc, char* argv[]){
 }
 
 void* preparar_mensaje(char* process, int argc, char* argv[], uint32_t* paquete_size){
-
 	char* mensaje = argv[0];
 	void* serialized_paquete;
 
 	if(compare_string(mensaje, "NEW_POKEMON")){
-		handleNewPokemon(process, argc, argv);
+		if(!handleNewPokemon(process, argc - 1, &argv[1]))
+			wrong_parameters();
+
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		uint32_t posX = convert_to_int(argv[2]);
 		uint32_t posY = convert_to_int(argv[3]);
@@ -70,7 +74,11 @@ void* preparar_mensaje(char* process, int argc, char* argv[], uint32_t* paquete_
 	}
 
 	if(compare_string(mensaje, "APPEARED_POKEMON")){
-		handleAppearedPokemon(process, argc, argv);
+
+		if(!handleAppearedPokemon(process, argc - 1, &argv[1])){
+			wrong_parameters();
+		}
+
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		uint32_t posX = convert_to_int(argv[2]);
 		uint32_t posY = convert_to_int(argv[3]);
@@ -85,7 +93,9 @@ void* preparar_mensaje(char* process, int argc, char* argv[], uint32_t* paquete_
 
 
 	if(compare_string(mensaje, "CATCH_POKEMON")){
-		handleCatchPokemon(process, argc, argv);
+		int st = handleCatchPokemon(process, --argc, &argv[1]);
+		if(st == WRONG_PARAMETERS)
+			wrong_parameters();
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		uint32_t posX = convert_to_int(argv[2]);
 		uint32_t posY = convert_to_int(argv[3]);
@@ -99,7 +109,10 @@ void* preparar_mensaje(char* process, int argc, char* argv[], uint32_t* paquete_
 
 	if(compare_string(mensaje, "CAUGHT_POKEMON")) {
 
-		handleCaughtPokemon(process, argc, argv);
+		int st = handleCaughtPokemon(process, --argc, &argv[1]);
+		if(st == WRONG_PARAMETERS)
+			wrong_parameters();
+
 		uint32_t id_correlativo = convert_to_int(argv[1]);
 		uint32_t caught = 0;
 		char* ok = argv[2];
@@ -117,7 +130,10 @@ void* preparar_mensaje(char* process, int argc, char* argv[], uint32_t* paquete_
 	}
 
 	if(compare_string(mensaje, "GET_POKEMON")){
-		handleGetPokemon(process, argc, argv);
+		int st = handleGetPokemon(process, --argc, &argv[1]);
+		if(st == WRONG_PARAMETERS)
+			wrong_parameters();
+
 		t_pokemon* pokemon = crearPokemon(argv[1]);
 		t_get_pokemon* _get_pokemon = get_pokemon(pokemon);
 		void* serialized_message = _get_pokemon;
@@ -126,6 +142,12 @@ void* preparar_mensaje(char* process, int argc, char* argv[], uint32_t* paquete_
 
 	return serialized_paquete;
 
+}
+
+void wrong_parameters(){
+	log_error(logger, "Parámetros incorrectos");
+	terminar_programa(CANT_CONNECT, logger, config);
+	exit(1);
 }
 
 

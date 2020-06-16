@@ -97,10 +97,10 @@ context (TestsGameBoyArgs) {
 
 		it("Handle New Pokemon") {
 
-    		char* caso_de_prueba1[]  = {"Pikachu", "10", "20", "30"};
+    		char* caso_de_prueba1[]  = {"Pikachu", "10", "20", "30", "10"};
 			char* caso_de_prueba2[]  = {"10", "20", "30"};
 			char* caso_de_prueba3[]  = {"10", "20", "30", "40"};
-			char* caso_de_prueba4[]  = {"Pikachu", "10", "20", "30", "40"};
+			char* caso_de_prueba4[]  = {"Pikachu", "10", "20", "30", "-50"};
 			char* caso_de_prueba5[]  = {"Pikachu", "Diez", "20", "30"};
 			char* caso_de_prueba6[]  = {"Pikachu", "10", "Veinte", "30"};
 			char* caso_de_prueba7[]  = {"Pikachu", "10", "20", "Treinta"};
@@ -108,9 +108,9 @@ context (TestsGameBoyArgs) {
 			char* caso_de_prueba9[]  = {"Pikachu"};
 			char* caso_de_prueba10[] = {"Pikachu10"};
 
-			int resultado1 = handleNewPokemon("BROKER", 4, caso_de_prueba1);
-			int resultado2 = handleNewPokemon("GAMECARD", 4, caso_de_prueba1);
-			int resultado3 = handleNewPokemon("TEAM", 4, caso_de_prueba1);
+			int resultado1 = handleNewPokemon("BROKER", 5, caso_de_prueba1);
+			int resultado2 = handleNewPokemon("GAMECARD", 5, caso_de_prueba1);
+			int resultado3 = handleNewPokemon("TEAM", 5, caso_de_prueba1);
 			int resultado4 = handleNewPokemon("BROKER", 3, caso_de_prueba2);
 			int resultado5 = handleNewPokemon("BROKER", 4, caso_de_prueba3);
 			int resultado6 = handleNewPokemon("BROKER", 5, caso_de_prueba4);

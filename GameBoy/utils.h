@@ -20,7 +20,7 @@
 
 int enviar_mensaje(int argc, char* argv[]);
 void* preparar_mensaje(char* proceso, int argc, char* argv[], uint32_t*);
-
+void wrong_parameters();
 
 
 

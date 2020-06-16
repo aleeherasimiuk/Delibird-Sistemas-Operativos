@@ -131,5 +131,6 @@ void send_to_subscribers(t_paquete* paquete){
 		 * */
 		int status = send(client -> socket, a_enviar, bytes_p, MSG_NOSIGNAL);
 		log_debug(logger, "Envié el mensaje al suscriptor %d con status: %d", client -> socket ,status);
+		//NOTA DE MOU TODO: free()
 	}
 }

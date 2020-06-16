@@ -21,8 +21,9 @@ int main(int argc, char* argv[]) {
 	logger = iniciar_logger(logfile);
 
 	if(argc < 4){
-		//log_error(logger, "Cantidad incorrecta de parámetros");
-		return -1;
+		log_error(logger, "Cantidad incorrecta de parámetros");
+		terminar_programa(CANT_CONNECT, logger, config);
+		exit(1);
 	}
 
 	int success = enviar_mensaje(--argc, &argv[1]);
