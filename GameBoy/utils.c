@@ -125,7 +125,7 @@ void* prepararSuscriptor(char* process, uint32_t argc, char* argv[], uint32_t* p
 	if(!handleSuscriptor(argc, &argv[0]))
 		wrong_parameters();
 
-	message_type queue = 2;
+	message_type queue = string_to_queue(argv[0]);
 
 	t_subscribe* subscripcion = subscribe(queue, process_id);
 
@@ -153,7 +153,7 @@ void* preparar_mensaje(char* process, int argc, char* argv[], uint32_t* paquete_
 
 
 	if(compare_string(mensaje, "CAUGHT_POKEMON"))
-		return prepararCatchPokemon(process, argc, argv, paquete_size);
+		return prepararCaughtPokemon(process, argc, argv, paquete_size);
 
 
 	if(compare_string(mensaje, "GET_POKEMON"))
