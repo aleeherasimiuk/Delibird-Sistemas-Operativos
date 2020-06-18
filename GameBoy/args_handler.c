@@ -12,7 +12,7 @@ int handleProcessPokemon(int argc, char* args[]){
 
 	if(argc > 0){
 		char* process = args[0];
-		return compare_string(process, "BROKER") || compare_string(process, "TEAM") || compare_string(process, "GAMECARD");
+		return compare_string(process, "BROKER") || compare_string(process, "TEAM") || compare_string(process, "GAMECARD") || compare_string(process, "SUSCRIPTOR");
 	}
 
 	return WRONG_PARAMETERS;

@@ -10,6 +10,7 @@
 
 t_log* logger = NULL;
 t_config* config = NULL;
+uint32_t process_id;
 
 int main(int argc, char* argv[]) {
 	char* logfile;
@@ -20,7 +21,9 @@ int main(int argc, char* argv[]) {
 
 	logger = iniciar_logger(logfile);
 
-	if(argc < 4){
+	process_id = config_get_int_value(config, "PROCESS_ID");
+
+	if(argc < 3){
 		log_error(logger, "Cantidad incorrecta de parámetros");
 		terminar_programa(CANT_CONNECT, logger, config);
 		exit(1);

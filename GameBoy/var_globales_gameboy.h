@@ -16,6 +16,7 @@
 
 extern t_config* config;
 extern t_log* logger;
+extern uint32_t process_id;
 
 
 #endif /* VAR_GLOBALES_H_ */
