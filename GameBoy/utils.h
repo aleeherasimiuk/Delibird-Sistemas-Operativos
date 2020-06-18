@@ -31,6 +31,14 @@ void* escucharPorTiempoLimitado(void*);
 void enviarACK(uint32_t);
 void escuchar_broker(uint32_t, uint32_t);
 
+void* prepararNewPokemon(char*, uint32_t, char* argv[], uint32_t*);
+void* prepararAppearedPokemon(char*, uint32_t, char* argv[], uint32_t*);
+void* prepararCatchPokemon(char*, uint32_t, char* argv[], uint32_t*);
+void* prepararCaughtPokemon(char*, uint32_t, char* argv[], uint32_t*);
+void* prepararGetPokemon(char*, uint32_t, char* argv[], uint32_t*);
+void* prepararSuscriptor(char*, uint32_t, char* argv[], uint32_t*);
+
+message_type string_to_queue(char*);
 
 
 #endif /* GAMEBOY_UTILS_H_ */
