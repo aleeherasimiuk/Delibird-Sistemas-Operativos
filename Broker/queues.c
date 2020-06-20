@@ -173,7 +173,7 @@ int fueEnviado(t_paquete* paquete, t_client* client){
 	if(msg == NULL)
 		msg = agregarMensaje(paquete);
 
-	status_mensaje_t* status_msg = obtenerStatus(msg -> suscriptores, client);
+	status_mensaje_t* status_msg = obtenerStatus(msg -> suscriptores, client -> process_id);
 
 	if(status_msg == NULL)
 		status_msg = agregarCliente(msg, client);
@@ -220,16 +220,33 @@ clientes_por_mensaje_t* obtenerMensaje(int id_mensaje){
 
 }
 
-status_mensaje_t* obtenerStatus(t_list* suscriptores, t_client* client){
+status_mensaje_t* obtenerStatus(t_list* suscriptores, int pid){
 
 	for(int i = 0; i < list_size(suscriptores); i++){
 		status_mensaje_t* st = list_get(suscriptores, i);
-		if(st -> process_id == client -> process_id)
+		if(st -> process_id == pid)
 			return st;
 	}
 
 	return NULL;
 
+}
+
+void procesarACK(t_buffer* buffer){
+
+	t_ack* ack = deserializarACK(buffer);
+	log_debug(logger, "El proceso %d, recibió el mensaje cuyo ID es: %d", ack -> process_id, ack -> id);
+	clientes_por_mensaje_t* cxm = obtenerMensaje(ack -> id);
+
+	if(cxm == NULL){
+		//TODO
+		free(ack);
+		return;
+	}
+
+	status_mensaje_t* st = obtenerStatus(cxm-> suscriptores, ack -> process_id);
+	st -> ack = 1;
+	free(ack);
 }
 
 

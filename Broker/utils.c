@@ -74,14 +74,6 @@ void process_request(message_type type, uint32_t socket_cliente){
 
 }
 
-void procesarACK(t_buffer* buffer){
-
-	t_ack* ack = deserializarACK(buffer);
-	log_debug(logger, "El proceso %d, recibió el mensaje cuyo ID es: %d", ack -> process_id, ack -> id);
-	free(ack);
-
-}
-
 
 
 

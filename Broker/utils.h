@@ -25,7 +25,6 @@
 int recibir_operacion(int);
 void process_request(message_type, uint32_t);
 void serve_client(int* socket);
-void procesarACK(t_buffer*);
 
 
 #endif /* CONEXIONES_H_ */

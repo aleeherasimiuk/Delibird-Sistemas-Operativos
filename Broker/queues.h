@@ -74,7 +74,8 @@ int fueEnviado(t_paquete* paquete, t_client* client);
 clientes_por_mensaje_t* agregarMensaje(t_paquete* paquete);
 status_mensaje_t* agregarCliente(clientes_por_mensaje_t* cxm, t_client* client);
 clientes_por_mensaje_t* obtenerMensaje(int id_mensaje);
-status_mensaje_t* obtenerStatus(t_list* suscriptores, t_client* client);
+status_mensaje_t* obtenerStatus(t_list* suscriptores, int);
+void procesarACK(t_buffer* buffer);
 
 
 
