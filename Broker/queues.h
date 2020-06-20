@@ -39,6 +39,8 @@ void* queue(void*);
 
 void asignar_id(t_paquete* paquete, uint32_t id);
 
+void iniciarMensajes();
+
 typedef struct{
 	pthread_mutex_t mx; // Acceso exclusivo
 	sem_t q; // Queue
@@ -51,6 +53,28 @@ typedef struct{
 	t_id id_to_assing;
 
 } next_socket_t;
+
+typedef struct{
+	uint32_t id_mensaje;
+	uint32_t id_correlativo;
+	t_list* suscriptores;
+	void* inicio;
+	uint32_t size;
+
+} clientes_por_mensaje_t;
+
+typedef struct{
+
+	uint32_t process_id;
+	uint32_t ack;
+
+}status_mensaje_t;
+
+int fueEnviado(t_paquete* paquete, t_client* client);
+clientes_por_mensaje_t* agregarMensaje(t_paquete* paquete);
+status_mensaje_t* agregarCliente(clientes_por_mensaje_t* cxm, t_client* client);
+clientes_por_mensaje_t* obtenerMensaje(int id_mensaje);
+status_mensaje_t* obtenerStatus(t_list* suscriptores, t_client* client);
 
 
 

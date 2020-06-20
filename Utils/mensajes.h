@@ -141,6 +141,7 @@ typedef struct{
 	uint32_t socket;
 } t_client;
 
+//TODO: Borrar
 typedef struct{
 	uint32_t client;
 	uint32_t id;

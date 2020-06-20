@@ -18,6 +18,7 @@ pthread_t thread_get_pokemon;
 next_socket_t next_socket[9];
 queue_sem_t sem_sockets[9];
 t_list* subscribers[7];
+t_list* mensajes;
 
 
 uint32_t suscribirCliente(t_buffer* msg, uint32_t cli) {
@@ -69,6 +70,12 @@ void iniciarColas(){
 	pthread_detach(&thread_catch_pokemon);
 	pthread_detach(&thread_caught_pokemon);
 	pthread_detach(&thread_get_pokemon);
+}
+
+void iniciarMensajes(){
+
+	mensajes = list_create();
+
 }
 
 void iniciarSubscribers(){
@@ -129,6 +136,11 @@ void send_to_subscribers(t_paquete* paquete){
 		void* list_element = list_get(list_to_send, i);
 		t_client* client = deserializarCliente(list_element);
 		log_debug(logger, "Intentaré enviar el mensaje al cliente %d", client -> socket);
+
+
+		if(fueEnviado(paquete, client))
+			continue;
+
 		int bytes;
 		int bytes_p;
 		//TODO: ID Correlativo
@@ -151,4 +163,78 @@ void send_to_subscribers(t_paquete* paquete){
 void asignar_id(t_paquete* paquete, uint32_t id){
 	paquete -> id = id;
 }
+
+int fueEnviado(t_paquete* paquete, t_client* client){
+
+	uint32_t id_mensaje = paquete -> id;
+
+	clientes_por_mensaje_t* msg = obtenerMensaje(id_mensaje);
+
+	if(msg == NULL)
+		msg = agregarMensaje(paquete);
+
+	status_mensaje_t* status_msg = obtenerStatus(msg -> suscriptores, client);
+
+	if(status_msg == NULL)
+		status_msg = agregarCliente(msg, client);
+
+
+	return status_msg -> ack;
+}
+
+clientes_por_mensaje_t* agregarMensaje(t_paquete* paquete){
+
+	clientes_por_mensaje_t* cxm = malloc(sizeof(clientes_por_mensaje_t));
+	cxm -> id_mensaje = paquete -> id;
+	cxm -> id_correlativo = paquete -> correlative_id;
+	cxm -> suscriptores = list_create();
+
+	list_add(mensajes, cxm);
+	return cxm;
+
+}
+
+status_mensaje_t* agregarCliente(clientes_por_mensaje_t* cxm, t_client* client){
+
+	status_mensaje_t* st = malloc(sizeof(status_mensaje_t));
+	st -> process_id = client -> process_id;
+	st -> ack = 0;
+
+	list_add(cxm -> suscriptores, st);
+	return st;
+
+}
+
+clientes_por_mensaje_t* obtenerMensaje(int id_mensaje){
+
+	for(int i = 0; i < list_size(mensajes); i++){
+
+		clientes_por_mensaje_t* msg = list_get(mensajes, i);
+
+		if(msg -> id_mensaje == id_mensaje){
+			return msg;
+		}
+
+	}
+	return NULL;
+
+}
+
+status_mensaje_t* obtenerStatus(t_list* suscriptores, t_client* client){
+
+	for(int i = 0; i < list_size(suscriptores); i++){
+		status_mensaje_t* st = list_get(suscriptores, i);
+		if(st -> process_id == client -> process_id)
+			return st;
+	}
+
+	return NULL;
+
+}
+
+
+
+
+
+
 

@@ -25,6 +25,7 @@ int main(void) {
 
 	logger = iniciar_logger(logfile);
 	iniciarSubscribers();
+	iniciarMensajes();
 	iniciarVectorDeSockets();
 	iniciarVectorDeSemaforos();
 	iniciarColas();

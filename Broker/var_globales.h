@@ -28,6 +28,8 @@ extern t_list* subscribers[7];
 next_socket_t next_socket[9];
 queue_sem_t sem_sockets[9];
 
+extern t_list* mensajes;
+
 
 
 
