@@ -24,6 +24,7 @@ int main(void) {
 	logfile = config_get_string_value(config, "LOG_FILE");
 
 	logger = iniciar_logger(logfile);
+	iniciarMemoria();
 	iniciarSubscribers();
 	iniciarMensajes();
 	iniciarVectorDeSockets();

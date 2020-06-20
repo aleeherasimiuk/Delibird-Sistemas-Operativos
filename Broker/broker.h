@@ -18,6 +18,7 @@
 #include "utils.h"
 #include "queues.h"
 #include "var_globales.h"
+#include "administracion_de_memoria.h"
 
 t_config* leer_config(void);
 void iniciarSubscribers(void);
