@@ -13,7 +13,7 @@
 
 //#define CANT_CONNECT -10
 
-void siNoConectaConBroker(char*, uint32_t, t_config*);
+void intentarReconexionConBroker(char*, uint32_t, t_config*);
 void inicializar_gamecard();
 
 t_log* iniciar_logger(char*);

@@ -12,13 +12,13 @@ uint32_t process_id;
 void suscribirGameCardAlBroker(void){
 		int conexiones[3];
 
-		conexiones[0] = abrirUnaConexion(config);
+		conexiones[0] = abrirUnaConexionGameCard(config);
 		suscribirAUnaCola(conexiones[0], NEW_POKEMON, process_id);
 
-		conexiones[1] = abrirUnaConexion(config);
+		conexiones[1] = abrirUnaConexionGameCard(config);
 		suscribirAUnaCola(conexiones[1], CATCH_POKEMON, process_id);
 
-		conexiones[2] = abrirUnaConexion(config);
+		conexiones[2] = abrirUnaConexionGameCard(config);
 		suscribirAUnaCola(conexiones[2], GET_POKEMON, process_id);
 
 
@@ -30,6 +30,8 @@ void suscribirGameCardAlBroker(void){
 		pthread_join(thread1, NULL);
 		pthread_join(thread2, NULL);
 		pthread_join(thread3, NULL);
+
+
 
 	//	for(int i = 0; i < 3; i++){
 	//		pthread_t thread;
@@ -43,13 +45,8 @@ void suscribirGameCardAlBroker(void){
 		return;
 }
 
-int abrirUnaConexion(t_config* config) {
+int abrirUnaConexionGameCard(t_config* config) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
-	if(conexion == CANT_CONNECT){
-		log_debug(logger, "No pude conectar al Broker :(, pero aún puedo seguir funcionando :D");
-	} else {
-		log_debug(logger, "Conexión Abierta con el Broker");
-	}
 	return conexion;
 }
 

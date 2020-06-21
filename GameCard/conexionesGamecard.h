@@ -24,7 +24,7 @@
 
 void suscribirGameCardAlBroker(void);
 void *escucharAlSocket(void*);
-int abrirUnaConexion(t_config*);
+int abrirUnaConexionGameCard(t_config*);
 void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id);
 
 #endif /* GAMECARD_CONEXIONESGAMECARD_H_ */

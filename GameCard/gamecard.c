@@ -24,8 +24,8 @@ int main() {
 
 	logger = iniciar_logger(logfile);
 
-	while(abrirUnaConexion(config) == CANT_CONNECT){
-		siNoConectaConBroker(logfile, tiempoReconexion, config);
+	while(abrirUnaConexionGameCard(config) == CANT_CONNECT) {
+		intentarReconexionConBroker(logfile, tiempoReconexion, config);
 	}
 
 	inicializar_gamecard();
@@ -33,11 +33,9 @@ int main() {
 }
 
 
-void siNoConectaConBroker(char* logfile, uint32_t tiempo, t_config* config){
+void intentarReconexionConBroker(char* logfile, uint32_t tiempo, t_config* config){
 	log_debug(logger, "Intentando nueva conexión en %d segundos", tiempo);
 	sleep(tiempo);
-	suscribirGameCardAlBroker();
-
 }
 
 void inicializar_gamecard(void)
