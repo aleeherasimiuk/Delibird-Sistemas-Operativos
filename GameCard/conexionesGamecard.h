@@ -27,4 +27,16 @@ void *escucharAlSocket(void*);
 int abrirUnaConexionGameCard(t_config*);
 void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id);
 
+void escucharAlGameboy();
+void* abrirSocketParaGameboy();
+void serve_client(int* socket);
+void process_request(message_type, int);
+
+void procesarID(t_paquete* paquete);
+
+void procesarNew(t_paquete* paquete);
+void procesarCatch(t_paquete* paquete);
+void procesarGet(t_paquete* paquete);
+
+
 #endif /* GAMECARD_CONEXIONESGAMECARD_H_ */

@@ -31,17 +31,6 @@ void suscribirGameCardAlBroker(void){
 		pthread_join(thread2, NULL);
 		pthread_join(thread3, NULL);
 
-
-
-	//	for(int i = 0; i < 3; i++){
-	//		pthread_t thread;
-	//		log_debug(logger, "Escuchando en %d", conexiones[i]);
-	//		pthread_create(&thread, NULL, escucharAlSocket, &conexiones[i]); // Hilo para escuchar al broker
-	//		//pthread_detach(thread);
-	//		pthread_join(thread, NULL);
-	//	}
-
-
 		return;
 }
 
@@ -59,12 +48,15 @@ void *escucharAlSocket(void* socket) {
 		if(paquete != NULL){
 
 			switch(paquete->type) {
-				case NEW_POKEMON:
-					//procesarNewPokemon(paquete);
+				case ID:
+					procesarID(paquete);
 					break;
+				case NEW_POKEMON:
+					procesarNew(paquete);
+					break;
+
 				case CATCH_POKEMON:
-					// procesarCatchPokemon(paquete); TODO
-					//log_debug(logger, "Que Google Maps ni Google Maps!. Localized Pokemon PAPÁ");
+					procesarCatch(paquete);
 					break;
 				case GET_POKEMON:
 					//procesarGetPokemon(paquete);
@@ -96,4 +88,76 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 	free(subscripcion);
 	log_debug(logger, "Me suscribí a %d", cola);
 }
+
+void escucharAlGameboy(){
+
+	pthread_t thread;
+	pthread_create(&thread, NULL ,abrirSocketParaGameboy, NULL);
+	pthread_detach(&thread);
+}
+
+void* abrirSocketParaGameboy(){
+
+	char* ip = config_get_string_value(config, "IP");
+	char* puerto = config_get_string_value(config, "PUERTO");
+	log_debug(logger, "Estoy escuchando al gameboy en %s:%s", ip, puerto);
+	crear_servidor(ip, puerto, serve_client);
+
+}
+
+void serve_client(int* socket){
+	message_type type = recibirCodigoDeOperacion(*socket);
+	if(type != NULL){
+		log_debug(logger, "Procesando solicitud");
+		process_request(type, *socket);
+	}else {
+		log_debug(logger, "No puedo procesar la solicitud");
+	}
+}
+
+void process_request(message_type type, int socket){
+
+	t_paquete* paquete = recibirPaqueteSi(socket, type);
+
+	switch(type){
+
+		case NEW_POKEMON:
+			procesarNew(paquete);
+			break;
+
+		case CATCH_POKEMON:
+			procesarCatch(paquete);
+			break;
+
+		//case GET_POKEMON:
+		//	procesarGet(paquete);
+		//	break;
+
+		default:
+			log_error(logger, "Código de operación inválido");
+
+	}
+
+}
+
+void procesarID(t_paquete* paquete){
+	t_id* id = paquete -> buffer -> stream;
+	log_debug(logger, "Recibí el ID: %d", id);
+}
+
+void procesarNew(t_paquete* paquete){
+	t_appeared_pokemon* pok = deserializarNewPokemon(paquete -> buffer);
+	log_debug(logger, "pude deserializar el New Pokemon");
+}
+
+void procesarCatch(t_paquete* paquete){
+	t_appeared_pokemon* pok = deserializarCatchPokemon(paquete -> buffer);
+	log_debug(logger, "pude deserializar el Catch Pokemon");
+}
+
+/*void procesarGet(t_paquete* paquete){
+	t_appeared_pokemon* pok = deserializarGetPokemon(paquete -> buffer);
+	log_debug(logger, "pude deserializar el Get Pokemon");
+}*/
+
 
