@@ -46,6 +46,7 @@ void *escucharAlSocket(void* socket) {
 		t_paquete* paquete = recibirPaquete(*((int*)socket));
 
 		if(paquete != NULL){
+			enviarACK(paquete -> id);
 
 			switch(paquete->type) {
 				case ID:
@@ -54,7 +55,6 @@ void *escucharAlSocket(void* socket) {
 				case NEW_POKEMON:
 					procesarNew(paquete);
 					break;
-
 				case CATCH_POKEMON:
 					procesarCatch(paquete);
 					break;
@@ -139,6 +139,28 @@ void process_request(message_type type, int socket){
 	}
 
 }
+
+void enviarACK(uint32_t id){
+
+	int conexion = abrirUnaConexionGameCard(config);
+
+	log_debug(logger,"Enviaré un ACK por el id: %d",id);
+	t_ack* _ack = ack(process_id, id);
+
+	uint32_t bytes_ack;
+	void* serialized_ack = serializarACK(_ack, &bytes_ack);
+
+	uint32_t bytes;
+	void* a_enviar = crear_paquete(ACK, serialized_ack, bytes_ack, &bytes);
+
+	int status = send(conexion, a_enviar, bytes, 0);
+	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
+	free(a_enviar);
+	close(conexion);
+
+
+}
+
 
 void procesarID(t_paquete* paquete){
 	t_id* id = paquete -> buffer -> stream;
