@@ -9,19 +9,18 @@
 
 sem_t sem_msg_data;
 pthread_mutex_t mx_mem;
+pthread_mutex_t mx_flag;
+uint32_t next_flag = 0;
+uint32_t compact = 0;
 
 void iniciarCola(){
 	sem_init(&sem_msg_data, 0, 0);
 	pthread_mutex_init(&mx_mem, NULL);
+	pthread_mutex_init(&mx_flag, NULL);
 	datos_para_guardar = queue_create();
 }
 
 void* guardarEnMemoria(){
-
-	log_debug(logger, "Algoritmo de partición libre: %d", part_libre);
-	log_debug(logger, "Algoritmo de reemplazo: %d", reemplazo);
-	log_debug(logger, "Algoritmo de memoria: %d", memoria);
-
 
 	while(1){
 
@@ -30,13 +29,11 @@ void* guardarEnMemoria(){
 
 		t_paquete* data = queue_pop(datos_para_guardar);
 		memory_block_t* particion = asignarUnaParticion(data -> buffer -> stream_size);
-		if(particion == NULL){
-			log_debug(logger, "NULL: size: %d", data -> buffer -> stream_size);
-		} else {
-
-		log_debug(logger, "Voy a guardar un dato en una particion de tamaño: %d, para un dato de tamaño: %d", particion -> data -> size, data -> buffer -> stream_size);
-		}
-
+		copiarDatos(particion, data);
+		relacionarBloqueConMensaje(particion, data);
+		log_debug(logger, "Guardé un dato en una particion de tamaño: %d, para un dato de tamaño: %d", particion -> data -> size, data -> buffer -> stream_size);
+		liberarPaquete(data);
+		estadoDeLaMemoria();
 		pthread_mutex_unlock(&mx_mem);
 
 	}
@@ -45,7 +42,7 @@ void* guardarEnMemoria(){
 
 
 
-void* asignarUnaParticion(uint32_t size){
+memory_block_t* asignarUnaParticion(uint32_t size){
 
 	uint32_t tamano_particion = max(size, min_part);
 	memory_block_t* bloque = NULL;
@@ -59,7 +56,9 @@ void* asignarUnaParticion(uint32_t size){
 	}
 
 	if(bloque == NULL){
-		// Compactar y/o borrar
+		estadoDeLaMemoria();
+		log_debug(logger, "Tengo que acomodar la memoria");
+		return acomodarMemoria(size);
 	}
 
 	return particionar(bloque, tamano_particion);
@@ -67,4 +66,59 @@ void* asignarUnaParticion(uint32_t size){
 
 uint32_t max(uint32_t a, uint32_t b){
 	return a > b? a : b;
+}
+
+void copiarDatos(memory_block_t* destino, t_paquete* paquete){
+	memcpy(destino -> data -> base, paquete -> buffer -> stream, paquete -> buffer -> stream_size);
+	destino -> data -> status = OCUPADO;
+
+
+}
+
+void relacionarBloqueConMensaje(memory_block_t* particion, t_paquete* data){
+
+	clientes_por_mensaje_t* cxm = obtenerMensaje(data -> id);
+	cxm -> memory_block = particion;
+	pthread_mutex_lock(&mx_flag);
+	cxm -> memory_block -> data -> flag = next_flag++;
+	pthread_mutex_unlock(&mx_flag);
+}
+
+void liberarPaquete(t_paquete* data){
+	free(data -> buffer -> stream);
+	free(data);
+}
+
+void* acomodarMemoria(uint32_t size){
+
+	if((++compact % freq_compact) == 0){
+		log_debug(logger, "Debo compactar");
+		compactar();
+	}
+
+	librerarUnBloque();
+	return asignarUnaParticion(size);
+
+}
+
+void estadoDeLaMemoria(){
+
+	memory_block_t* mem_block = memory;
+	int i = 0;
+
+	while(mem_block != NULL){
+
+		log_debug(logger, "Partición número: %d \nInicio: %d \nTamaño: %d \nEstado: %d \nFlag: %d \nSiguiente: %d\n\n",
+				i++,
+				&(mem_block -> data -> base),
+				mem_block -> data -> size,
+				mem_block -> data -> status,
+				mem_block -> data -> flag,
+				mem_block -> next == NULL? 0: mem_block -> next);
+
+//		mem_hexdump(&(mem_block -> data -> base), mem_block -> data -> size);
+
+		mem_block = mem_block -> next;
+	}
+
 }

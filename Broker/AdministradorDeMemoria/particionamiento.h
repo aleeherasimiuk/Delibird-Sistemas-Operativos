@@ -10,6 +10,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "organizacion_de_memoria.h"
 
 memory_block_t* first_fit(uint32_t);

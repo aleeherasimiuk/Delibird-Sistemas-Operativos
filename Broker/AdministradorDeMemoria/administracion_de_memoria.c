@@ -9,6 +9,7 @@
 #include "administracion_de_memoria.h"
 
 void* cache;
+uint32_t bytes;
 memory_block_t* memory;
 alg_memoria_t memoria;
 alg_reemplazo_t reemplazo;
@@ -35,7 +36,7 @@ void iniciarMemoria(){
 
 void* allocarMemoria(){
 
-	uint32_t bytes = config_get_int_value(config, BYTES_TO_ALLOC);
+	bytes = config_get_int_value(config, BYTES_TO_ALLOC);
 	void* _cache = malloc(bytes);
 
 	memory = malloc(sizeof(memory_block_t));
@@ -45,7 +46,7 @@ void* allocarMemoria(){
 	memory -> data -> base   = _cache;
 	memory -> data -> size   = bytes;
 	memory -> data -> status = LIBRE;
-
+	memory -> data -> flag   = 0;
 	memory -> next   		 = NULL;
 
 	return _cache;
@@ -134,3 +135,4 @@ void errorConfig(char* error){
 	liberarCache();
 	exit(1);
 }
+

@@ -53,20 +53,21 @@ memory_block_t* particionar(memory_block_t* mem_block, uint32_t size){
 
 	bloque_desperdicio -> previous = mem_block;
 	bloque_desperdicio -> data = malloc(sizeof(memory_info_t));
-	bloque_desperdicio -> data -> base = (mem_block -> data -> base) + size;
+	bloque_desperdicio -> data -> base = ((mem_block -> data -> base) + size);
 	bloque_desperdicio -> data -> size = desperdicio;
 	bloque_desperdicio -> data -> status = LIBRE;
+	bloque_desperdicio -> data -> flag = 0;
 	bloque_desperdicio -> next = next;
 
 	mem_block -> next = bloque_desperdicio;
-	mem_block -> data -> size = size;
+	(mem_block -> data -> size) = mem_block -> data -> size - desperdicio;
 
 	return mem_block;
 
 }
 
 int puedeEntrar(memory_info_t* info, uint32_t size){
-	return info -> status == LIBRE && info -> size > size;
+	return info -> status == LIBRE && info -> size >= size && info -> size > 0;
 }
 
 

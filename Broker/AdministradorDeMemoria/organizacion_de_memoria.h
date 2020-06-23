@@ -8,7 +8,9 @@
 #ifndef BROKER_ADMINISTRADORDEMEMORIA_ORGANIZACION_DE_MEMORIA_H_
 #define BROKER_ADMINISTRADORDEMEMORIA_ORGANIZACION_DE_MEMORIA_H_
 
-#include<commons/collections/list.h>
+#include <commons/collections/list.h>
+#include <stdint.h>
+#include <string.h>
 
 typedef enum{
 	PARTICIONES,
@@ -25,6 +27,8 @@ typedef enum{
 	BEST_FIT
 } alg_part_libre_t;
 
+extern void* cache;
+extern uint32_t bytes;
 extern alg_memoria_t memoria;
 extern alg_reemplazo_t reemplazo;
 extern alg_part_libre_t part_libre;
@@ -39,6 +43,7 @@ typedef struct{
 	void* base;
 	uint32_t size;
 	status_t status;
+	uint32_t flag;
 
 } memory_info_t;
 
