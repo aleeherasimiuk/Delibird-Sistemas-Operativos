@@ -11,13 +11,12 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<commons/log.h>
-//#include<commons/collections/queue.h>
+#include"var_globales.h"
 #include<commons/collections/list.h>
 
+#include "queue_thread_vars.h"
+#include"AdministradorDeMemoria/asignacion_de_memoria.h"
 #include "../Utils/mensajes.h"
-
-#include<pthread.h>
-#include<semaphore.h>
 
 // Cliente movido a mensajes.h
 
@@ -41,25 +40,15 @@ void asignar_id(t_paquete* paquete, uint32_t id);
 
 void iniciarMensajes();
 
-typedef struct{
-	pthread_mutex_t mx; // Acceso exclusivo
-	sem_t q; // Queue
-	sem_t c; // Recepción del cliente
-} queue_sem_t;
+void guardar(t_paquete*);
 
-typedef struct{
 
-	uint32_t socket_to_recv;
-	t_id id_to_assing;
-
-} next_socket_t;
 
 typedef struct{
 	uint32_t id_mensaje;
 	uint32_t id_correlativo;
 	t_list* suscriptores;
-	void* inicio;
-	uint32_t size;
+	memory_block_t* memory_block;
 
 } clientes_por_mensaje_t;
 

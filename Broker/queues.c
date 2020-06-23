@@ -6,7 +6,6 @@
  */
 
 #include "queues.h"
-#include "var_globales.h"
 t_list* suscriptores_app;
 pthread_t thread_new_pokemon;
 pthread_t thread_appeared_pokemon;
@@ -131,6 +130,8 @@ void send_to_subscribers(t_paquete* paquete){
 
 	message_type type = paquete -> type;
 	t_list* list_to_send = subscribers[type];
+	listar_mensaje(paquete);
+	guardar(paquete);
 
 	for(int i = 0; i < list_size(list_to_send); i++){
 		void* list_element = list_get(list_to_send, i);
@@ -160,6 +161,17 @@ void send_to_subscribers(t_paquete* paquete){
 	}
 }
 
+void listar_mensaje(t_paquete* paquete){
+
+	clientes_por_mensaje_t* cxm = malloc(sizeof(clientes_por_mensaje_t));
+	cxm -> id_mensaje = paquete -> id;
+	cxm -> id_correlativo = paquete -> correlative_id;
+	cxm -> suscriptores = list_create();
+
+	list_add(mensajes, cxm);
+
+}
+
 void asignar_id(t_paquete* paquete, uint32_t id){
 	paquete -> id = id;
 }
@@ -171,7 +183,7 @@ int fueEnviado(t_paquete* paquete, t_client* client){
 	clientes_por_mensaje_t* msg = obtenerMensaje(id_mensaje);
 
 	if(msg == NULL)
-		msg = agregarMensaje(paquete);
+		log_error(logger, "FATAL ERROR: Message not listed");
 
 	status_mensaje_t* status_msg = obtenerStatus(msg -> suscriptores, client -> process_id);
 
@@ -247,6 +259,15 @@ void procesarACK(t_buffer* buffer){
 	status_mensaje_t* st = obtenerStatus(cxm-> suscriptores, ack -> process_id);
 	st -> ack = 1;
 	free(ack);
+}
+
+void guardar(t_paquete* paquete){
+
+	pthread_mutex_lock(&mx_mem);
+	queue_push(datos_para_guardar, paquete);
+	pthread_mutex_unlock(&mx_mem);
+	sem_post(&sem_msg_data);
+
 }
 
 
