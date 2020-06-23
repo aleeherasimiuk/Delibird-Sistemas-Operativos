@@ -258,7 +258,6 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 	memcpy(pokemon -> name, (*buffer) -> stream, pokemon -> name_size);
 	(*buffer) -> stream += pokemon -> name_size * sizeof(char);
 
-
 	return pokemon;
 }
 

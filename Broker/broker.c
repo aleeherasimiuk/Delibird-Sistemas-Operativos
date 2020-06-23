@@ -19,7 +19,7 @@ int main(void) {
 
 	config = leer_config();
 
-	ip = config_get_string_value(config, "IP");
+	ip = config_get_string_value(config, "IP"); // ESTO ROMPE VALGRIND PORQUE LE PINTA
 	puerto = config_get_string_value(config, "PUERTO");
 	logfile = config_get_string_value(config, "LOG_FILE");
 

@@ -44,21 +44,28 @@ void *escucharAlSocket(void* socket) {
 	log_debug(logger, "Escuchando en el socket: %d", *((int*)socket));
 	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
 		t_paquete* paquete = recibirPaquete(*((int*)socket));
+		pthread_t thread;
 
-		if(paquete != NULL){
+
+		if(paquete != NULL){ //TODO Revisar Memory Leak
 			enviarACK(paquete -> id);
 
 			switch(paquete->type) {
 				case ID:
-					procesarID(paquete);
+					pthread_create(&thread, NULL, procesarID, paquete);
+					pthread_detach(&thread);
 					break;
 				case NEW_POKEMON:
-					procesarNew(paquete);
+					pthread_create(&thread, NULL, procesarNew, paquete);
+					pthread_detach(&thread);
 					break;
 				case CATCH_POKEMON:
-					procesarCatch(paquete);
+					pthread_create(&thread, NULL, procesarCatch, paquete);
+					pthread_detach(&thread);
 					break;
 				case GET_POKEMON:
+					//pthread_create(&thread, NULL, procesarGet, (paquete, socket));
+					//pthread_detach(&thread);
 					//procesarGetPokemon(paquete);
 					//log_debug(logger, "Despues de procesar paquete");
 					break;
@@ -160,26 +167,5 @@ void enviarACK(uint32_t id){
 
 
 }
-
-
-void procesarID(t_paquete* paquete){
-	t_id* id = paquete -> buffer -> stream;
-	log_debug(logger, "Recibí el ID: %d", id);
-}
-
-void procesarNew(t_paquete* paquete){
-	t_appeared_pokemon* pok = deserializarNewPokemon(paquete -> buffer);
-	log_debug(logger, "pude deserializar el New Pokemon");
-}
-
-void procesarCatch(t_paquete* paquete){
-	t_appeared_pokemon* pok = deserializarCatchPokemon(paquete -> buffer);
-	log_debug(logger, "pude deserializar el Catch Pokemon");
-}
-
-/*void procesarGet(t_paquete* paquete){
-	t_appeared_pokemon* pok = deserializarGetPokemon(paquete -> buffer);
-	log_debug(logger, "pude deserializar el Get Pokemon");
-}*/
 
 

@@ -20,7 +20,7 @@ int handleProcessPokemon(int argc, char* args[]){
 }
 int handleNewPokemon(char* process, int argc, char* args[]){
 
-	if(argc != 5)
+	if(argc != 4)
 		return WRONG_PARAMETERS;
 
 	if(!compare_string(process, "BROKER") && !compare_string(process, "GAMECARD"))
@@ -34,10 +34,6 @@ int handleNewPokemon(char* process, int argc, char* args[]){
 
 	if(!isValidDigit(args[3]))
 		return WRONG_PARAMETERS;
-
-	if(!isValidDigit(args[4]))
-		return WRONG_PARAMETERS;
-
 
 	return PARAMETERS_OK;
 
