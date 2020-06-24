@@ -26,10 +26,12 @@ int main() {
 	logger = iniciar_logger(logfile);
 
 	while(1) {
-	if(abrirUnaConexionGameCard(config) == CANT_CONNECT)
-		intentarReconexionConBroker(logfile, tiempoReconexion,  config);
-	else
-		inicializar_gamecard();
+		if(abrirUnaConexionGameCard(config) == CANT_CONNECT)
+			intentarReconexionConBroker(logfile, tiempoReconexion,  config);
+		else {
+			inicializar_gamecard();
+			break;
+		}
 	}
 	return 1;
 }

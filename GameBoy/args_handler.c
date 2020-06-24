@@ -20,44 +20,79 @@ int handleProcessPokemon(int argc, char* args[]){
 }
 int handleNewPokemon(char* process, int argc, char* args[]){
 
-	if(argc != 4)
-		return WRONG_PARAMETERS;
-
 	if(!compare_string(process, "BROKER") && !compare_string(process, "GAMECARD"))
 		return WRONG_PARAMETERS;
 
-	if(string_empty(args[0]) || string_has_numbers(args[0]))
-		return WRONG_PARAMETERS;
+	if(compare_string(process, "BROKER")){
+		if(argc != 4)
+				return WRONG_PARAMETERS;
 
-	if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
-		return WRONG_PARAMETERS;
+			if(string_empty(args[0]) || string_has_numbers(args[0]))
+				return WRONG_PARAMETERS;
 
-	if(!isValidDigit(args[3]))
-		return WRONG_PARAMETERS;
+			if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
+				return WRONG_PARAMETERS;
 
-	return PARAMETERS_OK;
+			if(!isValidDigit(args[3]))
+				return WRONG_PARAMETERS;
+
+			return PARAMETERS_OK;
+	}
+	else{
+			if(argc != 5)
+					return WRONG_PARAMETERS;
+
+				if(string_empty(args[0]) || string_has_numbers(args[0]))
+					return WRONG_PARAMETERS;
+
+				if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
+					return WRONG_PARAMETERS;
+
+				if(!isValidDigit(args[3]))
+					return WRONG_PARAMETERS;
+
+				if(!isValidDigit(args[3]))
+									return WRONG_PARAMETERS;
+
+				return PARAMETERS_OK;
+		}
+
 
 }
 int handleAppearedPokemon(char* process, int argc, char* args[]){
 
-	if(argc != 4)
-		return WRONG_PARAMETERS;
-
 	if(!compare_string(process, "BROKER") && !compare_string(process, "TEAM"))
-		return WRONG_PARAMETERS;
+			return WRONG_PARAMETERS;
 
-	if(string_has_numbers(args[0]))
-		return WRONG_PARAMETERS;
+	if(compare_string(process, "BROKER")){
+		if(argc != 4)
+			return WRONG_PARAMETERS;
 
-	if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
-		return WRONG_PARAMETERS;
+		if(string_has_numbers(args[0]))
+			return WRONG_PARAMETERS;
 
-	if(!isValidDigit(args[3]))
-		return WRONG_PARAMETERS;
+		if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
+			return WRONG_PARAMETERS;
+
+		if(!isValidDigit(args[3]))
+			return WRONG_PARAMETERS;
 
 
-	return PARAMETERS_OK;
+		return PARAMETERS_OK;
+	}
+	else {
+		if(argc != 3)
+			return WRONG_PARAMETERS;
 
+		if(string_has_numbers(args[0]))
+			return WRONG_PARAMETERS;
+
+		if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
+			return WRONG_PARAMETERS;
+
+		return PARAMETERS_OK;
+
+	}
 }
 int handleCatchPokemon(char* process, int argc, char* args[]){
 
