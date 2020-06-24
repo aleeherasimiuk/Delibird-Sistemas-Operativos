@@ -18,6 +18,8 @@ next_socket_t next_socket[9];
 queue_sem_t sem_sockets[9];
 t_list* subscribers[7];
 t_list* mensajes;
+pthread_mutex_t msg_mx;
+pthread_mutex_t sub_mx;
 
 
 uint32_t suscribirCliente(t_buffer* msg, uint32_t cli) {
@@ -55,7 +57,9 @@ uint32_t suscribirGameboy(t_buffer* msg, uint32_t cli) {
 void suscribir(t_client* client, message_type queue) {
 	log_debug(logger, "Voy a suscribir al cliente %d, a la cola %d", client -> socket, queue);
 	void* cliente_a_guardar = serializarCliente(client);
+	pthread_mutex_lock(&sub_mx);
 	list_add(subscribers[queue], cliente_a_guardar);
+	pthread_mutex_unlock(&sub_mx);
 }
 
 void iniciarColas(){
@@ -66,6 +70,13 @@ void iniciarColas(){
 	pthread_create(&thread_caught_pokemon,NULL,(void*)queue, CAUGHT_POKEMON);
 	pthread_create(&thread_get_pokemon,NULL,(void*)queue, GET_POKEMON);
 
+	pthread_setname_np(&thread_new_pokemon, "TH - NEW POKEMON");
+	pthread_setname_np(&thread_appeared_pokemon, "TH - APPEARED POKEMON");
+	pthread_setname_np(&thread_localized_pokemon, "TH - LOCALIZED POKEMON");
+	pthread_setname_np(&thread_catch_pokemon, "TH - CATCH POKEMON");
+	pthread_setname_np(&thread_caught_pokemon, "TH - CAUGHT POKEMON");
+	pthread_setname_np(&thread_get_pokemon, "TH - GET POKEMON");
+
 	pthread_detach(thread_new_pokemon);
 	pthread_detach(thread_appeared_pokemon);
 	pthread_detach(thread_localized_pokemon);
@@ -75,12 +86,13 @@ void iniciarColas(){
 }
 
 void iniciarMensajes(){
-
+	pthread_mutex_init(&msg_mx, NULL);
 	mensajes = list_create();
 
 }
 
 void iniciarSubscribers(){
+	pthread_mutex_init(&sub_mx, NULL);
 	for(int i = 1; i < 7; i++)
 		subscribers[i] = list_create();
 }
@@ -111,6 +123,7 @@ void* queue(void* message_type){
 		pthread_mutex_lock(&(sem_sockets[type].mx));
 
 		paquete = recibirPaqueteSi(next_socket[type].socket_to_recv, type);
+		close(next_socket[type].socket_to_recv);
 		asignar_id(paquete, next_socket[type].id_to_assing);
 
 		pthread_mutex_unlock(&(sem_sockets[type].mx));
@@ -135,11 +148,15 @@ void* queue(void* message_type){
 void send_to_subscribers(t_paquete* paquete){
 
 	message_type type = paquete -> type;
+	pthread_mutex_lock(&sub_mx);
 	t_list* list_to_send = subscribers[type];
+	pthread_mutex_unlock(&sub_mx);
 	listar_mensaje(paquete);
 
 	for(int i = 0; i < list_size(list_to_send); i++){
+		pthread_mutex_lock(&sub_mx);
 		void* list_element = list_get(list_to_send, i);
+		pthread_mutex_unlock(&sub_mx);
 		t_client* client = deserializarCliente(list_element);
 		log_debug(logger, "Intentaré enviar el mensaje al cliente %d", client -> socket);
 
@@ -173,8 +190,9 @@ void listar_mensaje(t_paquete* paquete){
 	cxm -> id_correlativo = paquete -> correlative_id;
 	cxm -> suscriptores = list_create();
 
+	pthread_mutex_lock(&msg_mx);
 	list_add(mensajes, cxm);
-
+	pthread_mutex_unlock(&msg_mx);
 }
 
 void asignar_id(t_paquete* paquete, uint32_t id){
@@ -217,16 +235,24 @@ status_mensaje_t* agregarCliente(clientes_por_mensaje_t* cxm, t_client* client){
 	st -> process_id = client -> process_id;
 	st -> ack = 0;
 
+	pthread_mutex_lock(&sub_mx);
 	list_add(cxm -> suscriptores, st);
+	pthread_mutex_unlock(&sub_mx);
 	return st;
 
 }
 
 clientes_por_mensaje_t* obtenerMensaje(int id_mensaje){
 
-	for(int i = 0; i < list_size(mensajes); i++){
+	pthread_mutex_lock(&msg_mx);
+	int size = list_size(mensajes);
+	pthread_mutex_unlock(&msg_mx);
 
+	for(int i = 0; i < size; i++){
+
+		pthread_mutex_lock(&msg_mx);
 		clientes_por_mensaje_t* msg = list_get(mensajes, i);
+		pthread_mutex_unlock(&msg_mx);
 
 		if(msg -> id_mensaje == id_mensaje){
 			return msg;
@@ -239,8 +265,14 @@ clientes_por_mensaje_t* obtenerMensaje(int id_mensaje){
 
 status_mensaje_t* obtenerStatus(t_list* suscriptores, int pid){
 
-	for(int i = 0; i < list_size(suscriptores); i++){
+	pthread_mutex_lock(&sub_mx);
+	int size = list_size(suscriptores);
+	pthread_mutex_unlock(&sub_mx);
+
+	for(int i = 0; i < size; i++){
+		pthread_mutex_lock(&sub_mx);
 		status_mensaje_t* st = list_get(suscriptores, i);
+		pthread_mutex_unlock(&sub_mx);
 		if(st -> process_id == pid)
 			return st;
 	}

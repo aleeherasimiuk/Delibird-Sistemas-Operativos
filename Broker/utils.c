@@ -66,6 +66,7 @@ void process_request(message_type type, uint32_t socket_cliente){
 
 	pthread_mutex_lock(&id_mx);
 	next_socket[type].id_to_assing = id_siguiente++;
+	int to_send = next_socket[type].id_to_assing;
 	id_message_to_module = id_siguiente++;
 	pthread_mutex_unlock(&id_mx);
 
@@ -73,9 +74,9 @@ void process_request(message_type type, uint32_t socket_cliente){
 	sem_post(&(sem_sockets[type].q));
 
 	uint32_t bytes;
-	void* paquete = crear_paquete_con_id(ID, &next_socket[type].id_to_assing, sizeof(uint32_t), id_message_to_module, &bytes);
+	void* paquete = crear_paquete_con_id(ID, &to_send, sizeof(uint32_t), id_message_to_module, &bytes);
 	int status = send(socket_cliente, paquete, bytes, 0);
-	log_debug(logger, "Envié el ID: %d, con status: %d", next_socket[type].id_to_assing, status);
+	//log_debug(logger, "Envié el ID: %d, con status: %d", next_socket[type].id_to_assing, status);
 	free(paquete);
 
 }

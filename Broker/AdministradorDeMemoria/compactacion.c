@@ -40,7 +40,7 @@ void compactar(){
 
 	liberarMemoriaVieja();
 	memory = compacted_memory;
-	estadoDeLaMemoria();
+	//estadoDeLaMemoria();
 }
 
 void liberarMemoriaVieja(){

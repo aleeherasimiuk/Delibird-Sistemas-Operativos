@@ -77,6 +77,7 @@ void copiarDatos(memory_block_t* destino, t_paquete* paquete){
 
 void relacionarBloqueConMensaje(memory_block_t* particion, t_paquete* data){
 
+	//pthread_mutex_lock(&msg_mx); obtenerMensaje ya tiene su propio lock.
 	clientes_por_mensaje_t* cxm = obtenerMensaje(data -> id);
 	cxm -> memory_block = particion;
 	pthread_mutex_lock(&mx_flag);
