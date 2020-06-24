@@ -21,7 +21,7 @@
 #include "../Utils/conexiones.h"
 #include "var_globales_gamecard.h"
 
-int archivo_en_uso(FILE*);
+void archivo_en_uso(char*);
 void verificar_pokemon(FILE*, char*);
 void agregar_posicion_y_cantidad(t_coords* , uint32_t);
 

@@ -35,6 +35,5 @@ void process_request(message_type, int);
 
 void enviarACK(uint32_t id);
 
-int archivo_en_uso();
 
 #endif /* GAMECARD_CONEXIONESGAMECARD_H_ */

@@ -25,6 +25,9 @@ int main() {
 
 	logger = iniciar_logger(logfile);
 
+	archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/Metadata.bin");
+
+
 	while(1) {
 		if(abrirUnaConexionGameCard(config) == CANT_CONNECT)
 			intentarReconexionConBroker(logfile, tiempoReconexion,  config);
