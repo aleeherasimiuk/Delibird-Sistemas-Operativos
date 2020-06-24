@@ -9,11 +9,11 @@
 
 t_log* logger = NULL;
 t_config* config = NULL;
+char* ruta_punto_montaje;
 
 int main() {
 
 	char* logfile;
-
 	uint32_t tiempoReconexion;
 
 	config = leer_config();

@@ -20,6 +20,7 @@
 #include<commons/config.h>
 #include "../Utils/conexiones.h"
 #include "var_globales_gamecard.h"
+#include "procesamiento_mensajes.h"
 
 
 void suscribirGameCardAlBroker(void);

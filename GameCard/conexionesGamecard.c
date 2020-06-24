@@ -44,11 +44,11 @@ void *escucharAlSocket(void* socket) {
 	log_debug(logger, "Escuchando en el socket: %d", *((int*)socket));
 	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
 		t_paquete* paquete = recibirPaquete(*((int*)socket));
-		pthread_t thread;
 
 
 		if(paquete != NULL){ //TODO Revisar Memory Leak
 			enviarACK(paquete -> id);
+			pthread_t thread;
 
 			switch(paquete->type) {
 				case ID:
@@ -58,6 +58,7 @@ void *escucharAlSocket(void* socket) {
 				case NEW_POKEMON:
 					pthread_create(&thread, NULL, procesarNew, paquete);
 					pthread_detach(&thread);
+
 					break;
 				case CATCH_POKEMON:
 					pthread_create(&thread, NULL, procesarCatch, paquete);
