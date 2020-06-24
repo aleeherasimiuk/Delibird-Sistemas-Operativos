@@ -9,7 +9,8 @@
 #define BROKER_ADMINISTRADORDEMEMORIA_CONSOLIDACION_H_
 
 #include "organizacion_de_memoria.h"
-#include "stdlib.h"
+#include <stdlib.h>
+#include "../var_globales.h"
 
 void consolidar(memory_block_t* bloque_eliminado);
 memory_block_t* merge(memory_block_t*, memory_block_t*);

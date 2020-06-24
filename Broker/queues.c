@@ -30,6 +30,9 @@ uint32_t suscribirCliente(t_buffer* msg, uint32_t cli) {
 
 	suscribir(client, type);
 
+	free(subscribe);
+	free(client);
+
 	return 0;
 }
 
@@ -63,12 +66,12 @@ void iniciarColas(){
 	pthread_create(&thread_caught_pokemon,NULL,(void*)queue, CAUGHT_POKEMON);
 	pthread_create(&thread_get_pokemon,NULL,(void*)queue, GET_POKEMON);
 
-	pthread_detach(&thread_new_pokemon);
-	pthread_detach(&thread_appeared_pokemon);
-	pthread_detach(&thread_localized_pokemon);
-	pthread_detach(&thread_catch_pokemon);
-	pthread_detach(&thread_caught_pokemon);
-	pthread_detach(&thread_get_pokemon);
+	pthread_detach(thread_new_pokemon);
+	pthread_detach(thread_appeared_pokemon);
+	pthread_detach(thread_localized_pokemon);
+	pthread_detach(thread_catch_pokemon);
+	pthread_detach(thread_caught_pokemon);
+	pthread_detach(thread_get_pokemon);
 }
 
 void iniciarMensajes(){
@@ -116,8 +119,11 @@ void* queue(void* message_type){
 		log_debug(logger, "Se asignó el ID: %d", paquete -> id);
 
 
-		if(paquete != NULL)
+		if(paquete != NULL){
 			send_to_subscribers(paquete);
+			guardar(paquete);
+
+		}
 
 	}
 
@@ -131,13 +137,11 @@ void send_to_subscribers(t_paquete* paquete){
 	message_type type = paquete -> type;
 	t_list* list_to_send = subscribers[type];
 	listar_mensaje(paquete);
-	guardar(paquete);
 
 	for(int i = 0; i < list_size(list_to_send); i++){
 		void* list_element = list_get(list_to_send, i);
 		t_client* client = deserializarCliente(list_element);
 		log_debug(logger, "Intentaré enviar el mensaje al cliente %d", client -> socket);
-
 
 		if(fueEnviado(paquete, client))
 			continue;
@@ -153,11 +157,12 @@ void send_to_subscribers(t_paquete* paquete){
 		 * */
 		int status = send(client -> socket, a_enviar, bytes_p, MSG_NOSIGNAL);
 		log_debug(logger, "Envié el mensaje al suscriptor %d con status: %d", client -> socket ,status);
-		//NOTA DE MOU TODO: free()
+
+		free(client);
+		free(a_enviar);
 
 		if(status == -1)
 			list_remove(list_to_send, i);
-
 	}
 }
 

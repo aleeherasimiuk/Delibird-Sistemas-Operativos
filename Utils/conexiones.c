@@ -39,7 +39,7 @@ void crear_servidor(char* ip, char* puerto, void* serve_client){
             continue;
 
         if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
-            close(socket_servidor);
+            //close(socket_servidor);
             continue;
         }
         break;

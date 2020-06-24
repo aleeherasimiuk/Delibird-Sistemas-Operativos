@@ -19,12 +19,19 @@ uint32_t min_part;
 
 void iniciarMemoria(){
 
+//	cache        = allocarMemoria();
+//	memoria      = algoritmoMemoria();
+//	reemplazo    = algoritmoReemplazo();
+//	part_libre   = algoritmoParticionLibre();
+//	freq_compact = frecuenciaDeCompactacion();
+//	min_part     = minimaParticion();
+
 	cache        = allocarMemoria();
-	memoria      = algoritmoMemoria();
-	reemplazo    = algoritmoReemplazo();
-	part_libre   = algoritmoParticionLibre();
-	freq_compact = frecuenciaDeCompactacion();
-	min_part     = minimaParticion();
+	memoria      = PARTICIONES;
+	reemplazo    = FIFO;
+	part_libre   = FIRST_FIT;
+	freq_compact = 3;
+	min_part     = 8;
 
 	iniciarCola();
 
@@ -36,7 +43,8 @@ void iniciarMemoria(){
 
 void* allocarMemoria(){
 
-	bytes = config_get_int_value(config, BYTES_TO_ALLOC);
+	//bytes = config_get_int_value(config, BYTES_TO_ALLOC);
+	bytes = 128;
 	void* _cache = malloc(bytes);
 
 	memory = malloc(sizeof(memory_block_t));

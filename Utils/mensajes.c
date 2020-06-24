@@ -176,8 +176,11 @@ void* serializarPaquete(t_paquete* paquete, uint32_t* bytes){
 	uint32_t buffer_size;
 	void* serialized_buffer = serializarBuffer(buffer, &buffer_size);
 
-	void* serialized_paquete = serializarGenerico(bytes, 4, &type, sizeof(message_type), &id, sizeof(uint32_t), &correlative_id, sizeof(uint32_t), serialized_buffer, buffer_size);
+	free(buffer -> stream);
+	free(buffer);
 
+	void* serialized_paquete = serializarGenerico(bytes, 4, &type, sizeof(message_type), &id, sizeof(uint32_t), &correlative_id, sizeof(uint32_t), serialized_buffer, buffer_size);
+	free(serialized_buffer);
 	return serialized_paquete;
 
 }
@@ -511,7 +514,8 @@ void* crear_paquete_con_id(message_type cod_op, void* serialized_message, uint32
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
 	buffer -> stream_size = message_bytes;
-	buffer -> stream = serialized_message;
+	buffer -> stream = malloc(message_bytes);
+	memcpy(buffer -> stream, serialized_message, message_bytes);
 
 	t_paquete* paquete = crearPaquete();
 	paquete -> type = cod_op;
@@ -519,7 +523,9 @@ void* crear_paquete_con_id(message_type cod_op, void* serialized_message, uint32
 	paquete -> buffer = buffer;
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
-
+	//free(paquete -> buffer -> stream);
+	//free(paquete -> buffer);
+	free(paquete);
 	return serialized_paquete;
 }
 

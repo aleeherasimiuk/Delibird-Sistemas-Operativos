@@ -23,6 +23,7 @@ void serve_client(int* socket) {
 	if(type != NULL){
 		log_debug(logger, "Procesando solicitud");
 		process_request(type, *socket);
+		free(socket);
 	}else {
 		log_debug(logger, "No puedo procesar la solicitud");
 	}
@@ -41,13 +42,18 @@ void process_request(message_type type, uint32_t socket_cliente){
 	if(type == SUBSCRIBE){
 		t_paquete* paquete = recibirPaqueteSi(socket_cliente, type);
 		suscribirCliente(paquete -> buffer, socket_cliente);
+		free(paquete -> buffer -> stream);
 		free(paquete -> buffer);
+		free(paquete);
 		return;
 	}
 
 	if(type == ACK){
 		t_paquete* paquete = recibirPaqueteSi(socket_cliente, type);
 		procesarACK(paquete -> buffer);
+		//free(paquete -> buffer -> stream);
+		//free(paquete -> buffer);
+		free(paquete);
 		return;
 	}
 
@@ -67,10 +73,10 @@ void process_request(message_type type, uint32_t socket_cliente){
 	sem_post(&(sem_sockets[type].q));
 
 	uint32_t bytes;
-	void* paquete = crear_paquete_con_id(ID, &next_socket[type].id_to_assing, id_message_to_module, sizeof(uint32_t), &bytes);
+	void* paquete = crear_paquete_con_id(ID, &next_socket[type].id_to_assing, sizeof(uint32_t), id_message_to_module, &bytes);
 	int status = send(socket_cliente, paquete, bytes, 0);
 	log_debug(logger, "Envié el ID: %d, con status: %d", next_socket[type].id_to_assing, status);
-
+	free(paquete);
 
 }
 

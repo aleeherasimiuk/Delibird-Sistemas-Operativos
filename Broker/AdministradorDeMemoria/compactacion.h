@@ -12,7 +12,10 @@
 #include <stdint.h>
 #include "organizacion_de_memoria.h"
 #include "particionamiento.h"
+#include <stdio.h>
+#include "../var_globales.h"
 
+void liberarMemoriaVieja();
 void compactar();
 
 

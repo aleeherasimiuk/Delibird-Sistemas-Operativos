@@ -33,7 +33,7 @@ void* guardarEnMemoria(){
 		relacionarBloqueConMensaje(particion, data);
 		log_debug(logger, "Guardé un dato en una particion de tamaño: %d, para un dato de tamaño: %d", particion -> data -> size, data -> buffer -> stream_size);
 		liberarPaquete(data);
-		estadoDeLaMemoria();
+		//estadoDeLaMemoria();
 		pthread_mutex_unlock(&mx_mem);
 
 	}
@@ -86,6 +86,7 @@ void relacionarBloqueConMensaje(memory_block_t* particion, t_paquete* data){
 
 void liberarPaquete(t_paquete* data){
 	free(data -> buffer -> stream);
+	free(data -> buffer);
 	free(data);
 }
 
