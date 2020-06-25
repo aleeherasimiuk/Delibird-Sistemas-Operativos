@@ -20,10 +20,26 @@
 #include<commons/config.h>
 #include "../Utils/conexiones.h"
 #include "var_globales_gamecard.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 
-//void archivo_en_uso(char*);
-void verificar_pokemon(FILE*, char*);
+
+
+typedef struct {
+	char DIRECTORY;
+	char OPEN;
+	int SIZE;
+	int BLOCKS[];
+}METADATA;
+
+void unir_paths(char*, char*, char**);
+
+int archivo_en_uso(char*);
+void verificar_pokemon(char*, char*);
 void agregar_posicion_y_cantidad(t_coords* , uint32_t);
+
+
+void verificar_posiciones(char*, t_coords*);
 
 
 
