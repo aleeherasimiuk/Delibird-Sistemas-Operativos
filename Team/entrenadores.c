@@ -101,6 +101,7 @@ void* sacarDeLista(t_tcb* tcb, t_list* lista) {
 
 void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
 	sacarDeLista(tcb, lista_actual);
+	// TODO sem_post counter entrenadores disponibles para new y blocked_idle
 	list_add(lista_destino, tcb);
 }
 

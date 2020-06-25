@@ -118,23 +118,6 @@ void *escucharAlSocket(void* socket) {
 	return NULL;
 }
 
-void procesarCaughtPokemon(t_paquete* paquete){
-	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
-
-	if(*cau_pok == YES){
-		log_debug(logger, "Yey! Atrapé un Pokemon!");
-	} else if(*cau_pok == NO){
-		log_debug(logger, "Ufa! No pude atraparlo :(");
-	} else {
-		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
-	}
-}
-
-void procesarAppeared(t_paquete* paquete){
-	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
-	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
-}
-
 void procesarID(t_paquete* paquete){
 	t_id* id = paquete -> buffer -> stream;
 	log_debug(logger, "Recibí el ID: %d", id);
@@ -155,6 +138,7 @@ void* abrirSocketParaGameboy(){
 	log_debug(logger, "Estoy escuchando al gameboy en %s:%s", ip, puerto);
 	crear_servidor(ip, puerto, serve_client);
 
+	return NULL;
 }
 
 void serve_client(int* socket){
@@ -234,4 +218,33 @@ void enviarGetPokemon(t_pokemon* pokemon) {
 	return;
 }
 
+//////////////////////////////////////////////
+//				APPEARED					//
+//////////////////////////////////////////////
+
+void procesarAppeared(t_paquete* paquete){
+	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
+	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
+
+	if (pokemonNecesario(pok->pokemon)) {
+		log_debug(logger, "El pokemon es necesario");
+		agregarPokemonAlMapa(pok->pokemon, pok->coords);
+	}
+}
+
+//////////////////////////////////////////////
+//					CAUGHT					//
+//////////////////////////////////////////////
+
+void procesarCaughtPokemon(t_paquete* paquete){
+	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
+
+	if(*cau_pok == YES){
+		log_debug(logger, "Yey! Atrapé un Pokemon!");
+	} else if(*cau_pok == NO){
+		log_debug(logger, "Ufa! No pude atraparlo :(");
+	} else {
+		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
+	}
+}
 

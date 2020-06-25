@@ -27,7 +27,7 @@ void inicializar_team(void) {
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
 	escucharAlGameboy();
 	suscribirseAlBroker();
-	//enviarGetsAlBroker();
+	enviarGetsAlBroker();
 }
 
 t_log* iniciar_logger(char* logfile)

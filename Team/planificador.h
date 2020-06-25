@@ -35,11 +35,16 @@ void iniciarPlanificador(void);
 
 //		EJECUCION
 	// Planificacion largo plazo
-t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list* lista);
+t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista);
 void *mandarABuscarPokemones(void);
 
 
 void realizarCicloDeCPU(void);
 void realizarXCiclosDeCPU(int cant_ciclos);
+
+
+// 		OBJETIVOS + MAPA
+int pokemonNecesario(t_pokemon*);
+void agregarPokemonAlMapa(t_pokemon*, t_coords*);
 
 #endif /* PLANIFICADOR_H_ */
