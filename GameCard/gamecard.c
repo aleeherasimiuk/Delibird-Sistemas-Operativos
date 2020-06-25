@@ -25,7 +25,7 @@ int main() {
 
 	logger = iniciar_logger(logfile);
 
-	archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/Metadata.bin");
+	//archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/Metadata.bin");
 
 
 	while(1) {

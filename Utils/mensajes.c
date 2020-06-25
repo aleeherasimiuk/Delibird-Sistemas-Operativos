@@ -616,9 +616,9 @@ t_localized_pokemon* localized_pokemon(t_pokemon* pokemon, uint32_t cant_coords,
 }
 
 t_coords** coords_array(uint32_t cant_coords, ...){
-
 	// va_list es la lista para guardar los argumentos variables
 	va_list args;
+
 	// cargo los argumentos en args
 	va_start(args, cant_coords);
 

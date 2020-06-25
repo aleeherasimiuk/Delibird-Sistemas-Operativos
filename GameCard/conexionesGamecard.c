@@ -58,17 +58,14 @@ void *escucharAlSocket(void* socket) {
 				case NEW_POKEMON:
 					pthread_create(&thread, NULL, procesarNew, paquete);
 					pthread_detach(&thread);
-
 					break;
 				case CATCH_POKEMON:
 					pthread_create(&thread, NULL, procesarCatch, paquete);
 					pthread_detach(&thread);
 					break;
 				case GET_POKEMON:
-					//pthread_create(&thread, NULL, procesarGet, (paquete, socket));
-					//pthread_detach(&thread);
-					//procesarGetPokemon(paquete);
-					//log_debug(logger, "Despues de procesar paquete");
+					pthread_create(&thread, NULL, procesarGet, paquete);
+					pthread_detach(&thread);
 					break;
 				default:
 					log_debug(logger, "No entiendo le mensaje, debe ser NEW_POKEMON, CATCH_POKEMON o GET_POKEMON");

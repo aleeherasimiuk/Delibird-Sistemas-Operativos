@@ -9,12 +9,7 @@
 #include "gestion_de_archivos.h"
 #include "string.h"
 
-void process_request_broker(){
-
-
-}
-
-void archivo_en_uso(char* path){
+/*void archivo_en_uso(char* path){
 	//TODO hacer
 
 	char* buffer[7];
@@ -39,7 +34,7 @@ void archivo_en_uso(char* path){
 		log_debug(logger, "se puede usar master");
 	}
 
-}
+}*/
 
 void verificar_pokemon(FILE* file, char* nombre_pokemon){
 	//TODO hacer
