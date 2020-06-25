@@ -24,7 +24,6 @@ void procesarNew(t_paquete* paquete){
 
 	 t_new_pokemon* pok = deserializarNewPokemon(paquete -> buffer);
 
-
 	 char* nombre_pokemon = pok -> pokemon -> name;
 	 t_coords* coords = pok -> coords;
 	 uint32_t cantidad = pok -> cantidad;
@@ -56,6 +55,7 @@ void procesarNew(t_paquete* paquete){
 		log_debug(logger, "envie un mensaje al broker con status: %d", status);
 		free(a_enviar);
 		close(conexion_con_broker);
+		sleep(tiempo_retardo);
 	   }
 
 	   break;
@@ -75,7 +75,6 @@ void procesarCatch(t_paquete* paquete){
 	 //char* ruta_del_archivo = strcat(ruta_punto_montaje,"/Files");
 	 int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
 	 int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
-	 int i;
 
 	 //FILE* archivo = ruta_del_archivo;
 
@@ -121,9 +120,13 @@ void procesarCatch(t_paquete* paquete){
 }
 
 void procesarGet(t_paquete* paquete){
+
 	t_get_pokemon* pok = deserializarPokemon(&(paquete -> buffer));
+	char* nombre_pokemon = pok -> name;
 
 	while(1){
+		int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
+		int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
 		//if(!archivo_en_uso(archivo)){
 		 //verificar_pokemon(archivo, nombre_pokemon);
 		 //agregar_posicion_y_cantidad(coords,cantidad);

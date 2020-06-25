@@ -46,6 +46,7 @@ void intentarReconexionConBroker(char* logfile, uint32_t tiempo, t_config* confi
 }
 
 void inicializar_gamecard(void) {
+	escucharAlGameboy();
 	suscribirGameCardAlBroker();
 }
 
