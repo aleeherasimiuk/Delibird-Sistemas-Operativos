@@ -11,7 +11,7 @@ sem_t sem_msg_data;
 pthread_mutex_t mx_mem;
 pthread_mutex_t mx_flag;
 uint32_t next_flag = 0;
-uint32_t compact = 0;
+uint32_t compact;
 
 void iniciarCola(){
 	sem_init(&sem_msg_data, 0, 0);
@@ -27,6 +27,7 @@ void* guardarEnMemoria(){
 		sem_wait(&sem_msg_data);
 		pthread_mutex_lock(&mx_mem);
 
+		compact = freq_compact; /*https://bit.ly/2BEfVk2*/
 		t_paquete* data = queue_pop(datos_para_guardar);
 		memory_block_t* particion = asignarUnaParticion(data -> buffer -> stream_size);
 		copiarDatos(particion, data);
@@ -93,12 +94,16 @@ void liberarPaquete(t_paquete* data){
 
 void* acomodarMemoria(uint32_t size){
 
-	if((++compact % freq_compact) == 0){
+	if(compact == 0){
 		log_debug(logger, "Debo compactar");
 		compactar();
+	} else {
+		librerarUnBloque();
+		compact--;
 	}
 
-	librerarUnBloque();
+	/**/
+
 	return asignarUnaParticion(size);
 
 }
