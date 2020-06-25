@@ -675,5 +675,34 @@ t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type queue, uint32
 
 }
 
+char* queue_name(message_type queue){
+
+	switch(queue){
+
+	case NEW_POKEMON:
+		return "NEW POKEMON";
+
+	case APPEARED_POKEMON:
+		return "APPEARED POKEMON";
+
+	case CATCH_POKEMON:
+		return "CATCH POKEMON";
+
+	case CAUGHT_POKEMON:
+		return "CAUGHT POKEMON";
+
+	case LOCALIZED_POKEMON:
+		return "LOCALIZED POKEMON";
+
+	case GET_POKEMON:
+		return "GET POKEMON";
+
+	default:
+		return "INVALID QUEUE";
+
+	}
+
+}
+
 
 

@@ -49,6 +49,7 @@ typedef struct{
 	uint32_t id_correlativo;
 	t_list* suscriptores;
 	memory_block_t* memory_block;
+	message_type cola;
 
 } clientes_por_mensaje_t;
 

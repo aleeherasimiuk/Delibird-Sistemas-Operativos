@@ -34,6 +34,7 @@ extern alg_reemplazo_t reemplazo;
 extern alg_part_libre_t part_libre;
 extern uint32_t freq_compact;
 extern uint32_t min_part;
+extern char* dump_path;
 
 
 typedef enum{LIBRE, OCUPADO} status_t;
@@ -44,6 +45,7 @@ typedef struct{
 	uint32_t size;
 	status_t status;
 	uint32_t flag;
+	uint32_t* msg_id;
 
 } memory_info_t;
 

@@ -14,6 +14,7 @@
 #include "particionamiento.h"
 #include <stdio.h>
 #include "../var_globales.h"
+#include "../queues.h"
 
 void liberarMemoriaVieja();
 void compactar();

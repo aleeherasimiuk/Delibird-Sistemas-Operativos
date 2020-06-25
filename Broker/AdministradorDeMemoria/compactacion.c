@@ -31,6 +31,8 @@ void compactar(){
 			actual -> data -> flag = mem_block -> data -> flag;
 			actual -> data -> status = OCUPADO;
 			actual -> data -> size = mem_block -> data -> size;
+			actual -> data -> msg_id = mem_block -> data -> msg_id;
+			actualizarMensaje(actual, mem_block -> data -> msg_id);
 			actual = actual -> next;
 		}
 
@@ -55,6 +57,13 @@ void liberarMemoriaVieja(){
 		memoria_vieja = siguiente;
 
 	}
+}
+
+void actualizarMensaje(memory_block_t* new_block, uint32_t id){
+
+	clientes_por_mensaje_t* cli = obtenerMensaje(id);
+	cli -> memory_block = new_block;
+
 }
 
 //void compactar(){

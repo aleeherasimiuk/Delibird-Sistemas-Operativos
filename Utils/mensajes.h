@@ -215,4 +215,6 @@ t_coords** coords_array(uint32_t, ...);
 t_client* cliente(uint32_t, uint32_t);
 t_ack* ack(t_process_id, t_id);
 
+char* queue_name(message_type);
+
 #endif /* MENSAJES_H_ */

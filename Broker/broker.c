@@ -29,6 +29,7 @@ int main(void) {
 	logfile = "/home/utnso/log_broker.txt";
 
 	logger = iniciar_logger(logfile);
+	iniciarSignals();
 	iniciarMemoria();
 	iniciarSubscribers();
 	iniciarMensajes();
@@ -41,14 +42,16 @@ int main(void) {
 	return 0;
 }
 
-t_config* leer_config(void)
-{
+t_config* leer_config(void){
 	return config_create("broker.config");
 }
 
-t_log* iniciar_logger(char* logfile)
-{
+t_log* iniciar_logger(char* logfile){
 	return log_create(logfile, "Broker", true, LOG_LEVEL_DEBUG);
+}
+
+void iniciarSignals(){
+	signal(SIGUSR1, dump_cache);
 }
 
 

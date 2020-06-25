@@ -20,6 +20,7 @@
 #define PART_LIBRE "ALGORITMO_PARTICION_LIBRE"
 #define FREQ_COMPACT "FRECUENCIA_COMPACTACION"
 #define MIN_PART "TAMANO_MINIMO_PARTICION"
+#define DUMP_PATH "DUMP_CACHE_PATH"
 
 void* cache;
 
@@ -31,6 +32,7 @@ int algoritmoReemplazo();
 int algoritmoParticionLibre();
 int frecuenciaDeCompactacion();
 int minimaParticion();
+char* rutaDump();
 
 int compare_string(char*, char*);
 void errorConfig(char*);

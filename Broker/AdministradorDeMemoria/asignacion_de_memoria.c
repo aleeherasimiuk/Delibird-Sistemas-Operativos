@@ -84,6 +84,8 @@ void relacionarBloqueConMensaje(memory_block_t* particion, t_paquete* data){
 	pthread_mutex_lock(&mx_flag);
 	cxm -> memory_block -> data -> flag = next_flag++;
 	pthread_mutex_unlock(&mx_flag);
+
+	particion -> data -> msg_id = cxm -> id_mensaje;
 }
 
 void liberarPaquete(t_paquete* data){

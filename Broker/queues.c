@@ -189,6 +189,7 @@ void listar_mensaje(t_paquete* paquete){
 	cxm -> id_mensaje = paquete -> id;
 	cxm -> id_correlativo = paquete -> correlative_id;
 	cxm -> suscriptores = list_create();
+	cxm -> cola = paquete -> type;
 
 	pthread_mutex_lock(&msg_mx);
 	list_add(mensajes, cxm);

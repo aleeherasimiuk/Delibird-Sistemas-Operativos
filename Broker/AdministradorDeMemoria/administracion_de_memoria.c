@@ -16,6 +16,7 @@ alg_reemplazo_t reemplazo;
 alg_part_libre_t part_libre;
 uint32_t freq_compact;
 uint32_t min_part;
+char* dump_path;
 
 void iniciarMemoria(){
 
@@ -25,6 +26,7 @@ void iniciarMemoria(){
 //	part_libre   = algoritmoParticionLibre();
 //	freq_compact = frecuenciaDeCompactacion();
 //	min_part     = minimaParticion();
+//	dump_path    = rutaDump();
 
 	cache        = allocarMemoria();
 	memoria      = PARTICIONES;
@@ -32,6 +34,7 @@ void iniciarMemoria(){
 	part_libre   = FIRST_FIT;
 	freq_compact = 3;
 	min_part     = 8;
+	dump_path    = "/home/utnso/cache.txt";
 
 	iniciarCola();
 
@@ -127,6 +130,10 @@ int minimaParticion(){
 
 	errorConfig(MIN_PART);
 	return -1;
+}
+
+char* rutaDump(){
+	return config_get_string_value(config, DUMP_PATH);
 }
 
 
