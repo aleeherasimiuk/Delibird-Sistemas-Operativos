@@ -61,9 +61,12 @@ void cargarEntrenadores(void) {
 		tcb_nuevo->entrenador = malloc(sizeof(t_entrenador));
 
 		tcb_nuevo->entrenador->id_entrenador = i + 1;
+
 		tcb_nuevo->entrenador->posicion = crearCoordenadas(posiciones_entrenadores[i]);
+
 		tcb_nuevo->entrenador->destino = NULL;
 		tcb_nuevo->entrenador->pokes_actuales = crearListaDeInventario(pokemon_entrenadores[i], NULL);
+
 		tcb_nuevo->entrenador->pokes_objetivos = crearListaDeInventario(objetivos_entrenadores[i], objetivo_global);
 
 		pthread_mutex_init(&(tcb_nuevo->mutex_ejecucion), NULL); // TODO pthread_mutex_destroy cuando se deje de usar para siempre
@@ -71,10 +74,18 @@ void cargarEntrenadores(void) {
 
 		list_add(entrenadores_new, tcb_nuevo);
 
+
+
 		pthread_create(&thread, NULL, entrenadorMain, tcb_nuevo);
 		pthread_detach(thread);
 		i++;
 	}
+
+
+	liberarListaDePunteros(posiciones_entrenadores);
+	liberarListaDePunteros(pokemon_entrenadores);
+	liberarListaDePunteros(objetivos_entrenadores);
+
 
 	sem_init(&counter_entrenadores_disponibles, 0, i); // i es la cantidad de entrenadores cargados, que siempre seria la misma.
 }

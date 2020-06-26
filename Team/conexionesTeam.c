@@ -72,7 +72,11 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 
 	//TODO: Handlear error
 	send(conexion, paquete_serializado, paquete_size, 0);
+
 	free(subscripcion);
+	free(serialized_subscribe);
+	free(paquete_serializado);
+
 	log_debug(logger, "Me suscribí a %d", cola);
 }
 
@@ -83,8 +87,11 @@ void *escucharAlSocket(void* socket) {
 	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
 		t_paquete* paquete = recibirPaquete(*((int*)socket));
 
+
 		if(paquete != NULL){
 			enviarACK(paquete -> id);
+
+			void* ptrStream = paquete->buffer->stream; // lo guardo para que no explote
 
 			switch(paquete->type) {
 				case ID:
@@ -107,12 +114,17 @@ void *escucharAlSocket(void* socket) {
 					break;
 			}
 
-
+			free(ptrStream);
+			free(paquete->buffer);
+			free(paquete);
 		} else {
 			// Políticas de reconexión
 			close(*((int*)socket));
 			i = 0;
 		}
+		//log_debug(logger, "puntero referenciado %6p puntero Stream: %6p ", ptrStream, paquete->buffer->stream );
+
+
 	}
 	// TODO DESTRUIR EL HILO?
 	return NULL;
@@ -125,10 +137,9 @@ void procesarID(t_paquete* paquete){
 
 
 void escucharAlGameboy(){
-
 	pthread_t thread;
 	pthread_create(&thread, NULL ,abrirSocketParaGameboy, NULL);
-	pthread_detach(&thread);
+	pthread_detach(thread);
 }
 
 void* abrirSocketParaGameboy(){
@@ -188,9 +199,12 @@ void enviarACK(uint32_t id){
 
 	int status = send(conexion, a_enviar, bytes, 0);
 	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
-	free(a_enviar);
-	close(conexion);
 
+	free(_ack);
+	free(serialized_ack);
+	free(a_enviar);
+
+	close(conexion);
 
 }
 
@@ -230,6 +244,7 @@ void procesarAppeared(t_paquete* paquete){
 		log_debug(logger, "El pokemon es necesario");
 		agregarPokemonAlMapa(pok->pokemon, pok->coords);
 	}
+	free(pok);
 }
 
 //////////////////////////////////////////////

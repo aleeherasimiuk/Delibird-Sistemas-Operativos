@@ -7,22 +7,23 @@
 
 #include"entrenadores.h"
 
+
+
 //////////////////////////////////////////
 //				INICIALIZACION			//
 //////////////////////////////////////////
 
 t_coords* crearCoordenadas(char* string_coord) {
-	char separador = '|';
-	char** coords_array = string_split(string_coord, &separador);
+	char** coords_array = string_split(string_coord, "|");
 	t_coords* coords_nuevas = crear_coordenadas_from_int(atoi(coords_array[0]), atoi(coords_array[1]));
 
-	free(coords_array);
+	liberarListaDePunteros(coords_array);
+
 	return coords_nuevas;
 }
 
 t_list* crearListaDeInventario(char* pokemones_string, t_list* objetivo_global) {  // Se, la super negrada
-	char separador = '|';
-	char** pokemones_array = string_split(pokemones_string, &separador);
+	char** pokemones_array = string_split(pokemones_string, "|");
 	t_list* lista_inventario = list_create();
 
 	int i = 0;
@@ -37,7 +38,9 @@ t_list* crearListaDeInventario(char* pokemones_string, t_list* objetivo_global) 
 
 		i++;
 	}
-	free(pokemones_array);
+
+	liberarListaDePunteros(pokemones_array);
+
 	return lista_inventario;
 }
 
