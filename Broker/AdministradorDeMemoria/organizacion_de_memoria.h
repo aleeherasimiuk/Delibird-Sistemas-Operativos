@@ -45,7 +45,7 @@ typedef struct{
 	uint32_t size;
 	status_t status;
 	uint32_t flag;
-	uint32_t* msg_id;
+	uint32_t msg_id;
 
 } memory_info_t;
 

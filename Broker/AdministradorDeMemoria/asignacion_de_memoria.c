@@ -57,12 +57,14 @@ memory_block_t* asignarUnaParticion(uint32_t size){
 	}
 
 	if(bloque == NULL){
-		estadoDeLaMemoria();
 		log_debug(logger, "Tengo que acomodar la memoria");
 		return acomodarMemoria(size);
 	}
 
-	return particionar(bloque, tamano_particion);
+	if(memoria == PARTICIONES)
+		return particionar(bloque, tamano_particion);
+	if(memoria == BUDDY_SYSTEM)
+		return buddy_system(bloque, tamano_particion);
 }
 
 uint32_t max(uint32_t a, uint32_t b){
@@ -96,8 +98,9 @@ void liberarPaquete(t_paquete* data){
 
 void* acomodarMemoria(uint32_t size){
 
-	if(compact == 0){
-		log_debug(logger, "Debo compactar");
+	log_debug(logger, "Valor de compact: %d", compact);
+
+	if(memoria != BUDDY_SYSTEM && compact == 0){
 		compactar();
 	} else {
 		librerarUnBloque();
@@ -117,8 +120,9 @@ void estadoDeLaMemoria(){
 
 	while(mem_block != NULL){
 
-		log_debug(logger, "Partición número: %d \nInicio: %d \nTamaño: %d \nEstado: %d \nFlag: %d \nSiguiente: %d\n\n",
+		log_debug(logger, "Partición número: %d \nAnterior: %d \nInicio: %d \nTamaño: %d \nEstado: %d \nFlag: %d \nSiguiente: %d\n\n",
 				i++,
+				mem_block -> previous == NULL? 0: mem_block -> previous,
 				&(mem_block -> data -> base),
 				mem_block -> data -> size,
 				mem_block -> data -> status,

@@ -20,6 +20,7 @@ char* dump_path;
 
 void iniciarMemoria(){
 
+	bytes = 128;
 //	cache        = allocarMemoria();
 //	memoria      = algoritmoMemoria();
 //	reemplazo    = algoritmoReemplazo();
@@ -37,8 +38,6 @@ void iniciarMemoria(){
 	dump_path    = "/home/utnso/cache.txt";
 
 	iniciarCola();
-
-	log_debug(logger, "Algoritmo de partición libre: %d", part_libre);
 	pthread_t memory_admin;
 	pthread_create(&memory_admin, NULL, guardarEnMemoria, NULL);
 	pthread_detach(memory_admin);
@@ -47,7 +46,7 @@ void iniciarMemoria(){
 void* allocarMemoria(){
 
 	//bytes = config_get_int_value(config, BYTES_TO_ALLOC);
-	bytes = 128;
+	//bytes = 100;
 	void* _cache = malloc(bytes);
 
 	memory = malloc(sizeof(memory_block_t));
@@ -72,7 +71,7 @@ int algoritmoMemoria(){
 	if(compare_string(algoritmo_memoria, "PARTICIONES"))
 		return PARTICIONES;
 
-	if(compare_string(algoritmo_memoria, "BS"))
+	if(compare_string(algoritmo_memoria, "BS") && potenciaDeDos(bytes))
 		return BUDDY_SYSTEM;
 
 	errorConfig(MEMORIA);
@@ -149,5 +148,10 @@ void errorConfig(char* error){
 	log_error(logger, "Valor de configuración de %s incorrecto", error);
 	liberarCache();
 	exit(1);
+}
+
+int potenciaDeDos(double n){
+	double x;
+	return modf(log2(n), &x) == 0;
 }
 

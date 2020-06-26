@@ -12,6 +12,7 @@
 #include "organizacion_de_memoria.h"
 #include <stdint.h>
 #include <stdio.h>
+#include "consolidacion.h"
 
 void librerarUnBloque();
 memory_block_t* bloqueAEliminar();

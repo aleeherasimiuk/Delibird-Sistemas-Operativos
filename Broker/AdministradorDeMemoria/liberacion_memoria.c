@@ -11,7 +11,8 @@ void librerarUnBloque(){
 
 	memory_block_t* bloque_a_eliminar =  bloqueAEliminar();
 	bloque_a_eliminar -> data -> status = LIBRE;
-	printf("Liberé un bloque cuyo flag es %d\n", bloque_a_eliminar -> data -> flag);
+	log_debug(logger, "El bloque a eliminar se encuentra: %d", bloque_a_eliminar -> data -> status);
+	consolidar(bloque_a_eliminar);
 }
 
 

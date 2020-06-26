@@ -57,6 +57,7 @@ memory_block_t* particionar(memory_block_t* mem_block, uint32_t size){
 	bloque_desperdicio -> data -> size = desperdicio;
 	bloque_desperdicio -> data -> status = LIBRE;
 	bloque_desperdicio -> data -> flag = 0;
+	bloque_desperdicio -> data -> msg_id = 0;
 	bloque_desperdicio -> next = next;
 
 	mem_block -> next = bloque_desperdicio;

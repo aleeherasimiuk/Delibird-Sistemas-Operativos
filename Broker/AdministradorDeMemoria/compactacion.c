@@ -33,6 +33,8 @@ void compactar(){
 			actual -> data -> size = mem_block -> data -> size;
 			actual -> data -> msg_id = mem_block -> data -> msg_id;
 			actualizarMensaje(actual, mem_block -> data -> msg_id);
+			actual -> previous = last;
+			last = actual;
 			actual = actual -> next;
 		}
 
@@ -42,7 +44,7 @@ void compactar(){
 
 	liberarMemoriaVieja();
 	memory = compacted_memory;
-	//estadoDeLaMemoria();
+	estadoDeLaMemoria();
 }
 
 void liberarMemoriaVieja(){

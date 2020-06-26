@@ -11,6 +11,7 @@
 #include<stdlib.h>
 #include<stdint.h>
 #include<commons/config.h>
+#include<math.h>
 #include "../var_globales.h"
 #include"asignacion_de_memoria.h"
 
@@ -36,6 +37,7 @@ char* rutaDump();
 
 int compare_string(char*, char*);
 void errorConfig(char*);
+int potenciaDeDos(double n);
 
 
 
