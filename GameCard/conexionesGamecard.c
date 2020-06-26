@@ -134,9 +134,9 @@ void process_request(message_type type, int socket){
 			procesarCatch(paquete);
 			break;
 
-		//case GET_POKEMON:
-		//	procesarGet(paquete);
-		//	break;
+		case GET_POKEMON:
+			procesarGet(paquete);
+			break;
 
 		default:
 			log_error(logger, "Código de operación inválido");

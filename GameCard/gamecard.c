@@ -9,7 +9,7 @@
 
 t_log* logger = NULL;
 t_config* config = NULL;
-char* ruta_punto_montaje;
+char* ruta_punto_montaje = NULL;
 
 int main() {
 
@@ -25,18 +25,18 @@ int main() {
 
 	logger = iniciar_logger(logfile);
 
-	//archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/");
-	//verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Charizard");
-	t_coords* coordenadas;
-
-	uint32_t x = coordenadas->posX;
-	uint32_t y = coordenadas->posY;
-
-	x = 4;
-	y = 2;
-
-
-	verificar_posiciones("/home/utnso/Escritorio/tall-grass/Blocks/1.bin",coordenadas);
+//	//archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/");
+//	//verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Charizard");
+//	t_coords* coordenadas;
+//
+//	uint32_t x = coordenadas->posX;
+//	uint32_t y = coordenadas->posY;
+//
+//	x = 4;
+//	y = 2;
+//
+//
+//	verificar_posiciones("/home/utnso/Escritorio/tall-grass/Blocks/1.bin",coordenadas);
 
 
 	while(1) {

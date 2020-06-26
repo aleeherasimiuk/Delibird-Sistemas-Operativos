@@ -134,17 +134,31 @@ int handleCaughtPokemon(char* process, int argc, char* args[]){
 }
 
 int handleGetPokemon(char* process, int argc, char* args[]){
+	if(compare_string(process, "BROKER")){
+		if(argc != 1)
+			return WRONG_PARAMETERS;
 
-	if(argc != 1)
+		if(string_empty(args[0]) || string_has_numbers(args[0]))
+			return WRONG_PARAMETERS;
+
+		return PARAMETERS_OK;
+	}
+	if(compare_string(process, "GAMECARD")){
+		if(argc != 2)
+			return WRONG_PARAMETERS;
+
+		if(string_empty(args[0]) || string_has_numbers(args[0]))
+			return WRONG_PARAMETERS;
+
+		if(!isValidDigit(args[1]))
+			return WRONG_PARAMETERS;
+
+		return PARAMETERS_OK;
+	}
+	else {
 		return WRONG_PARAMETERS;
+	}
 
-	if(!compare_string(process, "BROKER") && !compare_string(process, "GAMECARD"))
-		return WRONG_PARAMETERS;
-
-	if(string_empty(args[0]) || string_has_numbers(args[0]))
-		return WRONG_PARAMETERS;
-
-	return PARAMETERS_OK;
 
 }
 
