@@ -34,7 +34,7 @@ void* guardarEnMemoria(){
 		relacionarBloqueConMensaje(particion, data);
 		log_debug(logger, "Guardé un dato en una particion de tamaño: %d, para un dato de tamaño: %d", particion -> data -> size, data -> buffer -> stream_size);
 		liberarPaquete(data);
-		//estadoDeLaMemoria();
+		estadoDeLaMemoria();
 		pthread_mutex_unlock(&mx_mem);
 
 	}
@@ -120,8 +120,9 @@ void estadoDeLaMemoria(){
 
 	while(mem_block != NULL){
 
-		log_debug(logger, "Partición número: %d \nAnterior: %d \nInicio: %d \nTamaño: %d \nEstado: %d \nFlag: %d \nSiguiente: %d\n\n",
+		log_debug(logger, "Partición número: %d \nPosition: %4p \nAnterior: %4p \nInicio: %4p \nTamaño: %d \nEstado: %d \nFlag: %d \nSiguiente: %4p\n\n",
 				i++,
+				mem_block,
 				mem_block -> previous == NULL? 0: mem_block -> previous,
 				&(mem_block -> data -> base),
 				mem_block -> data -> size,

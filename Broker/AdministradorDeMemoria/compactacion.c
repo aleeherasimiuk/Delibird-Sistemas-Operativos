@@ -45,6 +45,7 @@ void compactar(){
 	liberarMemoriaVieja();
 	memory = compacted_memory;
 	estadoDeLaMemoria();
+	log_info(logger, "Compacté");
 }
 
 void liberarMemoriaVieja(){

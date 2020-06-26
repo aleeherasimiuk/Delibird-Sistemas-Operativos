@@ -11,7 +11,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "../var_globales.h"
 #include "organizacion_de_memoria.h"
+
 
 memory_block_t* first_fit(uint32_t);
 memory_block_t* best_fit(uint32_t);

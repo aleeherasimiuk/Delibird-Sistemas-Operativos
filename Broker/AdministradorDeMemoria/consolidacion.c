@@ -50,6 +50,10 @@ memory_block_t* merge(memory_block_t* fst, memory_block_t* snd){
 	log_debug(logger, "Haciendo un Merge");
 	fst -> next = snd -> next;
 	fst -> data -> size = (fst -> data -> size) + (snd -> data -> size);
+
+	if(fst -> next != NULL)
+		fst -> next -> previous = fst;
+
 	free(snd -> data);
 	free(snd);
 

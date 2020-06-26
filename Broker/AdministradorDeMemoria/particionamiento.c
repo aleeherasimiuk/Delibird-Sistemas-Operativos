@@ -59,6 +59,8 @@ memory_block_t* particionar(memory_block_t* mem_block, uint32_t size){
 	bloque_desperdicio -> data -> flag = 0;
 	bloque_desperdicio -> data -> msg_id = 0;
 	bloque_desperdicio -> next = next;
+	if(bloque_desperdicio -> next != NULL)
+		bloque_desperdicio -> next -> previous = bloque_desperdicio;
 
 	mem_block -> next = bloque_desperdicio;
 	(mem_block -> data -> size) = mem_block -> data -> size - desperdicio;

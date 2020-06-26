@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <string.h>
 
+
 typedef enum{
 	PARTICIONES,
 	BUDDY_SYSTEM
