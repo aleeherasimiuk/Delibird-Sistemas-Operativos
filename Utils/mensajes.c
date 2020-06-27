@@ -59,9 +59,6 @@ void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t *
 
 		void* serialized_appeared_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
-		free(serialized_pokemon);
-		free(serialized_coords);
-
 		return serialized_appeared_pokemon;
 }
 
@@ -77,8 +74,6 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 
 	void* serialized_catch_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
-	free(serialized_pokemon);
-	free(serialized_coords);
 	return serialized_catch_pokemon;
 }
 
@@ -261,9 +256,9 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 	memcpy(pokemon -> name, (*buffer) -> stream, pokemon -> name_size);
 	(*buffer) -> stream += pokemon -> name_size * sizeof(char);
 
-
 	return pokemon;
 }
+
 
 t_coords* deserializarCoordenadas(t_buffer** buffer) {
 
@@ -296,7 +291,6 @@ t_new_pokemon* deserializarNewPokemon(t_buffer* buffer) {
 	new_pokemon -> pokemon = deserialized_pokemon;
 	new_pokemon -> coords = coords;
 	new_pokemon -> cantidad = count;
-
 
 	return new_pokemon;
 
@@ -457,6 +451,7 @@ t_paquete* recibirPaquete(int socket) {
 		recv(socket, paquete -> buffer -> stream, paquete -> buffer -> stream_size, MSG_WAITALL);
 		return paquete;
 	} else {
+		free(paquete);
 		return NULL;
 	}
 
@@ -542,8 +537,7 @@ void* crear_paquete_con_ids(message_type cod_op, void* serialized_message, uint3
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
 
-	//free(paquete -> buffer -> stream);
-	//free(paquete -> buffer);
+	//free(buffer);
 	free(paquete);
 
 	return serialized_paquete;
@@ -565,6 +559,9 @@ void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_mes
 	paquete -> buffer = buffer;
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
+
+	free(buffer);
+	free(paquete);
 
 	return serialized_paquete;
 	//TODO: liberar_paquete(paquete);
@@ -598,6 +595,7 @@ t_appeared_pokemon* appeared_pokemon(t_pokemon* pokemon, uint32_t posX, uint32_t
 
 	appeared_pokemon -> pokemon = pokemon;
 	appeared_pokemon -> coords = coords;
+
 
 	return appeared_pokemon;
 }
@@ -643,9 +641,9 @@ t_localized_pokemon* localized_pokemon(t_pokemon* pokemon, uint32_t cant_coords,
 }
 
 t_coords** coords_array(uint32_t cant_coords, ...){
-
 	// va_list es la lista para guardar los argumentos variables
 	va_list args;
+
 	// cargo los argumentos en args
 	va_start(args, cant_coords);
 
