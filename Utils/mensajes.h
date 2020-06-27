@@ -202,6 +202,7 @@ t_paquete* crearPaquete(void);	// Me crea un paquete con los id = 0 por defecto
 void* crear_paquete(message_type, void*, uint32_t, uint32_t*);
 void* crear_paquete_con_id(message_type , void*, uint32_t, uint32_t, uint32_t*);
 void* crear_paquete_con_id_correlativo(message_type, void*, uint32_t, uint32_t, uint32_t*); //No se como sobrecargar funciones
+void* crear_paquete_con_ids(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t id, uint32_t id_correlativo, uint32_t* paquete_size);
 t_coords* crear_coordenadas_from_int(uint32_t, uint32_t);
 t_new_pokemon* new_pokemon(t_pokemon*, uint32_t, uint32_t, uint32_t);
 t_appeared_pokemon* appeared_pokemon(t_pokemon*, uint32_t, uint32_t);
@@ -214,5 +215,7 @@ t_localized_pokemon* localized_pokemon(t_pokemon*, uint32_t, t_coords**);
 t_coords** coords_array(uint32_t, ...);
 t_client* cliente(uint32_t, uint32_t);
 t_ack* ack(t_process_id, t_id);
+
+char* queue_name(message_type);
 
 #endif /* MENSAJES_H_ */
