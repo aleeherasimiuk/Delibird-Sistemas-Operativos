@@ -74,7 +74,7 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 	send(conexion, paquete_serializado, paquete_size, 0);
 
 	free(subscripcion);
-	free(serialized_subscribe);
+	//free(serialized_subscribe);
 	free(paquete_serializado);
 
 	log_debug(logger, "Me suscribí a %d", cola);
@@ -202,7 +202,7 @@ void enviarACK(uint32_t id){
 	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
 
 	free(_ack);
-	free(serialized_ack);
+	//free(serialized_ack);
 	free(a_enviar);
 
 	close(conexion);

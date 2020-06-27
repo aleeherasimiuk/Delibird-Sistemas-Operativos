@@ -75,6 +75,10 @@ t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name) 
 	return actual;
 }
 
+//////////////////////////////////////////
+//				MOVIMIENTO				//
+//////////////////////////////////////////
+
 
 int distanciaA(t_coords* desde, t_coords* hasta) {
 	int distX = abs(desde->posX - hasta->posX);
@@ -83,6 +87,33 @@ int distanciaA(t_coords* desde, t_coords* hasta) {
 	return distX + distY;
 }
 
+// devuelve 1, 0 o -1 dependiendo del signo del numero
+int signo(int n) {
+	return (0 < n) - (n < 0);
+}
+
+void moverseAlDestino(t_entrenador* entrenador) {
+	t_coords* pos = entrenador->posicion;
+	t_coords* dest = entrenador->destino;
+
+	int direccion = signo(dest->posX - pos->posX);
+
+	for (int x = pos->posX + direccion; pos->posX != dest->posX; x += direccion) {
+		realizarCicloDeCPU();
+		pos->posX = x;
+		log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", entrenador->id_entrenador, pos->posX, pos->posY);
+	}
+
+	direccion = signo(dest->posY - pos->posY);
+
+	for (int y = pos->posY + direccion; pos->posY != dest->posY; y += direccion) {
+		realizarCicloDeCPU();
+		pos->posY = y;
+		log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", entrenador->id_entrenador, pos->posX, pos->posY);
+	}
+}
+
+
 //////////////////////////////////////
 //				EJECUCION			//
 //////////////////////////////////////
@@ -90,12 +121,19 @@ int distanciaA(t_coords* desde, t_coords* hasta) {
 void *entrenadorMain(void* arg) {
 	t_tcb* tcb = (t_tcb*)arg;
 	t_entrenador* entrenador = tcb->entrenador;
-	sem_t sem_ejecucion = tcb->sem_ejecucion;
 	log_debug(logger, "Soy el entrenador %d", entrenador->id_entrenador);
 	while(1){	// TODO proceso no esté en finalizado
 		log_debug(logger, "Entrenador %d esperando para ejecutarse", entrenador->id_entrenador);
 		sem_wait(&(tcb->sem_ejecucion));
 		log_debug(logger, "Entrenador %d empieza a ejecutarse", entrenador->id_entrenador);
+
+		// Moverse al destino
+		moverseAlDestino(entrenador);
+		log_debug(logger, "El entrenador %d llega a su destino", entrenador->id_entrenador);
+
+		terminarDeEjecutar();
+		log_debug(logger, "Entrenador %d termina de ejecutarse", entrenador->id_entrenador);
+		bloquearPorIdle(tcb);
 	}
 
 	return NULL;

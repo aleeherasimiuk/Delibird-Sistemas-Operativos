@@ -61,9 +61,14 @@ t_coords* crearCoordenadas(char*);
 t_list* crearListaDeInventario(char*, t_list*);
 void cargarPokemonEnListaDeInventario(t_list*, char*);
 t_inventario* buscarInventarioPorPokemonName(t_list*, char*);
+
+// Movimiento
 int distanciaA(t_coords*, t_coords*);
+int signo(int n);
+void moverseAlDestino(t_entrenador* entrenador);
 
 // Ejecución
+void moverseAlDestino(t_entrenador* entrenador);
 void *entrenadorMain(void*);
 
 #endif /* ENTRENADORES_H_ */

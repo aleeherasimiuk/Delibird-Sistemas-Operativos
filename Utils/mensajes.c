@@ -570,7 +570,7 @@ void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_mes
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
 
-	free(buffer);
+	//free(buffer);
 	free(paquete);
 
 	return serialized_paquete;

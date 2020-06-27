@@ -67,7 +67,7 @@ void cargarEntrenadores(void) {
 
 		tcb_nuevo->entrenador->posicion = crearCoordenadas(posiciones_entrenadores[i]);
 
-		tcb_nuevo->entrenador->destino = NULL;
+		tcb_nuevo->entrenador->destino = malloc(sizeof(t_coords));
 		tcb_nuevo->entrenador->pokes_actuales = crearListaDeInventario(pokemon_entrenadores[i], NULL);
 
 		tcb_nuevo->entrenador->pokes_objetivos = crearListaDeInventario(objetivos_entrenadores[i], objetivo_global);
@@ -152,26 +152,42 @@ void* sacarDeLista(t_tcb* tcb, t_list* lista) {
 	return list_remove(lista, index);
 }
 
-void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
-	t_tcb* tcb_sacado = sacarDeLista(tcb, lista_actual);
-	// TODO sem_post counter entrenadores disponibles para new y blocked_idle
+void agregarALista(t_tcb* tcb, t_list* lista) {
+	list_add(lista, tcb);
 
-	list_add(lista_destino, tcb_sacado);
-
-	if (tcb_sacado != NULL) {
+	if (tcb != NULL) {
 		// no se puede hacer switch en punteros
-		if (lista_destino == entrenadores_new || lista_destino == entrenadores_blocked_idle) {
+		if (lista == entrenadores_new || lista == entrenadores_blocked_idle) {
 			sem_post(&counter_entrenadores_disponibles);
 		}
-		else if (lista_destino == entrenadores_ready) {
+		else if (lista == entrenadores_ready) {
 			sem_post(&counter_entrenadores_ready);
 		}
 	}
 }
 
+void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
+	t_tcb* tcb_sacado = sacarDeLista(tcb, lista_actual);
+	// TODO sem_post counter entrenadores disponibles para new y blocked_idle
+
+	agregarALista(tcb_sacado, lista_destino);
+
+}
+
 void ponerAEjecutarEntrenador(t_tcb* tcb) {
 	entrenador_exec = tcb;
 	sem_post(&(entrenador_exec->sem_ejecucion));
+}
+
+//Solo lo saca de ejecucion, otro metodo tiene que cambiarlo de lista
+void terminarDeEjecutar(void) {
+	entrenador_exec = NULL;
+	sem_post(&sem_cpu_libre);
+}
+
+// Bloquear por idle
+void bloquearPorIdle(t_tcb* tcb) {
+	agregarALista(tcb, entrenadores_blocked_idle);
 }
 
 //////////////////////////////////////
@@ -249,6 +265,7 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 		log_debug(logger, "Voy a esperar a que haya pokemones libres");
 
 		sem_wait(&counter_pokemones_libres);
+		log_debug(logger, "Voy a esperar a que haya entrenadores disponibles");
 		sem_wait(&counter_entrenadores_disponibles);
 
 		log_debug(logger, "Hay un pokemon disponible para buscarlo");
@@ -257,11 +274,18 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 
 		log_debug(logger, "El entrenador %d va a ir a buscarlo", tcb_entrenador->entrenador->id_entrenador);
 
-		tcb_entrenador->entrenador->destino = pokemon->posicion;
+		memcpy(tcb_entrenador->entrenador->destino, pokemon->posicion, sizeof(t_coords));
 
 		log_debug(logger, "cantidad de lista actual = %d", lista_actual->elements_count);
 
 		cambiarDeLista(tcb_entrenador, lista_actual, entrenadores_ready);
+
+
+		// libero el t_pokemon_en_mapa
+		free(pokemon->pokemon->name);
+		free(pokemon->pokemon);
+		free(pokemon->posicion);
+		free(pokemon);
 	}
 }
 
@@ -319,6 +343,7 @@ void realizarCicloDeCPU(void) {
 
 void realizarXCiclosDeCPU(int cant_ciclos) {
 	sleep(retardo_ciclo_cpu* cant_ciclos);
+	log_debug(logger, "Se realizaron %d ciclos de CPU", cant_ciclos);
 }
 
 
