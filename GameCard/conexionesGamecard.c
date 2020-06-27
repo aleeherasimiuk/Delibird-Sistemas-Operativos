@@ -44,7 +44,7 @@ void *escucharAlSocket(void* socket) {
 	log_debug(logger, "Escuchando en el socket: %d", *((int*)socket));
 	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
 		t_paquete* paquete = recibirPaquete(*((int*)socket));
-
+		void* ptr_a_stream = paquete -> buffer -> stream;
 
 		if(paquete != NULL){ //TODO Revisar Memory Leak
 			enviarACK(paquete -> id);
@@ -57,20 +57,27 @@ void *escucharAlSocket(void* socket) {
 					break;
 				case NEW_POKEMON:
 					pthread_create(&thread, NULL, procesarNew, paquete);
-					pthread_detach(&thread);
+					pthread_detach(thread);
 					break;
 				case CATCH_POKEMON:
 					pthread_create(&thread, NULL, procesarCatch, paquete);
-					pthread_detach(&thread);
+					pthread_detach(thread);
 					break;
 				case GET_POKEMON:
 					pthread_create(&thread, NULL, procesarGet, paquete);
-					pthread_detach(&thread);
+					pthread_detach(thread);
 					break;
 				default:
-					log_debug(logger, "No entiendo le mensaje, debe ser NEW_POKEMON, CATCH_POKEMON o GET_POKEMON");
+					log_debug(logger, "No entiendo el mensaje, debe ser NEW_POKEMON, CATCH_POKEMON o GET_POKEMON");
 					break;
 			}
+			free(ptr_a_stream);
+			free(paquete -> buffer);
+			free(paquete);
+		}else {
+			// Políticas de reconexión
+			close(*((int*)socket));
+			i = 0;
 		}
 	}
 	// TODO DESTRUIR EL HILO?
@@ -91,6 +98,8 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 	//TODO: Handlear error
 	send(conexion, paquete_serializado, paquete_size, 0);
 	free(subscripcion);
+	free(serialized_subscribe);
+	free(paquete_serializado);
 	log_debug(logger, "Me suscribí a %d", cola);
 }
 
@@ -98,7 +107,7 @@ void escucharAlGameboy(){
 
 	pthread_t thread;
 	pthread_create(&thread, NULL ,abrirSocketParaGameboy, NULL);
-	pthread_detach(&thread);
+	pthread_detach(thread);
 }
 
 void* abrirSocketParaGameboy(){
@@ -123,6 +132,7 @@ void serve_client(int* socket){
 void process_request(message_type type, int socket){
 
 	t_paquete* paquete = recibirPaqueteSi(socket, type);
+	void* ptr_a_stream = paquete -> buffer -> stream;
 
 	switch(type){
 
@@ -142,7 +152,9 @@ void process_request(message_type type, int socket){
 			log_error(logger, "Código de operación inválido");
 
 	}
-
+	free(ptr_a_stream);
+	free(paquete -> buffer);
+	free(paquete);
 }
 
 void enviarACK(uint32_t id){
@@ -160,6 +172,8 @@ void enviarACK(uint32_t id){
 
 	int status = send(conexion, a_enviar, bytes, 0);
 	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
+	free(_ack);
+	free(serialized_ack);
 	free(a_enviar);
 	close(conexion);
 

@@ -14,6 +14,7 @@ char* ruta_punto_montaje = NULL;
 int main() {
 
 	char* logfile;
+
 	uint32_t tiempoReconexion;
 
 	config = leer_config();
