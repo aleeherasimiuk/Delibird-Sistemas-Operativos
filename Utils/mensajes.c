@@ -59,9 +59,6 @@ void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t *
 
 		void* serialized_appeared_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
-		free(serialized_pokemon);
-		free(serialized_coords);
-
 		return serialized_appeared_pokemon;
 }
 
@@ -77,8 +74,6 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 
 	void* serialized_catch_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
-	free(serialized_pokemon);
-	free(serialized_coords);
 	return serialized_catch_pokemon;
 }
 
@@ -177,6 +172,7 @@ void* serializarPaquete(t_paquete* paquete, uint32_t* bytes){
 	void* serialized_buffer = serializarBuffer(buffer, &buffer_size);
 
 	void* serialized_paquete = serializarGenerico(bytes, 4, &type, sizeof(message_type), &id, sizeof(uint32_t), &correlative_id, sizeof(uint32_t), serialized_buffer, buffer_size);
+	free(serialized_buffer);
 
 	return serialized_paquete;
 
@@ -261,6 +257,7 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 	return pokemon;
 }
 
+
 t_coords* deserializarCoordenadas(t_buffer** buffer) {
 
 	t_coords* coords = malloc(sizeof(t_coords));
@@ -292,7 +289,6 @@ t_new_pokemon* deserializarNewPokemon(t_buffer* buffer) {
 	new_pokemon -> pokemon = deserialized_pokemon;
 	new_pokemon -> coords = coords;
 	new_pokemon -> cantidad = count;
-
 
 	return new_pokemon;
 
@@ -453,6 +449,7 @@ t_paquete* recibirPaquete(int socket) {
 		recv(socket, paquete -> buffer -> stream, paquete -> buffer -> stream_size, MSG_WAITALL);
 		return paquete;
 	} else {
+		free(paquete);
 		return NULL;
 	}
 
@@ -519,6 +516,9 @@ void* crear_paquete_con_id(message_type cod_op, void* serialized_message, uint32
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
 
+	free(buffer);
+	free(paquete);
+
 	return serialized_paquete;
 }
 
@@ -538,6 +538,9 @@ void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_mes
 	paquete -> buffer = buffer;
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
+
+	free(buffer);
+	free(paquete);
 
 	return serialized_paquete;
 	//TODO: liberar_paquete(paquete);
@@ -571,6 +574,7 @@ t_appeared_pokemon* appeared_pokemon(t_pokemon* pokemon, uint32_t posX, uint32_t
 
 	appeared_pokemon -> pokemon = pokemon;
 	appeared_pokemon -> coords = coords;
+
 
 	return appeared_pokemon;
 }

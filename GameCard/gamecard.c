@@ -14,6 +14,7 @@ char* ruta_punto_montaje = NULL;
 int main() {
 
 	char* logfile;
+
 	uint32_t tiempoReconexion;
 
 	config = leer_config();
@@ -24,34 +25,6 @@ int main() {
 	process_id = 12780;//config_get_int_value(config, "PROCESS_ID");
 
 	logger = iniciar_logger(logfile);
-
-	//archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/");
-//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Charizard");
-//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Casdsd");
-//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Chfghfgh");
-//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "sfsdgf");
-//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Cdfgwer");
-//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Cwerwe");
-	t_coords coordenadas;
-
-	coordenadas.posX = 7;
-	coordenadas.posY = 4;
-
-	t_coords* coptr = &coordenadas;
-
-	log_debug(logger, "llega hasta aca");
-
-	FILE* file = NULL;
-
-	file = fopen("/home/utnso/Escritorio/tall-grass/Blocks/1.bin", "rb+");
-
-	agregar_posicion_y_cantidad(coptr, 3, file);
-
-	leer_archivo(file);
-
-	fclose(file);
-
-	//verificar_posiciones("/home/utnso/Escritorio/tall-grass/Blocks/1.bin",coordenadas);
 
 
 	while(1) {
