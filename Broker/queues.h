@@ -11,13 +11,12 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<commons/log.h>
-//#include<commons/collections/queue.h>
+#include"var_globales.h"
 #include<commons/collections/list.h>
 
+#include "queue_thread_vars.h"
+#include"AdministradorDeMemoria/asignacion_de_memoria.h"
 #include "../Utils/mensajes.h"
-
-#include<pthread.h>
-#include<semaphore.h>
 
 // Cliente movido a mensajes.h
 
@@ -41,25 +40,16 @@ void asignar_id(t_paquete* paquete, uint32_t id);
 
 void iniciarMensajes();
 
-typedef struct{
-	pthread_mutex_t mx; // Acceso exclusivo
-	sem_t q; // Queue
-	sem_t c; // Recepción del cliente
-} queue_sem_t;
+void guardar(t_paquete*);
 
-typedef struct{
 
-	uint32_t socket_to_recv;
-	t_id id_to_assing;
-
-} next_socket_t;
 
 typedef struct{
 	uint32_t id_mensaje;
 	uint32_t id_correlativo;
 	t_list* suscriptores;
-	void* inicio;
-	uint32_t size;
+	memory_block_t* memory_block;
+	message_type cola;
 
 } clientes_por_mensaje_t;
 
@@ -74,8 +64,12 @@ int fueEnviado(t_paquete* paquete, t_client* client);
 clientes_por_mensaje_t* agregarMensaje(t_paquete* paquete);
 status_mensaje_t* agregarCliente(clientes_por_mensaje_t* cxm, t_client* client);
 clientes_por_mensaje_t* obtenerMensaje(int id_mensaje);
+clientes_por_mensaje_t* obtenerMensajeYPosicion(int id_mensaje, int*);
 status_mensaje_t* obtenerStatus(t_list* suscriptores, int);
 void procesarACK(t_buffer* buffer);
+
+int enviarCacheado(t_client*, clientes_por_mensaje_t*);
+void enviarMensajesCacheados(t_client*, message_type);
 
 
 

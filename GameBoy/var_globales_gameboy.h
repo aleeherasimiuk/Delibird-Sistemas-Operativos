@@ -10,6 +10,7 @@
 
 #include<commons/config.h>
 #include<commons/log.h>
+#include<stdint.h>
 
 #define IP "IP_"
 #define PUERTO "PUERTO_"

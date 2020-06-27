@@ -176,10 +176,11 @@ void* serializarPaquete(t_paquete* paquete, uint32_t* bytes){
 	uint32_t buffer_size;
 	void* serialized_buffer = serializarBuffer(buffer, &buffer_size);
 
+	free(buffer -> stream);
+	free(buffer);
+
 	void* serialized_paquete = serializarGenerico(bytes, 4, &type, sizeof(message_type), &id, sizeof(uint32_t), &correlative_id, sizeof(uint32_t), serialized_buffer, buffer_size);
-
 	free(serialized_buffer);
-
 	return serialized_paquete;
 
 }
@@ -517,7 +518,8 @@ void* crear_paquete_con_id(message_type cod_op, void* serialized_message, uint32
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
 	buffer -> stream_size = message_bytes;
-	buffer -> stream = serialized_message;
+	buffer -> stream = malloc(message_bytes);
+	memcpy(buffer -> stream, serialized_message, message_bytes);
 
 	t_paquete* paquete = crearPaquete();
 	paquete -> type = cod_op;
@@ -525,6 +527,28 @@ void* crear_paquete_con_id(message_type cod_op, void* serialized_message, uint32
 	paquete -> buffer = buffer;
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
+	//free(paquete -> buffer -> stream);
+	//free(paquete -> buffer);
+	free(paquete);
+	return serialized_paquete;
+}
+
+void* crear_paquete_con_ids(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t id, uint32_t id_correlativo, uint32_t* paquete_size){
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer -> stream_size = message_bytes;
+	buffer -> stream = serialized_message;
+
+	t_paquete* paquete = crearPaquete();
+	paquete -> type = cod_op;
+	paquete -> id = id;
+	paquete -> correlative_id = id_correlativo;
+	paquete -> buffer = buffer;
+
+	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
+
+	//free(paquete -> buffer -> stream);
+	//free(paquete -> buffer);
+	free(paquete);
 
 	return serialized_paquete;
 }
@@ -675,6 +699,35 @@ t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type queue, uint32
 	gameboy_queue_subscribe -> seconds = seconds;
 
 	return gameboy_queue_subscribe;
+
+}
+
+char* queue_name(message_type queue){
+
+	switch(queue){
+
+	case NEW_POKEMON:
+		return "NEW POKEMON";
+
+	case APPEARED_POKEMON:
+		return "APPEARED POKEMON";
+
+	case CATCH_POKEMON:
+		return "CATCH POKEMON";
+
+	case CAUGHT_POKEMON:
+		return "CAUGHT POKEMON";
+
+	case LOCALIZED_POKEMON:
+		return "LOCALIZED POKEMON";
+
+	case GET_POKEMON:
+		return "GET POKEMON";
+
+	default:
+		return "INVALID QUEUE";
+
+	}
 
 }
 

@@ -558,19 +558,6 @@ context (TestsMensajes) {
 			should_int(deserialized_ack -> id) be equal to (20);
 
 		} end
-
-
-		// Se usa?????
-		skip("Serializar Buffer") {
-
-
-
-		} end
-
-
-
-
-
     } end
 
 }
