@@ -9,6 +9,7 @@
 #define UTILSTEAM_H_
 
 #include <stdio.h>
+#include <stdlib.h>
 
 // LIBERACION
 

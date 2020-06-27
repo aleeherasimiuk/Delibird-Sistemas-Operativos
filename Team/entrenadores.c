@@ -84,41 +84,18 @@ int distanciaA(t_coords* desde, t_coords* hasta) {
 }
 
 //////////////////////////////////////
-//				ESTADOS				//
-//////////////////////////////////////
-
-int indexOf(t_tcb* tcb, t_list* lista) {
-	int index;
-	for (index = 0; index < list_size(lista); index++) {
-		if (tcb == (t_tcb*)list_get(lista, index)) {
-			return index;
-		}
-	}
-	return -1;
-}
-
-void* sacarDeLista(t_tcb* tcb, t_list* lista) {
-	int index = indexOf(tcb, lista); // Busco el indice donde se encuentra el elemento
-	return list_remove(lista, index);
-}
-
-void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
-	sacarDeLista(tcb, lista_actual);
-	// TODO sem_post counter entrenadores disponibles para new y blocked_idle
-	list_add(lista_destino, tcb);
-}
-
-//////////////////////////////////////
 //				EJECUCION			//
 //////////////////////////////////////
 
 void *entrenadorMain(void* arg) {
 	t_tcb* tcb = (t_tcb*)arg;
 	t_entrenador* entrenador = tcb->entrenador;
-	pthread_mutex_t mutex_ejecucion = tcb->mutex_ejecucion;
+	sem_t sem_ejecucion = tcb->sem_ejecucion;
 	log_debug(logger, "Soy el entrenador %d", entrenador->id_entrenador);
 	while(1){	// TODO proceso no esté en finalizado
-		pthread_mutex_lock(&mutex_ejecucion);
+		log_debug(logger, "Entrenador %d esperando para ejecutarse", entrenador->id_entrenador);
+		sem_wait(&(tcb->sem_ejecucion));
+		log_debug(logger, "Entrenador %d empieza a ejecutarse", entrenador->id_entrenador);
 	}
 
 	return NULL;

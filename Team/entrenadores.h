@@ -12,6 +12,7 @@
 #include <string.h>
 #include <commons/string.h>
 #include <commons/collections/list.h>
+#include <semaphore.h>
 
 #include "../Utils/mensajes.h"
 #include "var_globales.h"
@@ -44,7 +45,7 @@ typedef struct {
 typedef struct {
 	t_entrenador* entrenador;
 	//pthread_t thread; // TODO Referencia al hilo=???
-	pthread_mutex_t mutex_ejecucion; // Solo se activa cuando pasa a exec
+	sem_t sem_ejecucion; // Solo se activa cuando pasa a exec
 	// TODO Agregar info para los distintos algoritmos de planificacion
 } t_tcb;
 
@@ -61,11 +62,6 @@ t_list* crearListaDeInventario(char*, t_list*);
 void cargarPokemonEnListaDeInventario(t_list*, char*);
 t_inventario* buscarInventarioPorPokemonName(t_list*, char*);
 int distanciaA(t_coords*, t_coords*);
-
-// Estados
-int indexOf(t_tcb* tcb, t_list* lista);
-void* sacarDeLista(t_tcb* tcb, t_list* lista);
-void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino);
 
 // Ejecución
 void *entrenadorMain(void*);

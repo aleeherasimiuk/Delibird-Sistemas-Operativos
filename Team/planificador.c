@@ -21,9 +21,12 @@ t_queue* pokemones_en_el_mapa; // Lista de t_pokemon_en_mapa*
 
 int retardo_ciclo_cpu;
 
+sem_t sem_cpu_libre;
+
 // VER DE USAR SEM_T para hacer contadores
 sem_t counter_pokemones_libres; // para ver si hay pokemones que no están siendo buscados por algún entrenador
 sem_t counter_entrenadores_disponibles; // para ver si hay entrenadores disponibles (new/blocked_idle)
+sem_t counter_entrenadores_ready;
 
 //////////////////////////////////////
 //				STRUCTS				//
@@ -69,8 +72,7 @@ void cargarEntrenadores(void) {
 
 		tcb_nuevo->entrenador->pokes_objetivos = crearListaDeInventario(objetivos_entrenadores[i], objetivo_global);
 
-		pthread_mutex_init(&(tcb_nuevo->mutex_ejecucion), NULL); // TODO pthread_mutex_destroy cuando se deje de usar para siempre
-		pthread_mutex_lock(&(tcb_nuevo->mutex_ejecucion)); // Lo bloqueo al principio asi no empieza la ejecucion del entrenador, se desbloquea cuando lo pase a ejecucion
+		sem_init(&(tcb_nuevo->sem_ejecucion), 0, 0); // TODO pthread_mutex_destroy cuando se deje de usar para siempre
 
 		list_add(entrenadores_new, tcb_nuevo);
 
@@ -112,23 +114,69 @@ void iniciarPlanificador(void) {
 	pokemones_en_el_mapa = queue_create();
 	retardo_ciclo_cpu = config_get_int_value(config, "RETARDO_CICLO_CPU");
 
-
+	sem_init(&sem_cpu_libre, 0, 1);
 
 	sem_init(&counter_pokemones_libres, 0, 0);	// inicio el semaforo en 0 ya que todavia no tengo pokemones.
+	sem_init(&counter_entrenadores_ready, 0, 0);
+
+
 
 	pthread_t thread;
 
+	// plani largo plazo
 	pthread_create(&thread, NULL, mandarABuscarPokemones, NULL);
+	pthread_detach(thread);
+
+	//plani corto plazo
+	pthread_create(&thread, NULL, planificadorCortoPlazo, NULL);
+	pthread_detach(thread);
 }
 
+//////////////////////////////////////
+//				ESTADOS				//
+//////////////////////////////////////
+
+int indexOf(t_tcb* tcb, t_list* lista) {
+	int index;
+	for (index = 0; index < list_size(lista); index++) {
+		if (tcb == (t_tcb*)list_get(lista, index)) {
+			return index;
+		}
+	}
+	return -1;
+}
+
+void* sacarDeLista(t_tcb* tcb, t_list* lista) {
+	int index = indexOf(tcb, lista); // Busco el indice donde se encuentra el elemento
+
+	return list_remove(lista, index);
+}
+
+void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
+	t_tcb* tcb_sacado = sacarDeLista(tcb, lista_actual);
+	// TODO sem_post counter entrenadores disponibles para new y blocked_idle
+
+	list_add(lista_destino, tcb_sacado);
+
+	if (tcb_sacado != NULL) {
+		// no se puede hacer switch en punteros
+		if (lista_destino == entrenadores_new || lista_destino == entrenadores_blocked_idle) {
+			sem_post(&counter_entrenadores_disponibles);
+		}
+		else if (lista_destino == entrenadores_ready) {
+			sem_post(&counter_entrenadores_ready);
+		}
+	}
+}
+
+void ponerAEjecutarEntrenador(t_tcb* tcb) {
+	entrenador_exec = tcb;
+	sem_post(&(entrenador_exec->sem_ejecucion));
+}
 
 //////////////////////////////////////
-//				EJECUCION			//
+//			PLANI LARGO PLAZO		//
 //////////////////////////////////////
-
-	//////////////////////////////////////
-	//			PLANI LARGO PLAZO		//
-	//////////////////////////////////////
 
 t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista) {
 
@@ -192,15 +240,17 @@ t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista) {
 	return entrenador_mas_cercano;
 }
 
-void *mandarABuscarPokemones(void) { //Pasar de new/blocked_idle a ready (Planificador a largo plazo)
+void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Planificador a largo plazo)
 	t_tcb* tcb_entrenador; // entrenador a pasar a ready - desde new o blocked_idle
 	t_pokemon_en_mapa* pokemon;
 	t_list* lista_actual = NULL; // Lista en la que se encuentra el entrenador mas cercano
 
 	while(1)  { // TODO no esté en exit el team
 		log_debug(logger, "Voy a esperar a que haya pokemones libres");
+
 		sem_wait(&counter_pokemones_libres);
 		sem_wait(&counter_entrenadores_disponibles);
+
 		log_debug(logger, "Hay un pokemon disponible para buscarlo");
 		pokemon = queue_pop(pokemones_en_el_mapa);
 		tcb_entrenador = entrenadorMasCercanoA(pokemon, &lista_actual);
@@ -210,9 +260,58 @@ void *mandarABuscarPokemones(void) { //Pasar de new/blocked_idle a ready (Planif
 		tcb_entrenador->entrenador->destino = pokemon->posicion;
 
 		log_debug(logger, "cantidad de lista actual = %d", lista_actual->elements_count);
+
 		cambiarDeLista(tcb_entrenador, lista_actual, entrenadores_ready);
 	}
 }
+
+//////////////////////////////////////////
+//			PLANI CORTO PLAZO			//
+//////////////////////////////////////////
+
+void *planificadorCortoPlazo(void* _) {
+	char* algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+
+	while (1) {	// TODO proceso no en exit
+		log_debug(logger, "Planificador de corto plazo esperando a que haya entrenadores en ready");
+		sem_wait(&counter_entrenadores_ready);	// Espero a que haya algun entrenador para planificar
+
+		if (strcmp(algoritmo_planificacion, "FIFO") == 0)
+			planificarSegunFifo();
+
+		/*
+		if (strcmp(algoritmo_planificacion, "RR") == 0)
+				//planificarSegunRR();
+
+		if (strcmp(algoritmo_planificacion, "SJF-CD") == 0)
+			//planificarSegunSJFCD();
+
+		if (strcmp(algoritmo_planificacion, "SJF-SD") == 0)
+			//planificarSegunSJFSD();
+		*/
+	}
+}
+
+void planificarSegunFifo(void) {
+	// tecnicamente si o si hay un entrenador en ready
+	t_tcb* entrenador_a_ejecutar = (t_tcb*)list_remove(entrenadores_ready, 0); // Saco el primero
+	log_debug(logger, "Entrenador %s sacado de ready", entrenador_a_ejecutar == NULL ? "NULL" : "Not null");
+
+	// como es sin desalojo, tengo que esperar a que este la "cpu" libre
+	log_debug(logger, "Planificador FIFO esperando a que la cpu libere");
+	esperarCpuLibre();
+	log_debug(logger, "Planificador FIFO pone a ejecutar al entrenador %d", entrenador_a_ejecutar->entrenador->id_entrenador);
+	ponerAEjecutarEntrenador(entrenador_a_ejecutar);
+}
+
+void esperarCpuLibre(void) {
+	sem_wait(&sem_cpu_libre);
+}
+
+
+//////////////////////////////////////
+//				EJECUCION			//
+//////////////////////////////////////
 
 void realizarCicloDeCPU(void) {
 	realizarXCiclosDeCPU(1);

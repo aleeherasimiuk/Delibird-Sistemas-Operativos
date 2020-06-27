@@ -130,7 +130,7 @@ void *escucharAlSocket(void* socket) {
 	return NULL;
 }
 
-void procesarID(t_paquete* paquete){
+void procesarID(t_paquete* paquete) {
 	t_id* id = paquete -> buffer -> stream;
 	log_debug(logger, "Recibí el ID: %d", id);
 }
@@ -154,7 +154,8 @@ void* abrirSocketParaGameboy(){
 
 void serve_client(int* socket){
 	message_type type = recibirCodigoDeOperacion(*socket);
-	if(type != NULL){
+
+	if(type != -1) {
 		log_debug(logger, "Procesando solicitud");
 		process_request(type, *socket);
 	}else {

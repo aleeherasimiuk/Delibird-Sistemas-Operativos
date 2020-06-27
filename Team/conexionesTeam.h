@@ -35,6 +35,7 @@ void  procesarAppeared(t_paquete* paquete);
 void* abrirSocketParaGameboy();
 void  serve_client(int*);
 void  process_request(message_type, int);
+void  procesarID(t_paquete* paquete);
 void  escucharAlGameboy();
 void  enviarACK(uint32_t);
 void  procesarCaughtPokemon(t_paquete* paquete);

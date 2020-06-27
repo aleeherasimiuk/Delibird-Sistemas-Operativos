@@ -33,12 +33,24 @@ void cargarEntrenadores(void);
 void enviarGetsAlBroker(void);
 void iniciarPlanificador(void);
 
-//		EJECUCION
-	// Planificacion largo plazo
+// Estados
+int indexOf(t_tcb* tcb, t_list* lista);
+void* sacarDeLista(t_tcb* tcb, t_list* lista);
+void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino);
+void ponerAEjecutarEntrenador(t_tcb* tcb);
+// Planificacion largo plazo
 t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista);
-void *mandarABuscarPokemones(void);
+void *mandarABuscarPokemones(void*);
+
+// Planificacion corto plazo
+void *planificadorCortoPlazo(void* _);
+
+void planificarSegunFifo(void);
+
+void esperarCpuLibre(void);
 
 
+//		EJECUCION
 void realizarCicloDeCPU(void);
 void realizarXCiclosDeCPU(int cant_ciclos);
 
