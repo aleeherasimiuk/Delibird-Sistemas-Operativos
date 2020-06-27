@@ -36,10 +36,9 @@ void unir_paths(char*, char*, char**);
 
 int archivo_en_uso(char*);
 void verificar_pokemon(char*, char*);
-void agregar_posicion_y_cantidad(t_coords* , uint32_t);
-
-
-void verificar_posiciones(char*, t_coords*);
+void agregar_posicion_y_cantidad(t_coords* ,int , FILE*);
+void verificar_posiciones(t_coords*, FILE* file, int*);
+void leer_archivo(FILE* file);
 
 
 

@@ -18,25 +18,40 @@ int main() {
 
 	config = leer_config();
 
-	logfile = config_get_string_value(config, "LOG_FILE");
-	ruta_punto_montaje = config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS");
-	tiempoReconexion = config_get_int_value(config, "TIEMPO_DE_REINTENTO_CONEXION");
-	process_id = config_get_int_value(config, "PROCESS_ID");
+	logfile = "/home/utnso/log_gamecard1.txt";//config_get_string_value(config, "LOG_FILE");
+	ruta_punto_montaje = "/home/utnso/Escritorio/tall-grass" ; //config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS");
+	tiempoReconexion = 10;   //config_get_int_value(config, "TIEMPO_DE_REINTENTO_CONEXION");
+	process_id = 12780;//config_get_int_value(config, "PROCESS_ID");
 
 	logger = iniciar_logger(logfile);
 
-//	//archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/");
-//	//verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Charizard");
-//	t_coords* coordenadas;
-//
-//	uint32_t x = coordenadas->posX;
-//	uint32_t y = coordenadas->posY;
-//
-//	x = 4;
-//	y = 2;
-//
-//
-//	verificar_posiciones("/home/utnso/Escritorio/tall-grass/Blocks/1.bin",coordenadas);
+	//archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/");
+//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Charizard");
+//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Casdsd");
+//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Chfghfgh");
+//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "sfsdgf");
+//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Cdfgwer");
+//	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "Cwerwe");
+	t_coords coordenadas;
+
+	coordenadas.posX = 7;
+	coordenadas.posY = 4;
+
+	t_coords* coptr = &coordenadas;
+
+	log_debug(logger, "llega hasta aca");
+
+	FILE* file = NULL;
+
+	file = fopen("/home/utnso/Escritorio/tall-grass/Blocks/1.bin", "rb+");
+
+	agregar_posicion_y_cantidad(coptr, 3, file);
+
+	leer_archivo(file);
+
+	fclose(file);
+
+	//verificar_posiciones("/home/utnso/Escritorio/tall-grass/Blocks/1.bin",coordenadas);
 
 
 	while(1) {

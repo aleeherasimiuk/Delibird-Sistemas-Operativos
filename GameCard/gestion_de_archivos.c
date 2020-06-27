@@ -9,6 +9,11 @@
 #include "gestion_de_archivos.h"
 #include <stdint.h>
 
+typedef struct {
+	t_coords coordenadas;
+	uint32_t cantidad;
+}	t_coords_con_cant;
+
 /*void unir_paths(char* path1, char* path2, char **ruta) {
 
 	ruta = string_new();
@@ -80,12 +85,12 @@ void verificar_pokemon(char* path, char* nombre_pokemon){
 
 				FILE* file;
 
-				file = fopen(rutameta, "wb");
+				file = fopen(rutameta, "wb+");
 
-				METADATA* datos;
+				METADATA datos;
 
-				datos->DIRECTORY = 'N';
-				datos->OPEN = 'N';
+				datos.DIRECTORY = 'N';
+				datos.OPEN = 'N';
 
 				fwrite(&datos, sizeof(METADATA), 1, file);
 
@@ -93,25 +98,62 @@ void verificar_pokemon(char* path, char* nombre_pokemon){
 		}
 }
 
-void agregar_posicion_y_cantidad(t_coords* posicion, uint32_t cantidad){
-	//TODO hacer
+void agregar_posicion_y_cantidad(t_coords* posicion, int cantidad, FILE* file){
+
+	log_debug(logger, "llega hasta aggpos");
+
+	t_coords_con_cant coordenadas_y_pos;
+
+	int cant_vieja = 0;
+
+	verificar_posiciones(posicion, file, &cant_vieja);
+
+	coordenadas_y_pos.coordenadas.posX = posicion->posX;
+	coordenadas_y_pos.coordenadas.posY = posicion->posY;
+	coordenadas_y_pos.cantidad = cant_vieja + cantidad;
+
+	fwrite(&coordenadas_y_pos, sizeof(t_coords_con_cant), 1, file);
+	fflush(file);
+
 }
 
-void verificar_posiciones(char* path, t_coords* coordenadas) {
+void verificar_posiciones(t_coords* coordenadas, FILE* file, int* cantidad) {
 
-	t_coords* posiciones;
+	int i;
 
-	FILE* file = NULL;
+	t_coords_con_cant posiciones[16];
 
-	file = fopen(path, "rb");
+	fread(&posiciones, sizeof(t_coords_con_cant), 16, file);
 
-		log_debug(logger, "el archivo es null");
+	for(i = 0; i < 16; i++) {
+		if(coordenadas->posX == posiciones[i].coordenadas.posX && coordenadas->posY == posiciones[i].coordenadas.posY) {
 
-	fread(&posiciones, sizeof(t_coords), 1, file);
+			fseek(file, i * sizeof(t_coords_con_cant), SEEK_SET);
+			*cantidad = posiciones[i].cantidad;
 
-	log_debug(logger, "%lu  %lu", (unsigned long)posiciones->posX, (unsigned long)posiciones->posY);
+			return;
+		}
+	}
 
+	fseek(file, 0, SEEK_END);
+	cantidad = 0;
+}
 
+void leer_archivo(FILE* file) {
+
+	fseek(file, 0, SEEK_SET);
+
+	t_coords_con_cant buffer[16];
+
+	int i = 0;
+
+	while(!feof(file)) {
+
+		fread(&buffer[i++], sizeof(t_coords_con_cant), 1, file);
+	}
+	for(int i = 0; i < 2; i ++) {
+		log_debug(logger, "hay en %d", buffer[i].cantidad);
+	}
 }
 
 
