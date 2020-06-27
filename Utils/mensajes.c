@@ -59,9 +59,6 @@ void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t *
 
 		void* serialized_appeared_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
-		free(serialized_pokemon);
-		free(serialized_coords);
-
 		return serialized_appeared_pokemon;
 }
 
@@ -77,8 +74,6 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 
 	void* serialized_catch_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
-	free(serialized_pokemon);
-	free(serialized_coords);
 	return serialized_catch_pokemon;
 }
 
@@ -262,6 +257,7 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 	return pokemon;
 }
 
+
 t_coords* deserializarCoordenadas(t_buffer** buffer) {
 
 	t_coords* coords = malloc(sizeof(t_coords));
@@ -293,9 +289,6 @@ t_new_pokemon* deserializarNewPokemon(t_buffer* buffer) {
 	new_pokemon -> pokemon = deserialized_pokemon;
 	new_pokemon -> coords = coords;
 	new_pokemon -> cantidad = count;
-
-	free(deserialized_pokemon);
-	free(coords);
 
 	return new_pokemon;
 
@@ -330,9 +323,6 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer) {
 
 	catch_pokemon -> pokemon = deserialized_pokemon;
 	catch_pokemon -> coords = deserialized_coords;
-
-	free(deserialized_pokemon);
-	free(deserialized_coords);
 
 	return catch_pokemon;
 }
@@ -549,7 +539,6 @@ void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_mes
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
 
-	free(buffer -> stream);
 	free(buffer);
 	free(paquete);
 

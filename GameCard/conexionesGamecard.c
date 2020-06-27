@@ -44,7 +44,6 @@ void *escucharAlSocket(void* socket) {
 	log_debug(logger, "Escuchando en el socket: %d", *((int*)socket));
 	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
 		t_paquete* paquete = recibirPaquete(*((int*)socket));
-		void* ptr_a_stream = paquete -> buffer -> stream;
 
 		if(paquete != NULL){ //TODO Revisar Memory Leak
 			enviarACK(paquete -> id);
@@ -71,9 +70,6 @@ void *escucharAlSocket(void* socket) {
 					log_debug(logger, "No entiendo el mensaje, debe ser NEW_POKEMON, CATCH_POKEMON o GET_POKEMON");
 					break;
 			}
-			free(ptr_a_stream);
-			free(paquete -> buffer);
-			free(paquete);
 		}else {
 			// Políticas de reconexión
 			close(*((int*)socket));
@@ -132,7 +128,6 @@ void serve_client(int* socket){
 void process_request(message_type type, int socket){
 
 	t_paquete* paquete = recibirPaqueteSi(socket, type);
-	void* ptr_a_stream = paquete -> buffer -> stream;
 
 	switch(type){
 
@@ -152,9 +147,6 @@ void process_request(message_type type, int socket){
 			log_error(logger, "Código de operación inválido");
 
 	}
-	free(ptr_a_stream);
-	free(paquete -> buffer);
-	free(paquete);
 }
 
 void enviarACK(uint32_t id){
