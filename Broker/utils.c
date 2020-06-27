@@ -21,6 +21,7 @@ void serve_client(int* socket) {
 
 	message_type type = recibirCodigoDeOperacion(*socket);
 	if(type != NULL){
+		log_info(logger, "Se ha conectado un proceso"); //TODO: Aclarar cual?
 		log_debug(logger, "Procesando solicitud");
 		process_request(type, *socket);
 		free(socket);

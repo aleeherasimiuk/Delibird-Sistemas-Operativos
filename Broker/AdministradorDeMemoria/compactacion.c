@@ -9,6 +9,8 @@
 
 void compactar(){
 
+	log_info(logger, "EJECUTANDO COMPACTACIÓN");
+
 	/*Proceso de Compactación
 	 *
 	 * 1° Creo un bloque de memoria --> Nueva estructura administrativa
@@ -86,6 +88,7 @@ void actualizarMensaje(memory_block_t* new_block, uint32_t id){
 		pthread_mutex_lock(&msg_mx);
 		list_remove_and_destroy_element(mensajes, i, free);
 		pthread_mutex_unlock(&msg_mx);
+
 	}
 
 }

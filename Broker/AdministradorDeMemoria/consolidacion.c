@@ -77,6 +77,9 @@ void consolidar(memory_block_t* bloque_eliminado){
  * */
 
 memory_block_t* merge(memory_block_t* fst, memory_block_t* snd){
+
+	log_info(logger, "Se consolidará la partición con base en <%6p> y la partición con base en <%6p>", fst -> data -> base, snd -> data -> base);
+
 	log_debug(logger, "Haciendo un Merge");
 	fst -> next = snd -> next;
 	fst -> data -> size = (fst -> data -> size) + (snd -> data -> size);

@@ -31,6 +31,7 @@ uint32_t suscribirCliente(t_buffer* msg, uint32_t cli) {
 
 	suscribir(client, type);
 
+	log_info(logger, "El proceso #%d, se ha conectado a la cola de mensajes: <%s>", client -> process_id, queue_name(subscribe -> queue_to_subscribe));
 	enviarMensajesCacheados(client, type);
 
 	free(subscribe);
@@ -134,6 +135,7 @@ void* queue(void* message_type){
 
 
 		if(paquete != NULL){
+			log_info(logger, "Se recibió un mensaje en la cola <%s>", queue_name(type));
 			send_to_subscribers(paquete);
 			guardar(paquete);
 		}
@@ -176,6 +178,8 @@ void send_to_subscribers(t_paquete* paquete){
 		if(fueEnviado(paquete, client))
 			continue;
 
+		int id = paquete -> id;
+
 		int bytes;
 		int bytes_p;
 		//TODO: ID Correlativo
@@ -187,6 +191,9 @@ void send_to_subscribers(t_paquete* paquete){
 		 * */
 		int status = send(client -> socket, a_enviar, bytes_p, MSG_NOSIGNAL);
 		log_debug(logger, "Envié el mensaje al suscriptor %d con status: %d", client -> socket ,status);
+
+		if(status)
+			log_info(logger, "Se envió el mensaje #%d, al proceso #%d", id, client -> process_id);
 
 		free(client);
 		free(a_enviar);
@@ -321,6 +328,9 @@ void procesarACK(t_buffer* buffer){
 		st -> ack = 1;
 	else
 		log_debug(logger, "WTF");
+
+	log_info(logger, "El proceso #%d, recibió el mensaje #%d", ack -> process_id, ack -> id);
+
 	free(ack);
 }
 
@@ -401,7 +411,6 @@ int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
 
 		int status = send(client -> socket, a_enviar, bytes, MSG_NOSIGNAL);
 		log_debug(logger, "Envié un mensaje cacheado con status: %d", status);
-		free(stream);
 		free(a_enviar);
 
 		return 1;

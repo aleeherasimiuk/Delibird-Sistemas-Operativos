@@ -23,7 +23,9 @@ void librerarUnBloque(){
 	memory_block_t* bloque_a_eliminar =  bloqueAEliminar();
 	bloque_a_eliminar -> data -> status = LIBRE;
 	log_debug(logger, "El bloque a eliminar se encuentra: %d", bloque_a_eliminar -> data -> status);
-	actualizarMensaje(NULL, bloque_a_eliminar -> data -> msg_id);
+	int id = bloque_a_eliminar -> data -> msg_id;
+	log_info(logger, "Se ha eliminado el mensaje #%d, de su partición [%6p]", id, bloque_a_eliminar -> data -> base);
+	actualizarMensaje(NULL, id);
 	consolidar(bloque_a_eliminar);
 }
 

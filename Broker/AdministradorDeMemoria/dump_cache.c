@@ -9,6 +9,8 @@
 
 void dump_cache(int n){
 
+	log_info(logger, "Generando Dump de Caché");
+
 	FILE* file = txt_open_for_append(dump_path);
 	char* hora = obtener_hora();
 	char* hora_string = string_from_format("Dump: %s\n", hora);

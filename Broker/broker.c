@@ -19,14 +19,14 @@ int main(void) {
 
 	config = leer_config();
 
-//	ip      = config_get_string_value(config, "IP");
-//	puerto  = config_get_string_value(config, "PUERTO");
-//	logfile = config_get_string_value(config, "LOG_FILE");
+	ip      = config_get_string_value(config, "IP");
+	puerto  = config_get_string_value(config, "PUERTO");
+	logfile = config_get_string_value(config, "LOG_FILE");
 
 	/*Test Valgrind*/
-	ip      = "127.0.0.1";
-	puerto  = "5003";
-	logfile = "/home/utnso/log_broker.txt";
+//	ip      = "127.0.0.1";
+//	puerto  = "5003";
+//	logfile = "/home/utnso/log_broker.txt";
 
 	logger = iniciar_logger(logfile);
 	iniciarSignals();
@@ -47,7 +47,7 @@ t_config* leer_config(void){
 }
 
 t_log* iniciar_logger(char* logfile){
-	return log_create(logfile, "Broker", true, LOG_LEVEL_DEBUG);
+	return log_create(logfile, "Broker", true, LOG_LEVEL_INFO);
 }
 
 void iniciarSignals(){

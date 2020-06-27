@@ -118,6 +118,8 @@ void relacionarBloqueConMensaje(memory_block_t* particion, t_paquete* data){
 	cxm -> memory_block = particion;
 	actualizarFlag(cxm);
 	particion -> data -> msg_id = cxm -> id_mensaje;
+
+	log_info(logger, "Se guardó el mensaje #%d, en la caché [%6p]", cxm -> id_mensaje, particion -> data -> base);
 }
 
 void actualizarFlag(clientes_por_mensaje_t* cxm){
