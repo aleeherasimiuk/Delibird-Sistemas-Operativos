@@ -32,26 +32,12 @@ uint32_t suscribirCliente(t_buffer* msg, uint32_t cli) {
 
 	suscribir(client, type);
 
+	enviarMensajesCacheados(client, type);
+
 	free(subscribe);
 	free(client);
 
 	return 0;
-}
-
-//TODO: Segundos!
-uint32_t suscribirGameboy(t_buffer* msg, uint32_t cli) {
-
-	t_gameboy_queue_to_subscribe* subscribe = deserializarSubscribeGameboy(msg);
-
-	t_client* client = cliente(0, cli);
-
-	message_type type = subscribe -> queue_to_subscribe;
-
-	suscribir(client, type);
-
-	return 0;
-
-
 }
 
 void suscribir(t_client* client, message_type queue) {
@@ -115,6 +101,22 @@ void iniciarVectorDeSemaforos(){
 
 void* queue(void* message_type){
 
+	/*
+	 * Funcionamiento básico de la cola:
+	 *
+	 * Esta función se ejecuta en 6 hilos. Uno por cada tipo de mensaje
+	 * El hilo queda bloqueado hasta que el servidor deposite un socket en el vector y habilite el semáforo
+	 * Una vez habilitado para continuar la ejecución bloquea el vector con un mutex para evitar inconsistencia
+	 * Se recibe el resto del paquete (Todo sin contar el Código de Operación)
+	 * Se cierra el socket del mensaje.
+	 * Se asigna un ID al mensaje que llegó
+	 * Se desbloquea el vector de sockets
+	 * Y se da la señal al servidor para que pueda depositar un nuevo socket.
+	 * Si el paquete efectivamente se recibió se envía a todos los suscriptores y se guarda en la caché
+	 *
+	 *
+	 * */
+
 	uint32_t type = (uint32_t) message_type;
 
 	while(1){
@@ -135,7 +137,6 @@ void* queue(void* message_type){
 		if(paquete != NULL){
 			send_to_subscribers(paquete);
 			guardar(paquete);
-
 		}
 
 	}
@@ -146,6 +147,18 @@ void* queue(void* message_type){
 
 
 void send_to_subscribers(t_paquete* paquete){
+
+	/*
+	 * Funcionamiento básico del envío de mensajes a los suscriptores activos.
+	 *
+	 * Primero obtengo la lista de suscriptores del vector de listas.
+	 * Cada posición del vector es una lista para cada cola de mensajes. New Pokemon (1) tiene su lista en subscribers[1]
+	 * Luego de acceder de manera exclusiva al vector de listas, se pasa a listar el mensaje en la estructura administrativa.
+	 *
+	 * Por cada suscriptor de la lista de suscriptores se envía el mensaje
+	 * Si no se puede enviar (Status = -1) Se elimina el suscriptor de la lista de suscriptores activos
+	 *
+	 * */
 
 	message_type type = paquete -> type;
 	pthread_mutex_lock(&sub_mx);
@@ -160,6 +173,7 @@ void send_to_subscribers(t_paquete* paquete){
 		t_client* client = deserializarCliente(list_element);
 		log_debug(logger, "Intentaré enviar el mensaje al cliente %d", client -> socket);
 
+		/*TODO: No es necesario?*/
 		if(fueEnviado(paquete, client))
 			continue;
 
@@ -224,6 +238,7 @@ clientes_por_mensaje_t* agregarMensaje(t_paquete* paquete){
 	cxm -> id_mensaje = paquete -> id;
 	cxm -> id_correlativo = paquete -> correlative_id;
 	cxm -> suscriptores = list_create();
+	cxm -> cola = paquete -> type;
 
 	list_add(mensajes, cxm);
 	return cxm;
@@ -245,6 +260,13 @@ status_mensaje_t* agregarCliente(clientes_por_mensaje_t* cxm, t_client* client){
 
 clientes_por_mensaje_t* obtenerMensaje(int id_mensaje){
 
+	int i = 0;
+	return obtenerMensajeYPosicion(id_mensaje, &i);
+
+}
+
+clientes_por_mensaje_t* obtenerMensajeYPosicion(int id_mensaje, int* posicion){
+
 	pthread_mutex_lock(&msg_mx);
 	int size = list_size(mensajes);
 	pthread_mutex_unlock(&msg_mx);
@@ -256,6 +278,7 @@ clientes_por_mensaje_t* obtenerMensaje(int id_mensaje){
 		pthread_mutex_unlock(&msg_mx);
 
 		if(msg -> id_mensaje == id_mensaje){
+			*posicion = i;
 			return msg;
 		}
 
@@ -295,7 +318,10 @@ void procesarACK(t_buffer* buffer){
 	}
 
 	status_mensaje_t* st = obtenerStatus(cxm-> suscriptores, ack -> process_id);
-	st -> ack = 1;
+	if(st != NULL)
+		st -> ack = 1;
+	else
+		log_debug(logger, "WTF");
 	free(ack);
 }
 
@@ -306,6 +332,85 @@ void guardar(t_paquete* paquete){
 	pthread_mutex_unlock(&mx_mem);
 	sem_post(&sem_msg_data);
 
+}
+
+void enviarMensajesCacheados(t_client* client, message_type cola){
+
+	/*
+	 * Para enviar los mensajes cacheados en la memoria interna del broker:
+	 *
+	 * Por cada mensaje perteneciente a la cola, se obtiene el status para el cliente.
+	 * Si el mensaje contiene el ACK en 1 implica que ese mensaje fue enviado y no debe reenviarse
+	 * Caso contrario se extraen los datos de la caché y se envían.
+	 *
+	 *
+	 * */
+
+	int messages_count = list_size(mensajes);
+
+	for(int i = 0; i < messages_count; i++){
+		clientes_por_mensaje_t* cxm = list_get(mensajes, i);
+		if(cxm != NULL && cxm -> cola == cola){
+			t_list* subscribers = cxm -> suscriptores;
+			status_mensaje_t* st = obtenerStatus(subscribers, client -> process_id);
+
+			int ok = -1;
+
+			if(st != NULL) 							// El cliente ya estuvo
+				if(!st -> ack) 						// El cliente no lo recibió
+					ok = enviarCacheado(client, cxm);
+				else 								// Ya lo recibió
+					continue;
+			else{ // El cliente nunca estuvo
+				agregarCliente(cxm, client);
+				ok = enviarCacheado(client, cxm);
+			}
+
+			if(!ok)
+				list_remove(mensajes, i);
+
+		}
+	}
+
+}
+
+int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
+
+	memory_block_t* mem_block = cxm -> memory_block;
+
+	if(mem_block != NULL){
+
+		if(reemplazo == LRU)
+			actualizarFlag(cxm);
+
+		int cola = cxm -> cola;
+		int size = mem_block -> data -> size;
+		int frag = mem_block -> data -> fragmentacion;
+		int tamano_efectivo = size - frag;
+		void* stream = malloc(size);
+		log_debug(logger, "Con ampersand %p, sin ampersand %p", &(mem_block -> data -> base), mem_block -> data -> base);
+		pthread_mutex_lock(&mx_mem);
+		memcpy(stream, (mem_block -> data -> base), tamano_efectivo);
+		pthread_mutex_unlock(&mx_mem);
+		int id = cxm -> id_mensaje;
+		int id_c = cxm -> id_correlativo;
+
+		log_debug(logger, "ID: %d, ID_CORRELATIVO: %d, STREAM SIZE: %d, FRAGMENTACION: %d", id, id_c, size, frag);
+
+		int bytes;
+		void* a_enviar = crear_paquete_con_ids(cola, stream, size, id, id_c, &bytes);
+
+		int status = send(client -> socket, a_enviar, bytes, MSG_NOSIGNAL);
+		log_debug(logger, "Envié un mensaje cacheado con status: %d", status);
+		//free(stream);
+		free(a_enviar);
+
+		return 1;
+
+	} else { // El mensaje fue eliminado
+		return 0;
+
+	}
 }
 
 

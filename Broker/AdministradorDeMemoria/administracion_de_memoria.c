@@ -34,7 +34,7 @@ void iniciarMemoria(){
 	reemplazo    = FIFO;
 	part_libre   = FIRST_FIT;
 	freq_compact = 3;
-	min_part     = 8;
+	min_part     = 10;
 	dump_path    = "/home/utnso/cache.txt";
 
 	iniciarCola();

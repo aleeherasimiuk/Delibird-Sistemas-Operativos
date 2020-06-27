@@ -8,6 +8,30 @@
 
 #include "buddy_system.h"
 
+/*
+ * Algoritmo de reemplazo BUDDY SYSTEM
+ *
+ * 1° Divido el tamaño del bloque asignado por 2.
+ * 2° Si los datos entran particiono el bloque en mitades.
+ * 3° Verifico si puedo seguir dividiendo, volviendo al paso 1. Si no puedo continuar retorno el bloque particionado.
+ *
+ *
+ * */
+
+
+/*                       			 256 Bytes
+ *   32 Bytes   32 Bytes     64 Bytes               	128 Bytes
+ * *-------------------------------------------------------------------------------*
+ * * 		 |  		 |           	 |							               *
+ * * 	     |	     	 | 				 |										   *
+ * * 		 |		     |				 |								     	   *
+ * *   DATO	 |		     |				 |								     	   *
+ * * 30 Bytes|		     |				 |		  							       *
+ * *  		 |		     |				 |									       *
+ * *  		 |		     |				 |									       *
+ * *-------------------------------------------------------------------------------*
+ * */
+
 memory_block_t* buddy_system(memory_block_t* mem_block, uint32_t size){
 
 	int division = mem_block -> data -> size / 2;

@@ -25,6 +25,7 @@ void iniciarCola();
 void copiarDatos(memory_block_t*, t_paquete*);
 void liberarPaquete(t_paquete*);
 void relacionarBloqueConMensaje(memory_block_t*, t_paquete*);
+//void actualizarFlag(clientes_por_mensaje_t*);
 void* acomodarMemoria(uint32_t);
 void estadoDeLaMemoria();
 

@@ -64,8 +64,12 @@ int fueEnviado(t_paquete* paquete, t_client* client);
 clientes_por_mensaje_t* agregarMensaje(t_paquete* paquete);
 status_mensaje_t* agregarCliente(clientes_por_mensaje_t* cxm, t_client* client);
 clientes_por_mensaje_t* obtenerMensaje(int id_mensaje);
+clientes_por_mensaje_t* obtenerMensajeYPosicion(int id_mensaje, int*);
 status_mensaje_t* obtenerStatus(t_list* suscriptores, int);
 void procesarACK(t_buffer* buffer);
+
+int enviarCacheado(t_client*, clientes_por_mensaje_t*);
+void enviarMensajesCacheados(t_client*, message_type);
 
 
 

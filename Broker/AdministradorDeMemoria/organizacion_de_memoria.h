@@ -44,6 +44,7 @@ typedef struct{
 
 	void* base;
 	uint32_t size;
+	uint32_t fragmentacion; // La fragmentación me sirve para saber el tamaño efectivo del stream
 	status_t status;
 	uint32_t flag;
 	uint32_t msg_id;
