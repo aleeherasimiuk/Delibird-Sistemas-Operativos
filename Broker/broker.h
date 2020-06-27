@@ -26,6 +26,7 @@ t_config* leer_config(void);
 void iniciarSubscribers(void);
 t_log* iniciar_logger(char*);
 void iniciarSignals();
+void terminar_programa(int);
 
 
 

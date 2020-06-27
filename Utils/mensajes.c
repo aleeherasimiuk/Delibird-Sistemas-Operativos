@@ -542,6 +542,8 @@ void* crear_paquete_con_ids(message_type cod_op, void* serialized_message, uint3
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
 
+	free(paquete -> buffer);
+
 	return serialized_paquete;
 }
 

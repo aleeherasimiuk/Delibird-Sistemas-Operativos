@@ -6,7 +6,6 @@
  */
 
 #include "queues.h"
-t_list* suscriptores_app;
 pthread_t thread_new_pokemon;
 pthread_t thread_appeared_pokemon;
 pthread_t thread_catch_pokemon;
@@ -402,7 +401,7 @@ int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
 
 		int status = send(client -> socket, a_enviar, bytes, MSG_NOSIGNAL);
 		log_debug(logger, "Envié un mensaje cacheado con status: %d", status);
-		//free(stream);
+		free(stream);
 		free(a_enviar);
 
 		return 1;
@@ -411,6 +410,43 @@ int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
 		return 0;
 
 	}
+}
+
+//void destruir_colas(){
+//
+//	pthread_kill(thread_new_pokemon,0);
+//	pthread_kill(thread_appeared_pokemon,0);
+//	pthread_kill(thread_catch_pokemon,0);
+//	pthread_kill(thread_caught_pokemon,0);
+//	pthread_kill(thread_get_pokemon,0);
+//	pthread_kill(thread_localized_pokemon,0);
+//
+//	list_destroy_and_destroy_elements(mensajes, free);
+//	for(int i = 0; i < 7; i++){
+//		list_destroy_and_destroy_elements(subscribers[i], free);
+//	}
+//
+//	for(int i = 0; i < 9; i++){
+//		sem_destroy(&sem_sockets[i].c);
+//		sem_destroy(&sem_sockets[i].q);
+//		pthread_mutex_destroy(&sem_sockets[i].mx);
+//	}
+//
+//
+//}
+
+void destruir_mensajes(){
+
+	pthread_mutex_lock(&msg_mx);
+
+	for(int i = 0; i < list_size(mensajes); i++){
+		clientes_por_mensaje_t* cxm = list_get(mensajes, i);
+		list_destroy_and_destroy_elements(cxm -> suscriptores, free);
+	}
+
+	list_destroy_and_destroy_elements(mensajes, free);
+
+
 }
 
 

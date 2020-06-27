@@ -75,7 +75,7 @@ void process_request(message_type type, uint32_t socket_cliente){
 
 	uint32_t bytes;
 	void* paquete = crear_paquete_con_id(ID, &to_send, sizeof(uint32_t), id_message_to_module, &bytes);
-	int status = send(socket_cliente, paquete, bytes, 0);
+	int status = send(socket_cliente, paquete, bytes, MSG_NOSIGNAL);
 	//log_debug(logger, "Envié el ID: %d, con status: %d", next_socket[type].id_to_assing, status);
 	free(paquete);
 

@@ -52,22 +52,23 @@ t_log* iniciar_logger(char* logfile){
 
 void iniciarSignals(){
 	signal(SIGUSR1, dump_cache);
+	signal(SIGINT, terminar_programa);
 }
 
+void terminar_programa(int signal){
 
-/*void terminar_programa(t_config* config, t_subscribers* subscribers) {
-	config_destroy(config);
-	list_destroy(subscribers -> new_pokemon);
-	list_destroy(subscribers -> get_pokemon);
-	list_destroy(subscribers -> catch_pokemon);
-	list_destroy(subscribers -> caught_pokemon);
-	list_destroy(subscribers -> appeared_pokemon);
-	list_destroy(subscribers -> localized_pokemon);
-	free(subscribers);
+	if(config != NULL)
+		config_destroy(config);
+
+	if(logger != NULL)
+		log_destroy(logger);
+
+	//destruir_colas();
+	destruir_mensajes();
+
+	exit(0);
+
 }
-
-this is basically useless, but we have it here anyway just in case!
-*/
 
 
 
