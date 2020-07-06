@@ -28,7 +28,10 @@ int main() {
 
 	logger = iniciar_logger(logfile);
 
-	archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/bulbasaur/");
+	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files","bulbasaur");
+	archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/bulbasaur");
+
+
 
 
 	while(1) {

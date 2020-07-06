@@ -40,6 +40,7 @@ void verificar_pokemon(char*, char*);
 void agregar_posicion_y_cantidad(t_coords* ,int , FILE*);
 void verificar_posiciones(t_coords*, FILE* file, int*);
 void leer_archivo(FILE* file);
+void crear_metadata_archivo(char*);
 
 
 

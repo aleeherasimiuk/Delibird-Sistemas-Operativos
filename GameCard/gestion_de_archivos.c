@@ -30,7 +30,7 @@ t_config* leer_metadata(char* ruta) {
 int archivo_en_uso(char* path){
 	//TODO hacer
 
-	char* metadataPath = "Metadata.bin";
+	char* metadataPath = "/Metadata.bin";
 
 	char* ruta = string_new();
 	string_append(&ruta, path);
@@ -56,7 +56,7 @@ int archivo_en_uso(char* path){
 		config_save(metadata);
 		log_debug(logger, "entra por no");
 
-		return 1;
+		return 0;
 
 	}
 
@@ -70,6 +70,7 @@ void verificar_pokemon(char* path, char* nombre_pokemon){
 
 		char* ruta = string_new();
 		string_append(&ruta, path);
+		string_append(&ruta, "/");
 		string_append(&ruta, nombre_pokemon);
 
 		struct stat st = {0};
@@ -78,21 +79,8 @@ void verificar_pokemon(char* path, char* nombre_pokemon){
 
 				mkdir(ruta, 0777);
 
-				char* metadata = "/Metadata.bin";
+				crear_metadata_archivo(ruta);
 
-				char* rutameta = string_new();
-				string_append(&rutameta, ruta);
-				string_append(&rutameta, metadata);
-
-				FILE* file;
-
-				file = fopen(rutameta, "w");
-
-				char datos[50] = "DIRECTORY=N\nSIZE=0\nBLOCKS=[]\nOPEN=N";
-
-				fwrite(&datos, sizeof(char[50]), 1, file);
-
-				fclose(file);
 		}
 }
 
@@ -152,6 +140,24 @@ void leer_archivo(FILE* file) {
 	for(int i = 0; i < 2; i ++) {
 		log_debug(logger, "hay en %d", buffer[i].cantidad);
 	}
+}
+
+void crear_metadata_archivo(char* path) {
+
+	char* rutameta = string_new();
+	string_append(&rutameta, path);
+	string_append(&rutameta, "/Metadata.bin");
+
+	FILE* file;
+
+	file = fopen(rutameta, "w");
+
+	char datos[50] = "DIRECTORY=N\nSIZE=0\nBLOCKS=[]\nOPEN=N";
+
+	fwrite(&datos, sizeof(char[50]), 1, file);
+
+	fclose(file);
+
 }
 
 

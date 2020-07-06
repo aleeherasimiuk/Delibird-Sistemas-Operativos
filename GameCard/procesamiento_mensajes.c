@@ -32,7 +32,7 @@ void procesarNew(t_paquete* paquete){
 	uint32_t posX = coords -> posX;
 	uint32_t posY = coords -> posY;
 
-	//if(!archivo_en_uso(path)){
+	//if(archivo_en_uso(path)){
 	//verificar_pokemon(path, nombre_pokemon);
 	//agregar_posicion_y_cantidad(coords,cantidad);
 	//sleep(tiempo_retardo);
