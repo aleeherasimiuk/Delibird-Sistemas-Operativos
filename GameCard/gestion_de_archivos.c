@@ -22,30 +22,23 @@ typedef struct {
 
 }*/
 
+t_config* leer_metadata(char* ruta) {
+	return config_create(ruta);
+}
+
 
 int archivo_en_uso(char* path){
 	//TODO hacer
 
-	char* metadata = "Metadata.bin";
+	char* metadataPath = "Metadata.bin";
 
 	char* ruta = string_new();
 	string_append(&ruta, path);
-	string_append(&ruta, metadata);
+	string_append(&ruta, metadataPath);
+
+	leer_metadata(ruta);
 
 
-	log_debug(logger, "%s",ruta);
-	char buffer[50];
-
-	FILE* file = NULL;
-
-	file = fopen(ruta, "rb");
-
-	fread(&buffer, sizeof(METADATA), 1, file);
-	fclose(file);
-
-	char open = buffer[sizeof(char)];
-
-	log_debug(logger, "%c", open);
 
 	if(open == 'Y') {
 		return 1;
@@ -85,14 +78,11 @@ void verificar_pokemon(char* path, char* nombre_pokemon){
 
 				FILE* file;
 
-				file = fopen(rutameta, "wb+");
+				file = fopen(rutameta, "w");
 
-				METADATA datos;
+				char datos[50] = "DIRECTORY=N\nSIZE=0\nBLOCKS=[]\nOPEN=N";
 
-				datos.DIRECTORY = 'N';
-				datos.OPEN = 'N';
-
-				fwrite(&datos, sizeof(METADATA), 1, file);
+				fwrite(&datos, sizeof(char[50]), 1, file);
 
 				fclose(file);
 		}

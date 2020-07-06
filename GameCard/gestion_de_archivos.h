@@ -32,6 +32,8 @@ typedef struct {
 	int BLOCKS[];
 }METADATA;
 
+t_config* leer_metadata(char*);
+
 void unir_paths(char*, char*, char**);
 
 int archivo_en_uso(char*);
