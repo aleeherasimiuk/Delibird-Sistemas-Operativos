@@ -67,7 +67,7 @@ void cargarEntrenadores(void) {
 
 		tcb_nuevo->entrenador->posicion = crearCoordenadas(posiciones_entrenadores[i]);
 
-		tcb_nuevo->entrenador->destino = malloc(sizeof(t_coords));
+		tcb_nuevo->entrenador->objetivo = NULL;
 		tcb_nuevo->entrenador->pokes_actuales = crearListaDeInventario(pokemon_entrenadores[i], NULL);
 
 		tcb_nuevo->entrenador->pokes_objetivos = crearListaDeInventario(objetivos_entrenadores[i], objetivo_global);
@@ -190,6 +190,11 @@ void bloquearPorIdle(t_tcb* tcb) {
 	agregarALista(tcb, entrenadores_blocked_idle);
 }
 
+// Bloquear por caught
+void bloquearPorEsperarCaught(t_tcb* tcb) {
+	agregarALista(tcb, entrenadores_blocked_idle);
+}
+
 //////////////////////////////////////
 //			PLANI LARGO PLAZO		//
 //////////////////////////////////////
@@ -274,18 +279,12 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 
 		log_debug(logger, "El entrenador %d va a ir a buscarlo", tcb_entrenador->entrenador->id_entrenador);
 
-		memcpy(tcb_entrenador->entrenador->destino, pokemon->posicion, sizeof(t_coords));
+		tcb_entrenador->entrenador->objetivo = pokemon;
 
 		log_debug(logger, "cantidad de lista actual = %d", lista_actual->elements_count);
 
 		cambiarDeLista(tcb_entrenador, lista_actual, entrenadores_ready);
 
-
-		// libero el t_pokemon_en_mapa
-		free(pokemon->pokemon->name);
-		free(pokemon->pokemon);
-		free(pokemon->posicion);
-		free(pokemon);
 	}
 }
 

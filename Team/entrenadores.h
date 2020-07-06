@@ -17,6 +17,12 @@
 #include "../Utils/mensajes.h"
 #include "var_globales.h"
 
+
+typedef struct {
+	t_pokemon* pokemon;
+	t_coords* posicion;
+} t_pokemon_en_mapa;
+
 // STRUCT ENTRENADOR
 
 /*
@@ -37,7 +43,7 @@ typedef struct {
 typedef struct {
 	uint32_t id_entrenador;
 	t_coords* posicion;
-	t_coords* destino;
+	t_pokemon_en_mapa* objetivo;
 	t_list* pokes_actuales;
 	t_list* pokes_objetivos;
 } t_entrenador;
@@ -65,10 +71,10 @@ t_inventario* buscarInventarioPorPokemonName(t_list*, char*);
 // Movimiento
 int distanciaA(t_coords*, t_coords*);
 int signo(int n);
-void moverseAlDestino(t_entrenador* entrenador);
+void moverseAlobjetivo(t_entrenador* entrenador);
 
 // Ejecución
-void moverseAlDestino(t_entrenador* entrenador);
+void intentarAtraparPokemon(t_tcb* tcb);
 void *entrenadorMain(void*);
 
 #endif /* ENTRENADORES_H_ */

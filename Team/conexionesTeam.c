@@ -179,8 +179,6 @@ void process_request(message_type type, int socket){
 
 		default:
 			log_error(logger, "Código de operación inválido");
-
-
 	}
 
 }
@@ -246,6 +244,22 @@ void procesarAppeared(t_paquete* paquete){
 		agregarPokemonAlMapa(pok->pokemon, pok->coords);
 	}
 	free(pok);
+}
+
+//////////////////////////////////////////////
+//					CATCH					//
+//////////////////////////////////////////////
+
+void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa) {
+	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
+
+	if(*cau_pok == YES){
+		log_debug(logger, "Yey! Atrapé un Pokemon!");
+	} else if(*cau_pok == NO){
+		log_debug(logger, "Ufa! No pude atraparlo :(");
+	} else {
+		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
+	}
 }
 
 //////////////////////////////////////////////

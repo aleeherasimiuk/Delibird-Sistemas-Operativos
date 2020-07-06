@@ -19,13 +19,6 @@
 #include "entrenadores.h"
 #include "var_globales.h"
 
-//		STRUCTS
-typedef struct {
-	t_pokemon* pokemon;
-	t_coords* posicion;
-	int	disponible;	// Si algun entrenador no fue planificado para buscarlo
-} t_pokemon_en_mapa;
-
 t_pokemon_en_mapa* crearPokemonEnMapa(t_pokemon* pokemon, t_coords* posicion);
 
 //      INICIALIZACION
@@ -43,6 +36,7 @@ void ponerAEjecutarEntrenador(t_tcb* tcb);
 void terminarDeEjecutar(void);
 
 void bloquearPorIdle(t_tcb* tcb);
+void bloquearPorEsperarCaught(t_tcb* tcb);
 
 // Planificacion largo plazo
 t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista);
