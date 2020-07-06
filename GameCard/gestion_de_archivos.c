@@ -47,6 +47,7 @@ int archivo_en_uso(char* path){
 
 	if(!strcmp(open, "Y")) {
 		log_debug(logger, "entra por yes");
+		config_destroy(metadata);
 
 		return 1;
 	}
@@ -54,6 +55,7 @@ int archivo_en_uso(char* path){
 	else if(!strcmp(open, "N")) {
 		config_set_value(metadata, "OPEN", "Y");
 		config_save(metadata);
+		config_destroy(metadata);
 		log_debug(logger, "entra por no");
 
 		return 0;
@@ -62,6 +64,7 @@ int archivo_en_uso(char* path){
 
 	else {
 		log_error(logger, "hay un error en la variable OPEN del metadata");
+		config_destroy(metadata);
 		return -1;
 	}
 }
@@ -92,7 +95,7 @@ void agregar_posicion_y_cantidad(t_coords* posicion, int cantidad, FILE* file){
 
 	int cant_vieja = 0;
 
-	verificar_posiciones(posicion, file, &cant_vieja);
+	//verificar_posiciones(posicion, path);
 
 	coordenadas_y_pos.coordenadas.posX = posicion->posX;
 	coordenadas_y_pos.coordenadas.posY = posicion->posY;
@@ -103,26 +106,44 @@ void agregar_posicion_y_cantidad(t_coords* posicion, int cantidad, FILE* file){
 
 }
 
-void verificar_posiciones(t_coords* coordenadas, FILE* file, int* cantidad) {
+void verificar_posiciones(t_coords* coordenadas, char* path) {
 
-	int i;
+	u_int32_t x = coordenadas->posX;
+	u_int32_t y = coordenadas->posY;
 
-	t_coords_con_cant posiciones[16];
+	char* clave;
 
-	fread(&posiciones, sizeof(t_coords_con_cant), 16, file);
+	clave = pos_a_clave(x, y);
 
-	for(i = 0; i < 16; i++) {
-		if(coordenadas->posX == posiciones[i].coordenadas.posX && coordenadas->posY == posiciones[i].coordenadas.posY) {
 
-			fseek(file, i * sizeof(t_coords_con_cant), SEEK_SET);
-			*cantidad = posiciones[i].cantidad;
+	t_config* data = config_create(path);
 
-			return;
-		}
+	if(config_has_property(data, clave)){
+
 	}
 
-	fseek(file, 0, SEEK_END);
-	cantidad = 0;
+	else {
+
+		FILE* file;
+		file = fopen(path, "r+");
+
+		char* a_escribir = string_new();
+		string_append(&a_escribir, "\n");
+		string_append(&a_escribir, clave);
+		string_append(&a_escribir, "=0");
+
+
+		log_debug(logger, "aca llega");
+
+		fseek(file, 0, SEEK_END);
+
+		fprintf(file, a_escribir);
+
+		fclose(file);
+	}
+
+	config_destroy(data);
+
 }
 
 void leer_archivo(FILE* file) {
@@ -157,6 +178,26 @@ void crear_metadata_archivo(char* path) {
 	fwrite(&datos, sizeof(char[50]), 1, file);
 
 	fclose(file);
+
+}
+
+char* pos_a_clave(u_int32_t x, u_int32_t y) {
+
+	char posX[2];
+	char posY[2];
+
+	sprintf(posX, "%d", x);
+	sprintf(posY, "%d", y);
+
+
+	char* clave = string_new();
+	string_append(&clave, posX);
+	string_append(&clave, "-");
+	string_append(&clave, posY);
+
+	log_debug(logger, "%s", clave);
+
+	return clave;
 
 }
 

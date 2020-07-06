@@ -24,12 +24,22 @@ int main() {
 	tiempoReconexion = 10;   //config_get_int_value(config, "TIEMPO_DE_REINTENTO_CONEXION");
 	process_id = 12780;//config_get_int_value(config, "PROCESS_ID");
 
-	//verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "bulbasaur");
-
 	logger = iniciar_logger(logfile);
 
-	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files","bulbasaur");
-	archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/bulbasaur");
+	//verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files","bulbasaur");
+	//archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/bulbasaur");
+
+	t_coords coords;
+
+
+	coords.posX = 2;
+	coords.posY = 4;
+
+
+	log_debug(logger, "hasta aca llega");
+
+	verificar_posiciones(&coords, "/home/utnso/Escritorio/tall-grass/Blocks/1.bin");
+
 
 
 
