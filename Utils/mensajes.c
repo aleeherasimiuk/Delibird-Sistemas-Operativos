@@ -10,7 +10,8 @@ t_buffer* crearBuffer(void* algoSerializado, uint32_t bytes){
 //Firmas de Serializacion
 void* serializarPokemon(t_pokemon* pokemon, uint32_t* bytes) {
 
-	void* serialized_pokemon = serializarGenerico(bytes, 2, &(pokemon -> name_size), sizeof(uint32_t), pokemon -> name, pokemon -> name_size);
+	/*Se elimina el \0*/
+	void* serialized_pokemon = serializarGenerico(bytes, 2, &(pokemon -> name_size), sizeof(uint32_t), pokemon -> name, pokemon -> name_size - 1);
 
 	return serialized_pokemon;
 }
@@ -252,13 +253,12 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 	memcpy(&(pokemon -> name_size), (*buffer) -> stream, sizeof(uint32_t));
 	(*buffer) -> stream += sizeof(uint32_t);
 
-	pokemon -> name = malloc(pokemon -> name_size * sizeof(char) + 1);
+	pokemon -> name = malloc(pokemon -> name_size);
 	memcpy(pokemon -> name, (*buffer) -> stream, pokemon -> name_size);
 	(*buffer) -> stream += pokemon -> name_size * sizeof(char);
 
-	pokemon -> name_size = pokemon -> name_size + 1;
 	char* name = pokemon -> name;
-	memcpy(name[pokemon -> name_size - 1], '\0', sizeof(char));
+	name[pokemon -> name_size - 1] = '\0';
 
 	return pokemon;
 }
