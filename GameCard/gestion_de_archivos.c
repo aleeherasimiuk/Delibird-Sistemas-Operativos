@@ -36,20 +36,28 @@ int archivo_en_uso(char* path){
 	string_append(&ruta, path);
 	string_append(&ruta, metadataPath);
 
-	leer_metadata(ruta);
+	t_config* metadata = leer_metadata(ruta);
+
+	log_debug(logger, "llega hasta aca");
+
+	char* open = config_get_string_value(metadata, "OPEN");
+
+	log_debug(logger, "%s\n", open);
 
 
+	if(!strcmp(open, "Y")) {
+		log_debug(logger, "entra por yes");
 
-	if(open == 'Y') {
 		return 1;
 	}
 
-	else if(open == 'N') {
+	else if(!strcmp(open, "N")) {
+		config_set_value(metadata, "OPEN", "Y");
+		config_save(metadata);
+		log_debug(logger, "entra por no");
 
-		/*open = 'Y';
-		fseek(file, sizeof(char), SEEK_SET);
-		fwrite(&open, sizeof(char), 1, file);*/
-		return 0;
+		return 1;
+
 	}
 
 	else {

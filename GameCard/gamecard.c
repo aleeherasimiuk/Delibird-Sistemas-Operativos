@@ -24,9 +24,11 @@ int main() {
 	tiempoReconexion = 10;   //config_get_int_value(config, "TIEMPO_DE_REINTENTO_CONEXION");
 	process_id = 12780;//config_get_int_value(config, "PROCESS_ID");
 
-	verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "bulbasaur");
+	//verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files/", "bulbasaur");
 
 	logger = iniciar_logger(logfile);
+
+	archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/bulbasaur/");
 
 
 	while(1) {
