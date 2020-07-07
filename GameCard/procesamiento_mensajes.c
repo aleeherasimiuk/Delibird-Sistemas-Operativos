@@ -32,11 +32,16 @@ void procesarNew(t_paquete* paquete){
 	uint32_t posX = coords -> posX;
 	uint32_t posY = coords -> posY;
 
-	//if(archivo_en_uso(path)){
-	//verificar_pokemon(path, nombre_pokemon);
-	//agregar_posicion_y_cantidad(coords,cantidad);
-	//sleep(tiempo_retardo);
-	 //fclose(archivo);
+	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon);
+	while(archivo_en_uso(ruta_pokemon)) {
+
+		log_debug(logger, "esperando a que cierren el archivo");
+		sleep(5);
+	}
+
+	agregar_posicion_y_cantidad(coords, cantidad, "/home/utnso/Escritorio/tall-grass/Blocks/1.bin");
+	sleep(5);
+	cerrar_archivo(ruta_pokemon);
 
 	for(i = 0; i < (pok -> cantidad); i++){
 

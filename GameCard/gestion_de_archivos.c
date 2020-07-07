@@ -28,7 +28,6 @@ t_config* leer_metadata(char* ruta) {
 
 
 int archivo_en_uso(char* path){
-	//TODO hacer
 
 	char* metadataPath = "/Metadata.bin";
 
@@ -69,7 +68,7 @@ int archivo_en_uso(char* path){
 	}
 }
 
-void verificar_pokemon(char* path, char* nombre_pokemon){
+char* verificar_pokemon(char* path, char* nombre_pokemon){
 
 		char* ruta = string_new();
 		string_append(&ruta, path);
@@ -85,9 +84,11 @@ void verificar_pokemon(char* path, char* nombre_pokemon){
 				crear_metadata_archivo(ruta);
 
 		}
+
+	return ruta;
 }
 
-void agregar_posicion_y_cantidad(t_coords* posicion, int cantidad, FILE* file){
+/*void agregar_posicion_y_cantidad(t_coords* posicion, int cantidad, char* nombre){
 
 	log_debug(logger, "llega hasta aggpos");
 
@@ -95,18 +96,15 @@ void agregar_posicion_y_cantidad(t_coords* posicion, int cantidad, FILE* file){
 
 	int cant_vieja = 0;
 
-	//verificar_posiciones(posicion, path);
+	verificar_posiciones(posicion, 2, "/home/utnso/Escritorio/tall-grass/Blocks/1.bin");
 
 	coordenadas_y_pos.coordenadas.posX = posicion->posX;
 	coordenadas_y_pos.coordenadas.posY = posicion->posY;
 	coordenadas_y_pos.cantidad = cant_vieja + cantidad;
 
-	fwrite(&coordenadas_y_pos, sizeof(t_coords_con_cant), 1, file);
-	fflush(file);
+}*/
 
-}
-
-void verificar_posiciones(t_coords* coordenadas, char* path) {
+void agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 
 	u_int32_t x = coordenadas->posX;
 	u_int32_t y = coordenadas->posY;
@@ -118,11 +116,9 @@ void verificar_posiciones(t_coords* coordenadas, char* path) {
 
 	t_config* data = config_create(path);
 
-	if(config_has_property(data, clave)){
+	if(!config_has_property(data, clave)){
 
-	}
-
-	else {
+		config_destroy(data);
 
 		FILE* file;
 		file = fopen(path, "r+");
@@ -140,8 +136,22 @@ void verificar_posiciones(t_coords* coordenadas, char* path) {
 		fprintf(file, a_escribir);
 
 		fclose(file);
+
+		data = config_create(path);
+
 	}
 
+	int cant_vieja = config_get_int_value(data, clave);
+
+	int cantidad_act = cant_vieja + cant;
+
+	char* cantidad_nueva;
+
+	sprintf(cantidad_nueva, "%d", cantidad_act);
+
+	config_set_value(data, clave, cantidad_nueva);
+
+	config_save(data);
 	config_destroy(data);
 
 }
@@ -199,6 +209,20 @@ char* pos_a_clave(u_int32_t x, u_int32_t y) {
 
 	return clave;
 
+}
+
+void cerrar_archivo(char* path) {
+
+	char* rutameta = string_new();
+	string_append(&rutameta, path);
+	string_append(&rutameta, "/Metadata.bin");
+
+	t_config* metadata = config_create(rutameta);
+
+	config_set_value(metadata, "OPEN", "N");
+
+	config_save(metadata);
+	config_destroy(metadata);
 }
 
 
