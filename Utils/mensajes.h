@@ -23,7 +23,7 @@ typedef enum {
 	GET_POKEMON,
 	LOCALIZED_POKEMON,
 	SUBSCRIBE,
-	GAMEBOY_SUBSCRIBE,
+	GAMEBOY_SUBSCRIBE, // Borrar
 	ID,
 	ACK
 } message_type;

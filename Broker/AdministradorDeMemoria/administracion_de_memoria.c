@@ -20,7 +20,7 @@ char* dump_path;
 
 void iniciarMemoria(){
 
-	bytes = 128;
+	//bytes = 128;
 	cache        = allocarMemoria();
 	memoria      = algoritmoMemoria();
 	reemplazo    = algoritmoReemplazo();
@@ -45,7 +45,7 @@ void iniciarMemoria(){
 
 void* allocarMemoria(){
 
-	//bytes = config_get_int_value(config, BYTES_TO_ALLOC);
+	bytes = config_get_int_value(config, BYTES_TO_ALLOC);
 	//bytes = 100;
 	void* _cache = malloc(bytes);
 

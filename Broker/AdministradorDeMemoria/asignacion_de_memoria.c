@@ -47,7 +47,7 @@ void* guardarEnMemoria(){
 		memory_block_t* particion = asignarUnaParticion(data -> buffer -> stream_size);
 		copiarDatos(particion, data);
 		relacionarBloqueConMensaje(particion, data);
-		log_debug(logger, "Guardé un dato en una particion de tamaño: %d, para un dato de tamaño: %d", particion -> data -> size, data -> buffer -> stream_size);
+		log_info(logger, "Guardé un dato en una particion de tamaño: %d, para un dato de tamaño: %d", particion -> data -> size, data -> buffer -> stream_size);
 		liberarPaquete(data);
 		estadoDeLaMemoria();
 		pthread_mutex_unlock(&mx_mem);

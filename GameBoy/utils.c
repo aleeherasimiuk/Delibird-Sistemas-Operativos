@@ -116,9 +116,11 @@ void* prepararGetPokemon(char* process, uint32_t argc, char* argv[], uint32_t* p
 		wrong_parameters();
 
 	t_pokemon* pokemon = crearPokemon(argv[1]);
+	log_debug(logger, "%d", strlen(argv[1]));
 	t_get_pokemon* _get_pokemon = get_pokemon(pokemon);
-	void* serialized_message = _get_pokemon;
-	return crear_paquete(GET_POKEMON, serialized_message, sizeof(serialized_message), paquete_size);
+	int size;
+	void* serialized_message = serializarPokemon(_get_pokemon, &size);
+	return crear_paquete(GET_POKEMON, serialized_message, size, paquete_size);
 }
 
 void* prepararSuscriptor(char* process, uint32_t argc, char* argv[], uint32_t* paquete_size){

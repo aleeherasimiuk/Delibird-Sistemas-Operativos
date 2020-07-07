@@ -237,6 +237,7 @@ void enviarGetPokemon(t_pokemon* pokemon) {
 
 void procesarAppeared(t_paquete* paquete){
 	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
+
 	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
 
 	if (pokemonNecesario(pok->pokemon)) {

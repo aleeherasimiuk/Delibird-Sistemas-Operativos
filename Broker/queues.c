@@ -13,7 +13,7 @@ pthread_t thread_caught_pokemon;
 pthread_t thread_localized_pokemon;
 pthread_t thread_get_pokemon;
 
-next_socket_t next_socket[9];
+next_socket_t next_socket[9]; // Achicar
 queue_sem_t sem_sockets[9];
 t_list* subscribers[7];
 t_list* mensajes;
@@ -174,7 +174,7 @@ void send_to_subscribers(t_paquete* paquete){
 		t_client* client = deserializarCliente(list_element);
 		log_debug(logger, "Intentaré enviar el mensaje al cliente %d", client -> socket);
 
-		/*TODO: No es necesario?*/
+		/*TODO: No es necesario? -- Ojo, adentro se agrega el cliente a la lista con los mensajes*/
 		if(fueEnviado(paquete, client))
 			continue;
 
