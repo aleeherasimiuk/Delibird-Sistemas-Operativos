@@ -68,7 +68,7 @@ int archivo_en_uso(char* path){
 	}
 }
 
-char* verificar_pokemon(char* path, char* nombre_pokemon){
+char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 
 		char* ruta = string_new();
 		string_append(&ruta, path);
@@ -77,7 +77,7 @@ char* verificar_pokemon(char* path, char* nombre_pokemon){
 
 		struct stat st = {0};
 
-		if (stat(ruta, &st) == -1) {
+		if ((stat(ruta, &st) == -1) && crear) {
 
 				mkdir(ruta, 0777);
 
@@ -85,26 +85,21 @@ char* verificar_pokemon(char* path, char* nombre_pokemon){
 
 		}
 
+		else if((stat(ruta, &st) == -1) && !crear) {
+
+			log_error(logger, "No existe ese pokemon");
+
+			return "NULL";
+
+		}
+
 	return ruta;
 }
 
-/*void agregar_posicion_y_cantidad(t_coords* posicion, int cantidad, char* nombre){
-
-	log_debug(logger, "llega hasta aggpos");
-
-	t_coords_con_cant coordenadas_y_pos;
-
-	int cant_vieja = 0;
-
-	verificar_posiciones(posicion, 2, "/home/utnso/Escritorio/tall-grass/Blocks/1.bin");
-
-	coordenadas_y_pos.coordenadas.posX = posicion->posX;
-	coordenadas_y_pos.coordenadas.posY = posicion->posY;
-	coordenadas_y_pos.cantidad = cant_vieja + cantidad;
-
-}*/
 
 void agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
+
+	//TODO: arreglar logica repetida
 
 	u_int32_t x = coordenadas->posX;
 	u_int32_t y = coordenadas->posY;
@@ -155,6 +150,65 @@ void agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 	config_destroy(data);
 
 }
+
+void disminuir_cantidad(t_coords* coordenadas, char* path) {
+
+	//TODO: arreglar logica repetida
+
+	u_int32_t x = coordenadas->posX;
+	u_int32_t y = coordenadas->posY;
+
+	char* clave;
+
+	clave = pos_a_clave(x, y);
+
+	char cantidad_nueva[2];
+
+	log_debug(logger, "hasta aca voy");
+
+	t_config* datos = config_create(path);
+
+	if(!config_has_property(datos, clave)){
+
+		log_error(logger, "no hay pokemones en esta posicion");
+		config_destroy(datos);
+
+		return;
+	}
+
+	int cant_vieja = config_get_int_value(datos, clave);
+
+	int cantidad_act = cant_vieja - 1;
+
+	if(cantidad_act == 0) {
+		 config_remove_key(datos, clave);
+
+	}
+
+	else {
+
+		log_debug(logger, "%d", cantidad_act);
+
+		sprintf(cantidad_nueva, "%d", cantidad_act);
+
+
+		config_set_value(datos, clave, cantidad_nueva);
+
+		log_debug(logger, "hasta aca estoy");
+
+	}
+
+	config_save(datos);
+
+	config_destroy(datos);
+
+
+}
+
+void obtener_posiciones(char* path){
+
+}
+
 
 void leer_archivo(FILE* file) {
 

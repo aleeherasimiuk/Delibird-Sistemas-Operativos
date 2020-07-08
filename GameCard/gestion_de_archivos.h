@@ -36,9 +36,10 @@ t_config* leer_metadata(char*);
 
 void unir_paths(char*, char*, char**);
 int  archivo_en_uso(char*);
-char* verificar_pokemon(char*, char*);
+char* verificar_pokemon(char*, char*, int);
 void agregar_posicion_y_cantidad(t_coords* ,int , char*);
-//void verificar_posiciones(t_coords*,int, char* path);
+void disminuir_cantidad(t_coords*, char* path);
+void obtener_posiciones(char*);
 void leer_archivo(FILE* file);
 void crear_metadata_archivo(char*);
 char* pos_a_clave(u_int32_t, u_int32_t);

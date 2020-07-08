@@ -32,7 +32,7 @@ void procesarNew(t_paquete* paquete){
 	uint32_t posX = coords -> posX;
 	uint32_t posY = coords -> posY;
 
-	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon);
+	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 1);
 	while(archivo_en_uso(ruta_pokemon)) {
 
 		log_debug(logger, "esperando a que cierren el archivo");
@@ -93,13 +93,21 @@ void procesarCatch(t_paquete* paquete){
 	uint32_t posY = coords -> posY;
 
 
-	//if(!archivo_en_uso(archivo)){
-	//verificar_pokemon(archivo, nombre_pokemon);
-	//agregar_posicion_y_cantidad(coords,cantidad);
-	//sleep(tiempo_retardo);
-	//fclose(archivo);
+	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 0);
 
+	if(ruta_pokemon != "NULL") {
+		while(archivo_en_uso(ruta_pokemon)) {
 
+			log_debug(logger, "esperando a que cierren el archivo");
+			sleep(5);
+		}
+
+		disminuir_cantidad(coords, "/home/utnso/Escritorio/tall-grass/Blocks/1.bin");
+
+		sleep(5);
+		cerrar_archivo(ruta_pokemon);
+
+	}
 	int conexion_con_broker = abrirUnaConexionGameCard(config);
 
 	t_caught_pokemon* cau_pokemon = caught_pokemon(YES);
@@ -127,11 +135,23 @@ void procesarGet(t_paquete* paquete){
 	//int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
 	//int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
 	//int contador_coordenadas; se va a usar cuando se traigan las coordenadas del archivo, ahora estamos poniendo coords al azar para probar mensajes
-	//if(!archivo_en_uso(archivo)){
-	//verificar_pokemon(archivo, nombre_pokemon);
-	//agregar_posicion_y_cantidad(coords,cantidad);
-	//sleep(tiempo_retardo);
-	//fclose(archivo);
+
+
+	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 0);
+
+	if(ruta_pokemon != "NULL") {
+		while(archivo_en_uso(ruta_pokemon)) {
+
+			log_debug(logger, "esperando a que cierren el archivo");
+			sleep(5);
+		}
+
+		obtener_posiciones("/home/utnso/Escritorio/tall-grass/Files");
+
+		sleep(5);
+		cerrar_archivo(ruta_pokemon);
+		}
+
 	int conexion_con_broker = abrirUnaConexionGameCard(config);
 
 

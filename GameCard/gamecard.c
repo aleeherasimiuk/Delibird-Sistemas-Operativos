@@ -29,6 +29,14 @@ int main() {
 	//verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files","bulbasaur");
 	//archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/bulbasaur");
 
+	/*t_coords coords;
+
+	coords.posX = 2;
+	coords.posY = 3;
+
+
+	disminuir_cantidad(&coords, "/home/utnso/Escritorio/tall-grass/Blocks/1.bin");
+*/
 
 	while(1) {
 		if(abrirUnaConexionGameCard(config) == CANT_CONNECT)
