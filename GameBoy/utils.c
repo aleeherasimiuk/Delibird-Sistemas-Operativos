@@ -96,12 +96,13 @@ void* prepararCaughtPokemon(char* process, uint32_t argc, char* argv[], uint32_t
 		wrong_parameters();
 
 	uint32_t id_correlativo = convert_to_int(argv[1]);
-	uint32_t caught = 0;
+	uint32_t* caught = malloc(sizeof(uint32_t));
 	char* ok = argv[2];
 
-	caught = compare_string(ok, "YES");
+	*caught = compare_string(ok, "YES") || compare_string(ok, "OK");
 
-	t_caught_pokemon* _caught_pokemon = caught_pokemon(&caught);
+
+	t_caught_pokemon* _caught_pokemon = caught_pokemon(caught);
 
 
 	uint32_t bytes;
