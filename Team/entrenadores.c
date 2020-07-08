@@ -97,7 +97,7 @@ void moverseAlobjetivo(t_entrenador* entrenador) {
 	t_pokemon_en_mapa* obj = entrenador->objetivo;
 
 	int direccion = signo(obj->posicion->posX - pos->posX);
-
+	log_debug(logger, "El entrenador %d va a buscar un %s en la posición x: %d y: %d", entrenador->id_entrenador, obj->pokemon->name, obj->posicion->posX, obj->posicion->posY);
 	for (int x = pos->posX + direccion; pos->posX != obj->posicion->posX; x += direccion) {
 		realizarCicloDeCPU();
 		pos->posX = x;
@@ -119,8 +119,11 @@ void moverseAlobjetivo(t_entrenador* entrenador) {
 //////////////////////////////////////
 
 void intentarAtraparPokemon(t_tcb* tcb) {
-	enviarCatchPokemon(tcb->entrenador->objetivo);
+	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
+	uint32_t id = enviarCatchPokemon(tcb->entrenador->objetivo);
+	addCatchEnviado(id, tcb);
 	terminarDeEjecutar(tcb);
+	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
 	bloquearPorEsperarCaught(tcb);
 }
 
@@ -138,9 +141,11 @@ void *entrenadorMain(void* arg) {
 		log_debug(logger, "El entrenador %d llega a su objetivo", entrenador->id_entrenador);
 
 		terminarDeEjecutar();
-		log_debug(logger, "Entrenador %d va a intentar atrapar al pokemon, entrenador->id_entrenador);
+		log_debug(logger, "Entrenador %d va a intentar atrapar al pokemon", entrenador->id_entrenador);
 
 		intentarAtraparPokemon(tcb);
+
+		// intento atrapar y se bloquea
 		sem_wait(&(tcb->sem_ejecucion));
 
 		log_debug(logger, "Entrenador %d se va a bloquear por idle", entrenador->id_entrenador);

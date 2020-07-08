@@ -8,10 +8,12 @@
 #include<commons/config.h>
 #include<readline/readline.h>
 
+#include "mensajesTeam.h"
 #include "conexionesTeam.h"
 #include "entrenadores.h"
 #include "planificador.h"
 #include "var_globales.h"
+
 
 
 void inicializar_team(void);

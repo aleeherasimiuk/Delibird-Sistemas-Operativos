@@ -94,10 +94,6 @@ void *escucharAlSocket(void* socket) {
 			void* ptrStream = paquete->buffer->stream; // lo guardo para que no explote
 
 			switch(paquete->type) {
-				case ID:
-					procesarID(paquete);
-					break;
-
 				case APPEARED_POKEMON:
 					procesarAppeared(paquete);
 					break;
@@ -107,7 +103,6 @@ void *escucharAlSocket(void* socket) {
 					break;
 				case CAUGHT_POKEMON:
 					procesarCaughtPokemon(paquete);
-
 					break;
 				default:
 					log_debug(logger, "What is this SHIT?.");
@@ -130,9 +125,26 @@ void *escucharAlSocket(void* socket) {
 	return NULL;
 }
 
-void procesarID(t_paquete* paquete) {
+// devuelve el ID del mensaje enviado, 0 => error
+uint32_t esperarID (int socket) {
+	t_paquete* paquete = recibirPaquete(socket);
+	uint32_t id = 0;
+
+	switch(paquete->type) {
+		case ID:
+			id = procesarID(paquete);
+			break;
+		default:
+			log_error(logger, "No se recibio un ID como corresponde");
+	}
+	liberar_paquete(paquete);
+	return id;
+}
+
+uint32_t procesarID(t_paquete* paquete) {
 	t_id* id = paquete -> buffer -> stream;
-	log_debug(logger, "Recibí el ID: %d", id);
+	log_debug(logger, "Recibí el ID: %d", *id);
+	return *id;
 }
 
 
@@ -223,11 +235,13 @@ void enviarGetPokemon(t_pokemon* pokemon) {
 
 	int status = send(conexion, paquete_serializado, paquete_size, 0);
 
-	// TODO ESperar el ID del mensaje
+	uint32_t id = esperarID(conexion);
+	addGetEnviado(id);
 
 	liberar_conexion(conexion);
 
 	free(paquete_serializado);
+
 	return;
 }
 
@@ -243,6 +257,7 @@ void procesarAppeared(t_paquete* paquete){
 	if (pokemonNecesario(pok->pokemon)) {
 		log_debug(logger, "El pokemon es necesario");
 		agregarPokemonAlMapa(pok->pokemon, pok->coords);
+		addPokemonRecibido(pok->pokemon->name);
 	}
 	free(pok);
 }
@@ -251,16 +266,31 @@ void procesarAppeared(t_paquete* paquete){
 //					CATCH					//
 //////////////////////////////////////////////
 
-void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa) {
-	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
+uint32_t enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa) {
 
-	if(*cau_pok == YES){
-		log_debug(logger, "Yey! Atrapé un Pokemon!");
-	} else if(*cau_pok == NO){
-		log_debug(logger, "Ufa! No pude atraparlo :(");
-	} else {
-		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
-	}
+	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
+
+	// Un t_pokemon_en_mapa tiene la misma estructura que un t_catch_pokemon
+
+	uint32_t catch_pokemon_size;
+	void* serialized_catch_pokemon = serializarCatchPokemon(pokemon_en_mapa, &catch_pokemon_size);
+
+	uint32_t paquete_size;
+	void* paquete_serializado = crear_paquete(CATCH_POKEMON, serialized_catch_pokemon, catch_pokemon_size, &paquete_size);
+
+	int status = send(conexion, paquete_serializado, paquete_size, 0);
+
+	uint32_t id = esperarID(conexion);
+
+	liberar_conexion(conexion);
+
+	free(pokemon_en_mapa->pokemon->name);
+	free(pokemon_en_mapa->pokemon);
+	free(pokemon_en_mapa->posicion);
+	free(pokemon_en_mapa);
+	free(paquete_serializado);
+
+	return id;
 }
 
 //////////////////////////////////////////////
@@ -268,8 +298,15 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa) {
 //////////////////////////////////////////////
 
 void procesarCaughtPokemon(t_paquete* paquete){
-	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
 
+	t_tcb* tcb = traerTcbDelCatchConID(paquete->correlative_id);
+
+	if (tcb == NULL) {	// Si ese id no corresponde a un catch enviado por este team, ignorar
+		log_debug(logger, "Este proceso no envió un catch con id %d", paquete->correlative_id);
+		return;
+	}
+
+	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
 	if(*cau_pok == YES){
 		log_debug(logger, "Yey! Atrapé un Pokemon!");
 	} else if(*cau_pok == NO){

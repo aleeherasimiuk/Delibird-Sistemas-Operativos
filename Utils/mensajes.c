@@ -75,6 +75,9 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 
 	void* serialized_catch_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
+	free(serialized_pokemon);
+	free(serialized_coords);
+
 	return serialized_catch_pokemon;
 }
 
@@ -257,7 +260,7 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 
 	pokemon -> name = malloc(pokemon -> name_size);
 	memcpy(pokemon -> name, (*buffer) -> stream, pokemon -> name_size);
-	(*buffer) -> stream += pokemon -> name_size * sizeof(char);
+	(*buffer) -> stream += (pokemon -> name_size - 1) * sizeof(char);
 
 	char* name = pokemon -> name;
 	name[pokemon -> name_size - 1] = '\0';
@@ -533,7 +536,8 @@ void* crear_paquete_con_id(message_type cod_op, void* serialized_message, uint32
 void* crear_paquete_con_ids(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t id, uint32_t id_correlativo, uint32_t* paquete_size){
 	t_buffer* buffer = malloc(sizeof(t_buffer));
 	buffer -> stream_size = message_bytes;
-	buffer -> stream = serialized_message;
+	buffer -> stream = malloc(message_bytes);
+	memcpy(buffer -> stream, serialized_message, message_bytes);
 
 	t_paquete* paquete = crearPaquete();
 	paquete -> type = cod_op;

@@ -23,7 +23,6 @@ int retardo_ciclo_cpu;
 
 sem_t sem_cpu_libre;
 
-// VER DE USAR SEM_T para hacer contadores
 sem_t counter_pokemones_libres; // para ver si hay pokemones que no están siendo buscados por algún entrenador
 sem_t counter_entrenadores_disponibles; // para ver si hay entrenadores disponibles (new/blocked_idle)
 sem_t counter_entrenadores_ready;
@@ -362,7 +361,6 @@ void agregarPokemonAlMapa(t_pokemon* pokemon, t_coords* posicion) {
 	t_pokemon_en_mapa* pok_mapa = malloc(sizeof(t_pokemon_en_mapa));
 	pok_mapa->pokemon = pokemon;
 	pok_mapa->posicion = posicion;
-	pok_mapa->disponible = 1;
 
 	queue_push(pokemones_en_el_mapa, pok_mapa);
 	sem_post(&counter_pokemones_libres);

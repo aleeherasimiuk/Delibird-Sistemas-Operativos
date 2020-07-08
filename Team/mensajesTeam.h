@@ -1,0 +1,30 @@
+/*
+ * mensajesTeam.h
+ *
+ *  Created on: 7 jul. 2020
+ *      Author: utnso
+ */
+
+#ifndef MENSAJESTEAM_H_
+#define MENSAJESTEAM_H_
+
+#include<stdint.h>
+
+#include "entrenadores.h"
+
+// Para el catch, al recibir el caught correspondiente, se activa el tcb
+typedef struct {
+	uint32_t id;
+	t_tcb* tcb;
+} t_mensaje_catch;
+
+
+void inciarListasMensajes (void);
+
+void addGetEnviado(uint32_t id);
+void addPokemonRecibido(char* pokemon_name);
+void addCatchEnviado(uint32_t id, t_tcb* tcb);
+
+t_tcb* traerTcbDelCatchConID(uint32_t id);
+
+#endif /* MENSAJESTEAM_H_ */

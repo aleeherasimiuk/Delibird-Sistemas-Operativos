@@ -183,8 +183,8 @@ void send_to_subscribers(t_paquete* paquete){
 		int bytes;
 		int bytes_p;
 		//TODO: ID Correlativo
-		void* a_enviar = crear_paquete_con_id(type, paquete -> buffer -> stream, paquete -> buffer -> stream_size, paquete -> id, &bytes_p);
-
+		// void* a_enviar = crear_paquete_con_id(type, paquete -> buffer -> stream, paquete -> buffer -> stream_size, paquete -> id, &bytes_p);
+		void* a_enviar = crear_paquete_con_ids(type, paquete -> buffer -> stream, paquete -> buffer -> stream_size, paquete -> id, paquete -> correlative_id, &bytes_p);
 		/*
 		 * MSG_NOSIGNAL logrará hacer que en el caso de que el socket esté cerrado porque cayó la conexión
 		 * con el cliente, el broker no caiga
