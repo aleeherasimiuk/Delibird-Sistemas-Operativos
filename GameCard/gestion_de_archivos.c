@@ -7,7 +7,6 @@
 
 
 #include "gestion_de_archivos.h"
-#include <stdint.h>
 
 typedef struct {
 	t_coords coordenadas;
@@ -191,7 +190,6 @@ void disminuir_cantidad(t_coords* coordenadas, char* path) {
 
 		sprintf(cantidad_nueva, "%d", cantidad_act);
 
-
 		config_set_value(datos, clave, cantidad_nueva);
 
 		log_debug(logger, "hasta aca estoy");
@@ -277,6 +275,103 @@ void cerrar_archivo(char* path) {
 
 	config_save(metadata);
 	config_destroy(metadata);
+}
+
+int chequear_lleno(char* path, size_t size) {
+
+	const int tamanio_pos = 5;
+	int cantidad_claves;
+	int tamanio_total;
+
+	t_config* datos = config_create(path);
+	cantidad_claves = config_keys_amount(datos);
+
+	tamanio_total = (cantidad_claves * tamanio_pos) + cantidad_claves;
+
+	config_destroy(datos);
+
+	if(tamanio_total < size) {
+		return 0;
+	}
+
+	else if(tamanio_total == size) {
+		return 1;
+	}
+	else {
+		log_error(logger, "hay un error en el bloque %s", path);
+	}
+	return -1;
+}
+
+void actualizar_bitmap(off_t bloque) {
+
+	char block[2];
+
+	sprintf(block, "%d", bloque);
+
+	log_debug(logger, "checkpoint 1");
+
+	char* ruta = string_new();
+	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks");
+	string_append(&ruta, "/");
+	string_append(&ruta, block);
+	string_append(&ruta, ".bin");
+
+	log_debug(logger, "checkpoint 2");
+
+	if(chequear_lleno(ruta, 30)) {
+
+		log_debug(logger, "checkpoint 3 parte 1");
+		bitarray_set_bit(bitarray, bloque);
+	}
+
+	else {
+
+		bitarray_clean_bit(bitarray, bloque);
+		log_debug(logger, "checkpoint 3 parte 2");
+	}
+
+}
+
+char** obtener_bloques(char* path) {
+
+	char** bloques = NULL;
+	int i = 0;
+
+	char* metadataPath = "/Metadata.bin";
+
+	char* ruta = string_new();
+	string_append(&ruta, path);
+	string_append(&ruta, metadataPath);
+
+	t_config* metadata = leer_metadata(ruta);
+
+	bloques = config_get_array_value(metadata, "BLOCKS");
+
+	config_destroy(metadata);
+
+	return bloques;
+}
+
+int chequear_bloque_disponible(char* path) {
+
+	int i = 0;
+	int buffer;
+	char** bloques = obtener_bloques(path);
+
+	while(bloques[i] != NULL) {
+
+		buffer = atoi(bloques[i]);
+
+		if(!bitarray_test_bit(bitarray, buffer)) {
+			return buffer;
+		}
+		else {
+			i++;
+		}
+	}
+
+	return -1;
 }
 
 

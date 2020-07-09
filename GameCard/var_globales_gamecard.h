@@ -10,8 +10,10 @@
 
 #include<commons/config.h>
 #include<commons/log.h>
+#include<commons/bitarray.h>
 
 extern t_config* config;
+extern t_bitarray* bitarray;
 extern t_log* logger;
 extern uint32_t process_id;
 extern char* ruta_punto_montaje;

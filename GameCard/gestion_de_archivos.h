@@ -18,6 +18,7 @@
 #include<string.h>
 #include <pthread.h>
 #include<commons/config.h>
+#include<commons/bitarray.h>
 #include "../Utils/conexiones.h"
 #include "var_globales_gamecard.h"
 #include <sys/types.h>
@@ -44,7 +45,9 @@ void leer_archivo(FILE* file);
 void crear_metadata_archivo(char*);
 char* pos_a_clave(u_int32_t, u_int32_t);
 void cerrar_archivo(char*);
-
-
+int chequear_lleno(char*, size_t);
+void actualizar_bitmap(off_t);
+char** obtener_bloques(char*);
+int chequear_bloque_disponible(char*);
 
 #endif /* GAMECARD_GESTION_DE_ARCHIVOS_H_ */

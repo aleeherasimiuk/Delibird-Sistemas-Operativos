@@ -9,6 +9,7 @@
 
 t_log* logger = NULL;
 t_config* config = NULL;
+t_bitarray* bitarray = NULL;
 char* ruta_punto_montaje = NULL;
 
 int main() {
@@ -25,6 +26,23 @@ int main() {
 	process_id = 12780;//config_get_int_value(config, "PROCESS_ID");
 
 	logger = iniciar_logger(logfile);
+
+
+	bitarray = iniciar_bitarray();
+
+	int disp = 0;
+
+	disp = chequear_bloque_disponible("/home/utnso/Escritorio/tall-grass/Files/bulbasaur");
+
+	log_debug(logger, "%d", disp);
+
+	/*off_t block = 1;
+
+	actualizar_bitmap(block);
+
+	int bit = bitarray_test_bit(bitarray, 1);
+
+	log_debug(logger, "%d", bit);*/
 
 	//verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files","bulbasaur");
 	//archivo_en_uso("/home/utnso/Escritorio/tall-grass/Files/bulbasaur");
@@ -66,5 +84,32 @@ t_log* iniciar_logger(char* logfile) {
 
 t_config* leer_config(void) {
 	return config_create("gamecard.config");
+}
+
+t_bitarray* iniciar_bitarray(void) {
+
+
+	char* bitmap_path = NULL;
+	t_bitarray* array = NULL;
+	struct stat statbuf;
+	size_t bitmap_size;
+	char* buffer = NULL;
+
+	bitmap_path = "/home/utnso/Escritorio/tall-grass/Metadata/Bitmap.bin";
+
+	stat(bitmap_path, &statbuf);
+	bitmap_size = statbuf.st_size;
+
+	FILE* file = open(bitmap_path, O_RDWR);
+	//fread(buffer, 1, bitmap_size, file);
+	//fclose(file);
+
+	buffer = mmap(NULL, bitmap_size, PROT_WRITE | PROT_READ, MAP_SHARED, file, 0);
+
+	log_debug(logger, "%s", buffer);
+
+	array = bitarray_create_with_mode(buffer, bitmap_size, LSB_FIRST);
+
+	return array;
 }
 
