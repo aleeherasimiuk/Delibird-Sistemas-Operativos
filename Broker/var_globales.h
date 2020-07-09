@@ -29,6 +29,7 @@ extern t_queue* datos_para_guardar;
 extern sem_t sem_msg_data;
 extern pthread_mutex_t mx_mem;
 extern pthread_mutex_t msg_mx;
+extern pthread_mutex_t id_mx;
 
 
 

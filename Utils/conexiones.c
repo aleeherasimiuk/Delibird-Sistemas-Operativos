@@ -23,7 +23,9 @@ int crear_conexion(char *ip, char* puerto)
 }
 
 void crear_servidor(char* ip, char* puerto, void* serve_client){
+
 	int socket_servidor;
+
 
     struct addrinfo hints, *servinfo, *p;
 
@@ -38,8 +40,10 @@ void crear_servidor(char* ip, char* puerto, void* serve_client){
         if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
             continue;
 
-        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
-            //close(socket_servidor);
+        int st = bind(socket_servidor, p->ai_addr, p->ai_addrlen);
+        if (st == -1) {
+        	perror("Error binding");
+            close(socket_servidor);
             continue;
         }
         break;
@@ -49,8 +53,12 @@ void crear_servidor(char* ip, char* puerto, void* serve_client){
 
     freeaddrinfo(servinfo);
 
+
     while(1)
     	esperar_cliente(socket_servidor, serve_client);
+
+    close(socket_servidor);
+    exit(0);
 }
 
 void esperar_cliente(int socket_servidor, void* serve_client){
