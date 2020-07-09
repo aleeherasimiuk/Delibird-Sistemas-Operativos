@@ -44,7 +44,8 @@ void crear_servidor(char* ip, char* puerto, void* serve_client){
         if (st == -1) {
         	perror("Error binding");
             close(socket_servidor);
-            continue;
+            exit(0);
+            //continue;
         }
         break;
     }

@@ -531,7 +531,8 @@ void* crear_paquete_con_id(message_type cod_op, void* serialized_message, uint32
 void* crear_paquete_con_ids(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t id, uint32_t id_correlativo, uint32_t* paquete_size){
 	t_buffer* buffer = malloc(sizeof(t_buffer));
 	buffer -> stream_size = message_bytes;
-	buffer -> stream = serialized_message;
+	buffer -> stream = malloc(message_bytes);
+	memcpy(buffer -> stream, serialized_message, message_bytes);
 
 	t_paquete* paquete = crearPaquete();
 	paquete -> type = cod_op;
