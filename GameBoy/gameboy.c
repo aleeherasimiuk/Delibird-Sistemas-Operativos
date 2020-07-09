@@ -52,5 +52,7 @@ void terminar_programa(int socket, t_log* logger, t_config* config) {
 	if(config != NULL){
 		config_destroy(config);
 	}
+
+	exit(0);
 }
 
