@@ -47,7 +47,7 @@ void compactar(){
 	while(mem_block != NULL){
 
 		if(mem_block -> data -> status == OCUPADO){
-			actual = particionar(actual, mem_block -> data -> size); // TODO: Debería restar la fragmentación?
+			actual = particionar(actual, mem_block -> data -> size);
 			memmove(actual -> data -> base, mem_block -> data -> base, mem_block -> data -> size);
 			moverValoresAdministrativos(mem_block, actual);
 			actualizarMensaje(actual, mem_block -> data -> msg_id);
@@ -109,7 +109,7 @@ void moverValoresAdministrativos(memory_block_t* antiguo_bloque, memory_block_t*
 	nuevo_bloque -> data -> size    = antiguo_bloque -> data -> size;
 	nuevo_bloque -> data -> msg_id  = antiguo_bloque -> data -> msg_id;
 	nuevo_bloque -> data -> status  = OCUPADO;
-	nuevo_bloque -> data -> fragmentacion = 0;
+	nuevo_bloque -> data -> fragmentacion = antiguo_bloque -> data -> fragmentacion;
 }
 
 //void compactar(){
