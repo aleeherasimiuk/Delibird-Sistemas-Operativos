@@ -200,9 +200,16 @@ void send_to_subscribers(t_paquete* paquete){
 
 		free(client);
 		free(a_enviar);
+		/*
+			10/07/2020 - 01:07 AM
+			Pusimos el i-- porque al eliminar el elemento de la lista, el list_size cambia,
+			y nos salteamos al siguiente suscriptor.
+			Gracias Nico por tanto. LTA C
 
+																				Atte. Alee
+		*/
 		if(status == -1)
-			list_remove(list_to_send, i);
+			list_remove(list_to_send, i--);
 	}
 }
 
@@ -474,10 +481,4 @@ void destruir_mensajes(){
 
 
 }
-
-
-
-
-
-
 
