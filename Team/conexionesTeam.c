@@ -72,7 +72,11 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 
 	//TODO: Handlear error
 	send(conexion, paquete_serializado, paquete_size, 0);
+
 	free(subscripcion);
+	//free(serialized_subscribe);
+	free(paquete_serializado);
+
 	log_debug(logger, "Me suscribí a %d", cola);
 }
 
@@ -83,14 +87,13 @@ void *escucharAlSocket(void* socket) {
 	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
 		t_paquete* paquete = recibirPaquete(*((int*)socket));
 
+
 		if(paquete != NULL){
 			enviarACK(paquete -> id);
 
-			switch(paquete->type) {
-				case ID:
-					procesarID(paquete);
-					break;
+			void* ptrStream = paquete->buffer->stream; // lo guardo para que no explote
 
+			switch(paquete->type) {
 				case APPEARED_POKEMON:
 					procesarAppeared(paquete);
 					break;
@@ -100,52 +103,55 @@ void *escucharAlSocket(void* socket) {
 					break;
 				case CAUGHT_POKEMON:
 					procesarCaughtPokemon(paquete);
-
 					break;
 				default:
 					log_debug(logger, "What is this SHIT?.");
 					break;
 			}
 
-
+			free(ptrStream);
+			free(paquete->buffer);
+			free(paquete);
 		} else {
 			// Políticas de reconexión
 			close(*((int*)socket));
 			i = 0;
 		}
+		//log_debug(logger, "puntero referenciado %6p puntero Stream: %6p ", ptrStream, paquete->buffer->stream );
+
+
 	}
 	// TODO DESTRUIR EL HILO?
 	return NULL;
 }
 
-void procesarCaughtPokemon(t_paquete* paquete){
-	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
+// devuelve el ID del mensaje enviado, 0 => error
+uint32_t esperarID (int socket) {
+	t_paquete* paquete = recibirPaquete(socket);
+	uint32_t id = 0;
 
-	if(*cau_pok == YES){
-		log_debug(logger, "Yey! Atrapé un Pokemon!");
-	} else if(*cau_pok == NO){
-		log_debug(logger, "Ufa! No pude atraparlo :(");
-	} else {
-		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
+	switch(paquete->type) {
+		case ID:
+			id = procesarID(paquete);
+			break;
+		default:
+			log_error(logger, "No se recibio un ID como corresponde");
 	}
+	liberar_paquete(paquete);
+	return id;
 }
 
-void procesarAppeared(t_paquete* paquete){
-	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
-	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
-}
-
-void procesarID(t_paquete* paquete){
+uint32_t procesarID(t_paquete* paquete) {
 	t_id* id = paquete -> buffer -> stream;
-	log_debug(logger, "Recibí el ID: %d", id);
+	log_debug(logger, "Recibí el ID: %d", *id);
+	return *id;
 }
 
 
 void escucharAlGameboy(){
-
 	pthread_t thread;
 	pthread_create(&thread, NULL ,abrirSocketParaGameboy, NULL);
-	pthread_detach(&thread);
+	pthread_detach(thread);
 }
 
 void* abrirSocketParaGameboy(){
@@ -155,11 +161,13 @@ void* abrirSocketParaGameboy(){
 	log_debug(logger, "Estoy escuchando al gameboy en %s:%s", ip, puerto);
 	crear_servidor(ip, puerto, serve_client);
 
+	return NULL;
 }
 
 void serve_client(int* socket){
 	message_type type = recibirCodigoDeOperacion(*socket);
-	if(type != NULL){
+
+	if(type != -1) {
 		log_debug(logger, "Procesando solicitud");
 		process_request(type, *socket);
 	}else {
@@ -183,8 +191,6 @@ void process_request(message_type type, int socket){
 
 		default:
 			log_error(logger, "Código de operación inválido");
-
-
 	}
 
 }
@@ -204,9 +210,12 @@ void enviarACK(uint32_t id){
 
 	int status = send(conexion, a_enviar, bytes, 0);
 	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
-	free(a_enviar);
-	close(conexion);
 
+	free(_ack);
+	//free(serialized_ack);
+	free(a_enviar);
+
+	close(conexion);
 
 }
 
@@ -226,12 +235,95 @@ void enviarGetPokemon(t_pokemon* pokemon) {
 
 	int status = send(conexion, paquete_serializado, paquete_size, 0);
 
-	// TODO ESperar el ID del mensaje
+	uint32_t id = esperarID(conexion);
+	addGetEnviado(id);
 
 	liberar_conexion(conexion);
 
 	free(paquete_serializado);
+
 	return;
 }
 
+//////////////////////////////////////////////
+//				APPEARED					//
+//////////////////////////////////////////////
+
+void procesarAppeared(t_paquete* paquete){
+	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
+
+	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
+
+	if (pokemonNecesario(pok->pokemon)) {
+		log_debug(logger, "El pokemon es necesario");
+		agregarPokemonAlMapa(pok->pokemon, pok->coords);
+		addPokemonRecibido(pok->pokemon->name);
+	}
+	free(pok);
+}
+
+//////////////////////////////////////////////
+//					CATCH					//
+//////////////////////////////////////////////
+
+uint32_t enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa) {
+
+	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
+
+	// Un t_pokemon_en_mapa tiene la misma estructura que un t_catch_pokemon
+
+	uint32_t catch_pokemon_size;
+	void* serialized_catch_pokemon = serializarCatchPokemon(pokemon_en_mapa, &catch_pokemon_size);
+
+	uint32_t paquete_size;
+	void* paquete_serializado = crear_paquete(CATCH_POKEMON, serialized_catch_pokemon, catch_pokemon_size, &paquete_size);
+
+	int status = send(conexion, paquete_serializado, paquete_size, 0);
+
+	uint32_t id = esperarID(conexion);
+
+	liberar_conexion(conexion);
+
+	free(paquete_serializado);
+
+	return id;
+}
+
+//////////////////////////////////////////////
+//					CAUGHT					//
+//////////////////////////////////////////////
+
+void procesarCaughtPokemon(t_paquete* paquete){
+
+	t_tcb* tcb = traerTcbDelCatchConID(paquete->correlative_id);
+
+	if (tcb == NULL) {	// Si ese id no corresponde a un catch enviado por este team, ignorar
+		log_debug(logger, "Este proceso no envió un catch con id %d", paquete->correlative_id);
+		return;
+	}
+
+	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
+
+	if(*cau_pok == YES){
+		log_debug(logger, "Yey! Atrapé un Pokemon!");
+		cargarPokemonEnListaDeInventario(tcb->entrenador->pokes_actuales, tcb->entrenador->objetivo->pokemon->name);
+
+
+	} else if(*cau_pok == NO){
+		log_debug(logger, "Ufa! No pude atraparlo :(");
+
+	} else {
+		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
+	}
+
+	// libero el objetivo
+	free(tcb->entrenador->objetivo->pokemon->name);
+	free(tcb->entrenador->objetivo->pokemon);
+	free(tcb->entrenador->objetivo->posicion);
+	tcb->entrenador->objetivo = NULL;
+
+	eliminarCatchRecibido(paquete->correlative_id);
+
+	cambiarListaSegunCapacidad(tcb);
+}
 

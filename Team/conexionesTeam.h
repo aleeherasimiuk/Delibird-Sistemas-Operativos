@@ -21,21 +21,30 @@
 #include <pthread.h>
 #include<commons/config.h>
 #include "../Utils/conexiones.h"
+
 #include "var_globales.h"
 
+#include "entrenadores.h"
+#include "mensajesTeam.h"
+#include "planificador.h"
 
 
 
 void  suscribirseAlBroker(void);
 void* escucharAlSocket(void*);
-void  enviarGetPokemon(t_pokemon* pokemon);
-void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id);
-int abrirUnaConexion(t_config*);
-void procesarAppeared(t_paquete* paquete);
+void  suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id);
+int   abrirUnaConexion(t_config*);
 void* abrirSocketParaGameboy();
-void serve_client(int*);
-void process_request(message_type, int);
-void escucharAlGameboy();
-void enviarACK(uint32_t);
+void  serve_client(int*);
+void  process_request(message_type, int);
+uint32_t esperarID (int socket);
+uint32_t procesarID(t_paquete* paquete);
+void  escucharAlGameboy();
+void  enviarACK(uint32_t);
+
+void  enviarGetPokemon(t_pokemon* pokemon);
+void  procesarAppeared(t_paquete* paquete);
+uint32_t  enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa);
+void  procesarCaughtPokemon(t_paquete* paquete);
 
 #endif /* CONEXIONES_H_ */

@@ -19,11 +19,18 @@ int main(void) {
 
 	config = leer_config();
 
-	ip = config_get_string_value(config, "IP"); // ESTO ROMPE VALGRIND PORQUE LE PINTA
-	puerto = config_get_string_value(config, "PUERTO");
+	ip      = config_get_string_value(config, "IP");
+	puerto  = config_get_string_value(config, "PUERTO");
 	logfile = config_get_string_value(config, "LOG_FILE");
 
+	/*Test Valgrind*/
+//	ip      = "127.0.0.1";
+//	puerto  = "5003";
+//	logfile = "/home/utnso/log_broker.txt";
+
 	logger = iniciar_logger(logfile);
+	iniciarSignals();
+	iniciarMemoria();
 	iniciarSubscribers();
 	iniciarMensajes();
 	iniciarVectorDeSockets();
@@ -35,30 +42,33 @@ int main(void) {
 	return 0;
 }
 
-t_config* leer_config(void)
-{
+t_config* leer_config(void){
 	return config_create("broker.config");
 }
 
-t_log* iniciar_logger(char* logfile)
-{
-	return log_create(logfile, "Broker", true, LOG_LEVEL_DEBUG);
+t_log* iniciar_logger(char* logfile){
+	return log_create(logfile, "Broker", true, LOG_LEVEL_INFO);
 }
 
-
-/*void terminar_programa(t_config* config, t_subscribers* subscribers) {
-	config_destroy(config);
-	list_destroy(subscribers -> new_pokemon);
-	list_destroy(subscribers -> get_pokemon);
-	list_destroy(subscribers -> catch_pokemon);
-	list_destroy(subscribers -> caught_pokemon);
-	list_destroy(subscribers -> appeared_pokemon);
-	list_destroy(subscribers -> localized_pokemon);
-	free(subscribers);
+void iniciarSignals(){
+	signal(SIGUSR1, dump_cache);
+	signal(SIGINT, terminar_programa);
 }
 
-this is basically useless, but we have it here anyway just in case!
-*/
+void terminar_programa(int signal){
+
+	if(config != NULL)
+		config_destroy(config);
+
+	if(logger != NULL)
+		log_destroy(logger);
+
+	//destruir_colas();
+	destruir_mensajes();
+
+	exit(0);
+
+}
 
 
 

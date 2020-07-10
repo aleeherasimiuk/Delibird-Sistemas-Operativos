@@ -309,7 +309,7 @@ context (TestsMensajes) {
 
 		} end
 
-		it("Serializar New Pokemon"){
+		skip("Serializar New Pokemon"){
 
 			t_new_pokemon* new_pok = new_pokemon(pikachu, posicion_x, posicion_y, una_cantidad);
 
@@ -338,7 +338,7 @@ context (TestsMensajes) {
 
 		} end
 
-		it("Serializar Appeared Pokemon"){
+		skip("Serializar Appeared Pokemon"){
 
 			t_appeared_pokemon* app_pok = appeared_pokemon(pikachu, posicion_x, posicion_y);
 
@@ -362,7 +362,7 @@ context (TestsMensajes) {
 
 		} end
 
-		it("Serializar Catch Pokemon") {
+		skip("Serializar Catch Pokemon") {
 
 			t_catch_pokemon* cat_pok = catch_pokemon(pikachu, posicion_x, posicion_y);
 
@@ -408,7 +408,7 @@ context (TestsMensajes) {
 
 
 
-		it("Serializar Localized Pokemon") {
+		skip("Serializar Localized Pokemon") {
 
 			t_coords* cord1 = malloc(sizeof(t_coords));
 			t_coords* cord2 = malloc(sizeof(t_coords));
@@ -558,19 +558,6 @@ context (TestsMensajes) {
 			should_int(deserialized_ack -> id) be equal to (20);
 
 		} end
-
-
-		// Se usa?????
-		skip("Serializar Buffer") {
-
-
-
-		} end
-
-
-
-
-
     } end
 
 }

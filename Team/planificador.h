@@ -19,13 +19,6 @@
 #include "entrenadores.h"
 #include "var_globales.h"
 
-//		STRUCTS
-typedef struct {
-	t_pokemon* pokemon;
-	t_coords* posicion;
-	int	disponible;	// Si algun entrenador no fue planificado para buscarlo
-} t_pokemon_en_mapa;
-
 t_pokemon_en_mapa* crearPokemonEnMapa(t_pokemon* pokemon, t_coords* posicion);
 
 //      INICIALIZACION
@@ -33,13 +26,38 @@ void cargarEntrenadores(void);
 void enviarGetsAlBroker(void);
 void iniciarPlanificador(void);
 
+// Estados
+int indexOf(t_tcb* tcb, t_list* lista);
+void* sacarDeLista(t_tcb* tcb, t_list* lista);
+void agregarALista(t_tcb* tcb, t_list* lista);
+void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino);
+void cambiarListaSegunCapacidad(t_tcb* tcb);
+
+void ponerAEjecutarEntrenador(t_tcb* tcb);
+void terminarDeEjecutar(void);
+
+void bloquearPorIdle(t_tcb* tcb);
+void bloquearPorEsperarCaught(t_tcb* tcb);
+
+// Planificacion largo plazo
+t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista);
+void *mandarABuscarPokemones(void*);
+
+// Planificacion corto plazo
+void *planificadorCortoPlazo(void* _);
+
+void planificarSegunFifo(void);
+
+void esperarCpuLibre(void);
+
+
 //		EJECUCION
-	// Planificacion largo plazo
-t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list* lista);
-void *mandarABuscarPokemones(void);
-
-
 void realizarCicloDeCPU(void);
 void realizarXCiclosDeCPU(int cant_ciclos);
+
+
+// 		OBJETIVOS + MAPA
+int pokemonNecesario(t_pokemon*);
+void agregarPokemonAlMapa(t_pokemon*, t_coords*);
 
 #endif /* PLANIFICADOR_H_ */

@@ -20,6 +20,7 @@
 #include"queues.h"
 #include"../Utils/conexiones.h"
 #include"var_globales.h"
+#include"queue_thread_vars.h"
 
 
 int recibir_operacion(int);

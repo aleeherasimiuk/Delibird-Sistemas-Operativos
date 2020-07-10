@@ -10,7 +10,8 @@ t_buffer* crearBuffer(void* algoSerializado, uint32_t bytes){
 //Firmas de Serializacion
 void* serializarPokemon(t_pokemon* pokemon, uint32_t* bytes) {
 
-	void* serialized_pokemon = serializarGenerico(bytes, 2, &(pokemon -> name_size), sizeof(uint32_t), pokemon -> name, pokemon -> name_size);
+	/*Se elimina el \0*/
+	void* serialized_pokemon = serializarGenerico(bytes, 2, &(pokemon -> name_size), sizeof(uint32_t), pokemon -> name, pokemon -> name_size - 1);
 
 	return serialized_pokemon;
 }
@@ -73,6 +74,9 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 	void* serialized_coords = serializarCoordenadas(coordenadas, &coords_size);
 
 	void* serialized_catch_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
+
+	free(serialized_pokemon);
+	free(serialized_coords);
 
 	return serialized_catch_pokemon;
 }
@@ -171,9 +175,11 @@ void* serializarPaquete(t_paquete* paquete, uint32_t* bytes){
 	uint32_t buffer_size;
 	void* serialized_buffer = serializarBuffer(buffer, &buffer_size);
 
+	free(buffer -> stream);
+	free(buffer);
+
 	void* serialized_paquete = serializarGenerico(bytes, 4, &type, sizeof(message_type), &id, sizeof(uint32_t), &correlative_id, sizeof(uint32_t), serialized_buffer, buffer_size);
 	free(serialized_buffer);
-
 	return serialized_paquete;
 
 }
@@ -243,6 +249,8 @@ t_ack* deserializarACK(t_buffer* buffer){
 }
 
 //Firmas de Deserialización
+
+/// ESTO MUEVE EL PUNTERO DEL STREAM
 t_pokemon* deserializarPokemon(t_buffer** buffer) {
 
 	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
@@ -252,12 +260,15 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 
 	pokemon -> name = malloc(pokemon -> name_size);
 	memcpy(pokemon -> name, (*buffer) -> stream, pokemon -> name_size);
-	(*buffer) -> stream += pokemon -> name_size * sizeof(char);
+	(*buffer) -> stream += (pokemon -> name_size - 1) * sizeof(char);
+
+	char* name = pokemon -> name;
+	name[pokemon -> name_size - 1] = '\0';
 
 	return pokemon;
 }
 
-
+/// ESTO MUEVE EL PUNTERO DEL STREAM
 t_coords* deserializarCoordenadas(t_buffer** buffer) {
 
 	t_coords* coords = malloc(sizeof(t_coords));
@@ -329,8 +340,7 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer) {
 
 t_caught_pokemon* deserializarCaughtPokemon(t_buffer* buffer){
 
-	t_caught_pokemon* caught_pok = malloc(sizeof(t_caught_pokemon));
-	caught_pok = (uint32_t*) buffer -> stream;
+	t_caught_pokemon* caught_pok = (uint32_t*) buffer -> stream;
 
 	return caught_pok;
 
@@ -489,9 +499,9 @@ t_paquete* recibirPaqueteSi(int socket, message_type type) {
 t_pokemon* crearPokemon(char* name) {
 	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
 	pokemon->name_size = strlen(name) + 1;
-	pokemon->name = name;
-	//pokemon->name = malloc(pokemon->name_size);
-	//memcpy(pokemon->name, name, pokemon->name_size);
+	//strcpy(pokemon->name, name);
+	pokemon->name = malloc(pokemon->name_size);
+	memcpy(pokemon->name, name, pokemon->name_size);
 
 	return pokemon;
 }
@@ -507,7 +517,8 @@ void* crear_paquete_con_id(message_type cod_op, void* serialized_message, uint32
 
 	t_buffer* buffer = malloc(sizeof(t_buffer));
 	buffer -> stream_size = message_bytes;
-	buffer -> stream = serialized_message;
+	buffer -> stream = malloc(message_bytes);
+	memcpy(buffer -> stream, serialized_message, message_bytes);
 
 	t_paquete* paquete = crearPaquete();
 	paquete -> type = cod_op;
@@ -515,8 +526,27 @@ void* crear_paquete_con_id(message_type cod_op, void* serialized_message, uint32
 	paquete -> buffer = buffer;
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
+	//free(paquete -> buffer -> stream);
+	//free(paquete -> buffer);
+	free(paquete);
+	return serialized_paquete;
+}
 
-	free(buffer);
+void* crear_paquete_con_ids(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t id, uint32_t id_correlativo, uint32_t* paquete_size){
+	t_buffer* buffer = malloc(sizeof(t_buffer));
+	buffer -> stream_size = message_bytes;
+	buffer -> stream = malloc(message_bytes);
+	memcpy(buffer -> stream, serialized_message, message_bytes);
+
+	t_paquete* paquete = crearPaquete();
+	paquete -> type = cod_op;
+	paquete -> id = id;
+	paquete -> correlative_id = id_correlativo;
+	paquete -> buffer = buffer;
+
+	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
+
+	//free(buffer);
 	free(paquete);
 
 	return serialized_paquete;
@@ -539,7 +569,7 @@ void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_mes
 
 	void* serialized_paquete = serializarPaquete(paquete, paquete_size);
 
-	free(buffer);
+	//free(buffer);
 	free(paquete);
 
 	return serialized_paquete;
@@ -669,6 +699,35 @@ t_gameboy_queue_to_subscribe* gameboy_queue_subscribe(message_type queue, uint32
 	gameboy_queue_subscribe -> seconds = seconds;
 
 	return gameboy_queue_subscribe;
+
+}
+
+char* queue_name(message_type queue){
+
+	switch(queue){
+
+	case NEW_POKEMON:
+		return "NEW POKEMON";
+
+	case APPEARED_POKEMON:
+		return "APPEARED POKEMON";
+
+	case CATCH_POKEMON:
+		return "CATCH POKEMON";
+
+	case CAUGHT_POKEMON:
+		return "CAUGHT POKEMON";
+
+	case LOCALIZED_POKEMON:
+		return "LOCALIZED POKEMON";
+
+	case GET_POKEMON:
+		return "GET POKEMON";
+
+	default:
+		return "INVALID QUEUE";
+
+	}
 
 }
 

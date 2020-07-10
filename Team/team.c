@@ -23,11 +23,12 @@ int main() {
  */
 
 void inicializar_team(void) {
+	inciarListasMensajes();
 	iniciarPlanificador();
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
+	enviarGetsAlBroker();
 	escucharAlGameboy();
 	suscribirseAlBroker();
-	//enviarGetsAlBroker();
 }
 
 t_log* iniciar_logger(char* logfile)

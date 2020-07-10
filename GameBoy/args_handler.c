@@ -126,7 +126,8 @@ int handleCaughtPokemon(char* process, int argc, char* args[]){
 	if(!isValidDigit(args[0]))
 		return WRONG_PARAMETERS;
 
-	if(!compare_string(args[1], "YES") && !compare_string(args[1], "NO"))
+	if(!compare_string(args[1], "YES") && !compare_string(args[1], "NO")
+			&& !compare_string(args[1], "OK") && !compare_string(args[1], "FAIL"))
 		return WRONG_PARAMETERS;
 
 	return PARAMETERS_OK;

@@ -7,22 +7,23 @@
 
 #include"entrenadores.h"
 
+
+
 //////////////////////////////////////////
 //				INICIALIZACION			//
 //////////////////////////////////////////
 
 t_coords* crearCoordenadas(char* string_coord) {
-	char separador = '|';
-	char** coords_array = string_split(string_coord, &separador);
+	char** coords_array = string_split(string_coord, "|");
 	t_coords* coords_nuevas = crear_coordenadas_from_int(atoi(coords_array[0]), atoi(coords_array[1]));
 
-	free(coords_array);
+	liberarListaDePunteros(coords_array);
+
 	return coords_nuevas;
 }
 
 t_list* crearListaDeInventario(char* pokemones_string, t_list* objetivo_global) {  // Se, la super negrada
-	char separador = '|';
-	char** pokemones_array = string_split(pokemones_string, &separador);
+	char** pokemones_array = string_split(pokemones_string, "|");
 	t_list* lista_inventario = list_create();
 
 	int i = 0;
@@ -37,7 +38,9 @@ t_list* crearListaDeInventario(char* pokemones_string, t_list* objetivo_global) 
 
 		i++;
 	}
-	free(pokemones_array);
+
+	liberarListaDePunteros(pokemones_array);
+
 	return lista_inventario;
 }
 
@@ -72,6 +75,32 @@ t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name) 
 	return actual;
 }
 
+//////////////////////////////////////////
+//				INVENTARIO				//
+//////////////////////////////////////////
+
+int cantidadDePokemonesEnInventario(t_list* inventario) {
+	int pos = 0;
+	int cantidadTotal = 0;
+	t_inventario* inv;
+
+	for(; pos < inventario->elements_count; pos++)
+	{
+		inv = list_get(inventario, pos);
+		cantidadTotal += inv->cantidad;
+	}
+
+	return cantidadTotal;
+}
+
+int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador) {
+	return cantidadDePokemonesEnInventario(entrenador->pokes_actuales) == cantidadDePokemonesEnInventario(entrenador->pokes_objetivos);
+}
+
+//////////////////////////////////////////
+//				MOVIMIENTO				//
+//////////////////////////////////////////
+
 
 int distanciaA(t_coords* desde, t_coords* hasta) {
 	int distX = abs(desde->posX - hasta->posX);
@@ -80,41 +109,74 @@ int distanciaA(t_coords* desde, t_coords* hasta) {
 	return distX + distY;
 }
 
-//////////////////////////////////////
-//				ESTADOS				//
-//////////////////////////////////////
+// devuelve 1, 0 o -1 dependiendo del signo del numero
+int signo(int n) {
+	return (0 < n) - (n < 0);
+}
 
-int indexOf(t_tcb* tcb, t_list* lista) {
-	int index;
-	for (index = 0; index < list_size(lista); index++) {
-		if (tcb == (t_tcb*)list_get(lista, index)) {
-			return index;
-		}
+void moverseAlobjetivo(t_entrenador* entrenador) {
+	t_coords* pos = entrenador->posicion;
+	t_pokemon_en_mapa* obj = entrenador->objetivo;
+
+	int direccion = signo(obj->posicion->posX - pos->posX);
+	log_debug(logger, "El entrenador %d va a buscar un %s en la posición x: %d y: %d", entrenador->id_entrenador, obj->pokemon->name, obj->posicion->posX, obj->posicion->posY);
+	for (int x = pos->posX + direccion; pos->posX != obj->posicion->posX; x += direccion) {
+		realizarCicloDeCPU();
+		pos->posX = x;
+		log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", entrenador->id_entrenador, pos->posX, pos->posY);
 	}
-	return -1;
+
+	direccion = signo(obj->posicion->posY - pos->posY);
+
+	for (int y = pos->posY + direccion; pos->posY != obj->posicion->posY; y += direccion) {
+		realizarCicloDeCPU();
+		pos->posY = y;
+		log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", entrenador->id_entrenador, pos->posX, pos->posY);
+	}
 }
 
-void* sacarDeLista(t_tcb* tcb, t_list* lista) {
-	int index = indexOf(tcb, lista); // Busco el indice donde se encuentra el elemento
-	return list_remove(lista, index);
-}
-
-void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
-	sacarDeLista(tcb, lista_actual);
-	list_add(lista_destino, tcb);
-}
 
 //////////////////////////////////////
 //				EJECUCION			//
 //////////////////////////////////////
 
+void intentarAtraparPokemon(t_tcb* tcb) {
+	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
+	uint32_t id = enviarCatchPokemon(tcb->entrenador->objetivo);
+	addCatchEnviado(id, tcb);
+	terminarDeEjecutar(tcb);
+	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
+	bloquearPorEsperarCaught(tcb);
+}
+
 void *entrenadorMain(void* arg) {
 	t_tcb* tcb = (t_tcb*)arg;
 	t_entrenador* entrenador = tcb->entrenador;
-	pthread_mutex_t mutex_ejecucion = tcb->mutex_ejecucion;
 	log_debug(logger, "Soy el entrenador %d", entrenador->id_entrenador);
 	while(1){	// TODO proceso no esté en finalizado
-		pthread_mutex_lock(&mutex_ejecucion);
+		log_debug(logger, "Entrenador %d esperando para ejecutarse", entrenador->id_entrenador);
+		sem_wait(&(tcb->sem_ejecucion));
+		log_debug(logger, "Entrenador %d empieza a ejecutarse", entrenador->id_entrenador);
+
+		// Moverse al objetivo
+		moverseAlobjetivo(entrenador);
+		log_debug(logger, "El entrenador %d llega a su objetivo", entrenador->id_entrenador);
+
+		terminarDeEjecutar();
+		log_debug(logger, "Entrenador %d va a intentar atrapar al pokemon", entrenador->id_entrenador);
+
+		intentarAtraparPokemon(tcb);
+
+		// intento atrapar y se bloquea
+
+		/*	TODO: tengo que bloquearlo aca? o al recibir el caught
+			sem_wait(&(tcb->sem_ejecucion));
+
+			log_debug(logger, "Entrenador %d se va a bloquear por idle", entrenador->id_entrenador);
+			terminarDeEjecutar(tcb);
+			bloquearPorIdle(tcb);
+		 *
+		 * */
 	}
 
 	return NULL;
