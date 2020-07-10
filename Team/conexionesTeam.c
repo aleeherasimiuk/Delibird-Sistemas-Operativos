@@ -284,10 +284,6 @@ uint32_t enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa) {
 
 	liberar_conexion(conexion);
 
-	free(pokemon_en_mapa->pokemon->name);
-	free(pokemon_en_mapa->pokemon);
-	free(pokemon_en_mapa->posicion);
-	free(pokemon_en_mapa);
 	free(paquete_serializado);
 
 	return id;
@@ -307,12 +303,27 @@ void procesarCaughtPokemon(t_paquete* paquete){
 	}
 
 	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
+
 	if(*cau_pok == YES){
 		log_debug(logger, "Yey! Atrapé un Pokemon!");
+		cargarPokemonEnListaDeInventario(tcb->entrenador->pokes_actuales, tcb->entrenador->objetivo->pokemon->name);
+
+
 	} else if(*cau_pok == NO){
 		log_debug(logger, "Ufa! No pude atraparlo :(");
+
 	} else {
 		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
 	}
+
+	// libero el objetivo
+	free(tcb->entrenador->objetivo->pokemon->name);
+	free(tcb->entrenador->objetivo->pokemon);
+	free(tcb->entrenador->objetivo->posicion);
+	tcb->entrenador->objetivo = NULL;
+
+	eliminarCatchRecibido(paquete->correlative_id);
+
+	cambiarListaSegunCapacidad(tcb);
 }
 

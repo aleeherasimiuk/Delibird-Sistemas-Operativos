@@ -31,6 +31,7 @@ int indexOf(t_tcb* tcb, t_list* lista);
 void* sacarDeLista(t_tcb* tcb, t_list* lista);
 void agregarALista(t_tcb* tcb, t_list* lista);
 void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino);
+void cambiarListaSegunCapacidad(t_tcb* tcb);
 
 void ponerAEjecutarEntrenador(t_tcb* tcb);
 void terminarDeEjecutar(void);

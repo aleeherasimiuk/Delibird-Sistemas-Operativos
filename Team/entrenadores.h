@@ -68,6 +68,9 @@ t_list* crearListaDeInventario(char*, t_list*);
 void cargarPokemonEnListaDeInventario(t_list*, char*);
 t_inventario* buscarInventarioPorPokemonName(t_list*, char*);
 
+// Inventario
+int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador);
+
 // Movimiento
 int distanciaA(t_coords*, t_coords*);
 int signo(int n);

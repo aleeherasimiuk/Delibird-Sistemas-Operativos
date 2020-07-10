@@ -340,8 +340,7 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer) {
 
 t_caught_pokemon* deserializarCaughtPokemon(t_buffer* buffer){
 
-	t_caught_pokemon* caught_pok = malloc(sizeof(t_caught_pokemon));
-	caught_pok = (uint32_t*) buffer -> stream;
+	t_caught_pokemon* caught_pok = (uint32_t*) buffer -> stream;
 
 	return caught_pok;
 

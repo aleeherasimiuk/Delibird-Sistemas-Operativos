@@ -39,7 +39,7 @@ void addCatchEnviado(uint32_t id, t_tcb* tcb) {
 	list_add(catch_enviados, msj);
 }
 
-t_tcb* traerTcbDelCatchConID(uint32_t id) {
+t_mensaje_catch* buscarCatchEnviadoSegunIDMensaje(uint32_t id, uint32_t* index) {
 	int position = 0;
 	t_mensaje_catch* actual;
 	actual = list_get(catch_enviados, position);
@@ -50,5 +50,37 @@ t_tcb* traerTcbDelCatchConID(uint32_t id) {
 		actual = list_get(catch_enviados, position);
 	}
 
+	if (index != NULL)
+		*index = position;
+
 	return actual;
+}
+
+t_tcb* traerTcbDelCatchConID(uint32_t id) {
+	t_mensaje_catch* catch;
+
+	catch = buscarCatchEnviadoSegunIDMensaje(id, NULL);
+
+	if (catch == NULL)
+		return NULL;
+
+	return catch->tcb;
+}
+
+void eliminarCatchRecibido(uint32_t id) {
+	uint32_t index;
+	t_mensaje_catch* catch;
+
+	catch = buscarCatchEnviadoSegunIDMensaje(id, &index);
+
+	if (catch == NULL)
+		return;
+
+	list_remove(catch_enviados, index);
+
+	free(catch);
+
+	log_debug(logger, "Se elimina el catch enviado con id %d", id);
+
+	return;
 }

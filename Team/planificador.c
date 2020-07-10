@@ -167,10 +167,17 @@ void agregarALista(t_tcb* tcb, t_list* lista) {
 
 void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
 	t_tcb* tcb_sacado = sacarDeLista(tcb, lista_actual);
-	// TODO sem_post counter entrenadores disponibles para new y blocked_idle
 
 	agregarALista(tcb_sacado, lista_destino);
+}
 
+void cambiarListaSegunCapacidad(t_tcb* tcb) {
+	if (entrenadorAlMaximoDeCapacidad(tcb->entrenador)) {
+		cambiarDeLista(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_full);
+		// TODO Ejecutar detectar deadlock
+	} else {
+		cambiarDeLista(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_idle);
+	}
 }
 
 void ponerAEjecutarEntrenador(t_tcb* tcb) {
@@ -191,7 +198,7 @@ void bloquearPorIdle(t_tcb* tcb) {
 
 // Bloquear por caught
 void bloquearPorEsperarCaught(t_tcb* tcb) {
-	agregarALista(tcb, entrenadores_blocked_idle);
+	agregarALista(tcb, entrenadores_blocked_waiting_caught);
 }
 
 //////////////////////////////////////

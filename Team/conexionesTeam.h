@@ -21,10 +21,12 @@
 #include <pthread.h>
 #include<commons/config.h>
 #include "../Utils/conexiones.h"
+
 #include "var_globales.h"
 
 #include "entrenadores.h"
 #include "mensajesTeam.h"
+#include "planificador.h"
 
 
 

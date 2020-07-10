@@ -76,6 +76,28 @@ t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name) 
 }
 
 //////////////////////////////////////////
+//				INVENTARIO				//
+//////////////////////////////////////////
+
+int cantidadDePokemonesEnInventario(t_list* inventario) {
+	int pos = 0;
+	int cantidadTotal = 0;
+	t_inventario* inv;
+
+	for(; pos < inventario->elements_count; pos++)
+	{
+		inv = list_get(inventario, pos);
+		cantidadTotal += inv->cantidad;
+	}
+
+	return cantidadTotal;
+}
+
+int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador) {
+	return cantidadDePokemonesEnInventario(entrenador->pokes_actuales) == cantidadDePokemonesEnInventario(entrenador->pokes_objetivos);
+}
+
+//////////////////////////////////////////
 //				MOVIMIENTO				//
 //////////////////////////////////////////
 
@@ -146,10 +168,15 @@ void *entrenadorMain(void* arg) {
 		intentarAtraparPokemon(tcb);
 
 		// intento atrapar y se bloquea
-		sem_wait(&(tcb->sem_ejecucion));
 
-		log_debug(logger, "Entrenador %d se va a bloquear por idle", entrenador->id_entrenador);
-		bloquearPorIdle(tcb);
+		/*	TODO: tengo que bloquearlo aca? o al recibir el caught
+			sem_wait(&(tcb->sem_ejecucion));
+
+			log_debug(logger, "Entrenador %d se va a bloquear por idle", entrenador->id_entrenador);
+			terminarDeEjecutar(tcb);
+			bloquearPorIdle(tcb);
+		 *
+		 * */
 	}
 
 	return NULL;
