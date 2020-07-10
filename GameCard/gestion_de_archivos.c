@@ -16,7 +16,7 @@ typedef struct {
 /*void unir_paths(char* path1, char* path2, char **ruta) {
 
 	ruta = string_new();
-	string_append(&ruta, path1);
+	string_append(&ruta, path1);chequear_bloque_disponible
     string_append(&ruta, path2);
 
 }*/
@@ -95,6 +95,47 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 	return ruta;
 }
 
+//Me parece que esta funcion va a crear 23432 memory leaks
+char* path_para_clave(char* clave, char* path_pokemon) {
+
+	char** bloques = NULL;
+	char* ruta = NULL;
+	int i = 0;
+	int bloque_disponible = -1;
+
+	bloques = obtener_bloques(path_pokemon);
+
+	while(bloques[i] != NULL) {
+
+		ruta = string_new();
+		string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
+		string_append(&ruta, bloques[i]);
+		string_append(&ruta, ".bin");
+
+		t_config* bloque = config_create(ruta);
+
+		if(config_has_property(bloque, clave) || !chequear_lleno(ruta, 29)) {
+			return ruta;
+		}
+	i++;
+	}
+
+	bloque_disponible = agregar_bloque_disponible(path_pokemon);
+
+	char* bloque_ruta;
+	ruta = string_new();
+	bloque_ruta = string_itoa(bloque_disponible);
+
+	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
+	string_append(&ruta, bloque_ruta);
+	string_append(&ruta, ".bin");
+
+	log_debug(logger, "aaaaa");
+
+	return ruta;
+
+}
+
 
 void agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 
@@ -110,7 +151,14 @@ void agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 
 	t_config* data = config_create(path);
 
-	if(!config_has_property(data, clave)){
+	struct stat statbuf;
+	int tamanio;
+
+	stat(path, &statbuf);
+	tamanio = statbuf.st_size;
+
+
+	if((tamanio == 0) || (!config_has_property(data, clave))){
 
 		config_destroy(data);
 
@@ -133,20 +181,26 @@ void agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 
 		data = config_create(path);
 
+		log_debug(logger, "aca llega2");
+
 	}
 
 	int cant_vieja = config_get_int_value(data, clave);
 
 	int cantidad_act = cant_vieja + cant;
 
+	log_debug(logger, "aca llega3");
+
 	char* cantidad_nueva;
 
-	sprintf(cantidad_nueva, "%d", cantidad_act);
+	cantidad_nueva = string_itoa(cantidad_act);
 
 	config_set_value(data, clave, cantidad_nueva);
 
 	config_save(data);
 	config_destroy(data);
+
+	free(cantidad_nueva);
 
 }
 
@@ -283,18 +337,16 @@ int chequear_lleno(char* path, size_t size) {
 	int cantidad_claves;
 	int tamanio_total;
 
-	t_config* datos = config_create(path);
-	cantidad_claves = config_keys_amount(datos);
+	struct stat statbuf;
 
-	tamanio_total = (cantidad_claves * tamanio_pos) + cantidad_claves;
-
-	config_destroy(datos);
+	stat(path, &statbuf);
+	tamanio_total = statbuf.st_size;
 
 	if(tamanio_total < size) {
 		return 0;
 	}
 
-	else if(tamanio_total == size) {
+	else if(tamanio_total >= size) {
 		return 1;
 	}
 	else {
@@ -311,15 +363,10 @@ void actualizar_bitmap(off_t bloque) {
 
 	log_debug(logger, "checkpoint 1");
 
-	char* ruta = string_new();
-	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks");
-	string_append(&ruta, "/");
-	string_append(&ruta, block);
-	string_append(&ruta, ".bin");
 
 	log_debug(logger, "checkpoint 2");
 
-	if(chequear_lleno(ruta, 30)) {
+	if(chequear_ocupado(bloque)) {
 
 		log_debug(logger, "checkpoint 3 parte 1");
 		bitarray_set_bit(bitarray, bloque);
@@ -346,6 +393,11 @@ char** obtener_bloques(char* path) {
 
 	t_config* metadata = leer_metadata(ruta);
 
+	/*if(!strcmp(config_get_string_value(metadata, "BLOCKS"), "[]")) {
+		bloques[0] = "-1";
+		return bloques;
+	}*/
+
 	bloques = config_get_array_value(metadata, "BLOCKS");
 
 	config_destroy(metadata);
@@ -353,25 +405,216 @@ char** obtener_bloques(char* path) {
 	return bloques;
 }
 
-int chequear_bloque_disponible(char* path) {
+//chequea si esta el bloque disponible del array de bloques del metadata
+int chequear_bloque_disponible(int bloque) {
 
-	int i = 0;
-	int buffer;
-	char** bloques = obtener_bloques(path);
+	struct stat statbuf;
+	char bloque_string[2];
+	size_t tamanio;
+	sprintf(bloque_string, "%d", bloque);
 
-	while(bloques[i] != NULL) {
+	char* ruta = string_new();
+	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
+	string_append(&ruta, bloque_string);
+	string_append(&ruta, ".bin");
 
-		buffer = atoi(bloques[i]);
+	stat(ruta, &statbuf);
+	tamanio = statbuf.st_size;
 
-		if(!bitarray_test_bit(bitarray, buffer)) {
-			return buffer;
+	if(tamanio == 0) {
+		return 1;
+	}
+
+	return 0;
+}
+
+//Busca y retorna un bloque disponible en el bitmap
+int buscar_bloque_disponible(void) {
+	int pos = 1;
+	int max = bitarray_get_max_bit(bitarray);
+	int found;
+
+	while(pos <= max) {
+
+		found = bitarray_test_bit(bitarray, pos);
+		if(!found) {
+			return pos;
 		}
+
 		else {
-			i++;
+			pos++;
 		}
 	}
 
 	return -1;
+}
+
+
+//Agrega un bloque que este disponible al array de bloques en el metadata
+int agregar_bloque_disponible(char* path) {
+
+	char* bloques;
+	char* bloques_fixed = NULL;
+	int bloque_disponible;
+	char bloque_add[2];
+	char* nuevos_bloques = NULL;
+
+//TODO: arreglar repeticion logica
+
+	char* metadataPath = "/Metadata.bin";
+
+	char* ruta = string_new();
+	string_append(&ruta, path);
+	string_append(&ruta, metadataPath);
+
+	t_config* metadata = leer_metadata(ruta);
+
+	bloques = config_get_string_value(metadata, "BLOCKS");
+	bloques_fixed = arreglar_string(bloques, "]");
+
+	bloque_disponible = buscar_bloque_disponible();
+	sprintf(bloque_add, "%d", bloque_disponible);
+
+	if(strlen(bloques_fixed) == 1) {
+		nuevos_bloques = string_new();
+		string_append(&nuevos_bloques, bloques_fixed);
+		string_append(&nuevos_bloques, bloque_add);
+		string_append(&nuevos_bloques, "]");
+	}
+
+	else {
+		nuevos_bloques = string_new();
+		string_append(&nuevos_bloques, bloques_fixed);
+		string_append(&nuevos_bloques, ",");
+		string_append(&nuevos_bloques, bloque_add);
+		string_append(&nuevos_bloques, "]");
+	}
+
+	config_set_value(metadata, "BLOCKS", nuevos_bloques);
+
+	config_save(metadata);
+	config_destroy(metadata);
+
+	return bloque_disponible;
+
+}
+
+void quitar_bloque(char* path ,int bloque) {
+
+	char** bloques;
+	char** bloques_nuevos;
+	char* bloque_string = string_itoa(bloque);
+	int i = 0;
+	int j = 0;
+	//TODO: arreglar repeticion logica
+
+	char* metadataPath = "/Metadata.bin";
+
+	char* ruta = string_new();
+	string_append(&ruta, path);
+	string_append(&ruta, metadataPath);
+
+	t_config* metadata = leer_metadata(ruta);
+
+	bloques = config_get_array_value(metadata, "BLOCKS");
+
+	bloques_nuevos = malloc(sizeof(bloques) * 2 + 1);
+
+	while(bloques[i] != NULL) {
+		if(!strcmp(bloques[i], bloque_string)) {
+			i++;
+
+			log_debug(logger, "aaaaaaaa");
+		}
+
+		else {
+			bloques_nuevos[j] = bloques[i];
+			i++;
+			j++;
+		}
+	}
+
+	i = 0;
+
+	char* array_armado = string_new();
+	string_append(&array_armado, "[");
+
+	while(bloques_nuevos[i] != NULL) {
+		string_append(&array_armado, bloques_nuevos[i]);
+
+		if(bloques_nuevos[++i] != NULL) {
+			string_append(&array_armado, ",");
+		}
+	}
+
+	string_append(&array_armado, "]");
+
+	config_set_value(metadata, "BLOCKS", array_armado);
+
+	config_save(metadata);
+	config_destroy(metadata);
+
+	free(array_armado);
+
+
+}
+
+char* arreglar_string(char* a_arreglar, char* caracts) {
+
+	char * nuevo_string = malloc(strlen(a_arreglar) + 1);
+	int i = 0;
+
+	 for ( ; *a_arreglar; a_arreglar++) {
+	   if (!strchr(caracts, *a_arreglar)) {
+	     nuevo_string[ i ] = *a_arreglar;
+	     ++ i;
+	   }
+	 }
+
+	 nuevo_string[i] = 0;
+
+	 return nuevo_string;
+}
+
+int chequear_ocupado(int bloque) {
+
+	char bloque_string[2];
+	sprintf(bloque_string, "%d", bloque);
+
+	char* ruta = string_new();
+	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
+	string_append(&ruta, bloque_string);
+	string_append(&ruta, ".bin");
+
+	return chequear_lleno(ruta, 1);
+}
+
+void actualizar_bitmap_pokemon(char* path) {
+
+	char** bloques;
+	int i = 0;
+	int j = 1;
+
+
+
+	bloques = obtener_bloques(path);
+
+	int bloques_ent[sizeof(bloques) * 4];
+
+
+	while(bloques[i] != NULL) {
+		bloques_ent[i] = atoi(bloques[i]);
+		i++;
+		j++;
+	}
+
+	i = 0;
+
+	while (bloques_ent[i] < j) {
+		actualizar_bitmap(bloques_ent[i]);
+
+		i++;
+	}
 }
 
 

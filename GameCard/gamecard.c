@@ -30,6 +30,23 @@ int main() {
 
 	bitarray = iniciar_bitarray();
 
+	/*t_coords coords;
+
+	coords.posX = 1;
+	coords.posY = 2;
+
+	char* clave = "1-2";
+	char* path_clave;
+
+	path_clave = path_para_clave(clave, "/home/utnso/Escritorio/tall-grass/Files/bulbasaur");
+	agregar_posicion_y_cantidad(&coords, 2, path_clave);
+
+
+	//agregar_bloque_disponible("/home/utnso/Escritorio/tall-grass/Files/bulbasaur");
+
+	/*actualizar_bitmap(1);
+	actualizar_bitmap(2);
+
 	int disp = 0;
 
 	disp = chequear_bloque_disponible("/home/utnso/Escritorio/tall-grass/Files/bulbasaur");

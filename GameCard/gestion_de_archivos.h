@@ -38,6 +38,7 @@ t_config* leer_metadata(char*);
 void unir_paths(char*, char*, char**);
 int  archivo_en_uso(char*);
 char* verificar_pokemon(char*, char*, int);
+char* path_para_clave(char*, char*);
 void agregar_posicion_y_cantidad(t_coords* ,int , char*);
 void disminuir_cantidad(t_coords*, char* path);
 void obtener_posiciones(char*);
@@ -48,6 +49,12 @@ void cerrar_archivo(char*);
 int chequear_lleno(char*, size_t);
 void actualizar_bitmap(off_t);
 char** obtener_bloques(char*);
-int chequear_bloque_disponible(char*);
+int chequear_bloque_disponible(int);
+int buscar_bloque_disponible(void);
+int agregar_bloque_disponible(char* path);
+void quitar_bloque(char*, int);
+char* arreglar_string(char*, char*);
+int chequear_ocupado(int);
+void actualizar_bitmap_pokemon(char*);
 
 #endif /* GAMECARD_GESTION_DE_ARCHIVOS_H_ */

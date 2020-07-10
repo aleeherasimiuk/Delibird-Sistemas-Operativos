@@ -32,6 +32,8 @@ void procesarNew(t_paquete* paquete){
 	uint32_t posX = coords -> posX;
 	uint32_t posY = coords -> posY;
 
+	char* path_clave;
+
 	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 1);
 	while(archivo_en_uso(ruta_pokemon)) {
 
@@ -39,7 +41,13 @@ void procesarNew(t_paquete* paquete){
 		sleep(5);
 	}
 
-	agregar_posicion_y_cantidad(coords, cantidad, "/home/utnso/Escritorio/tall-grass/Blocks/1.bin");
+
+	char* clave = pos_a_clave(posX, posY);
+	path_clave = path_para_clave(clave, ruta_pokemon);
+
+	agregar_posicion_y_cantidad(coords, cantidad, path_clave);
+
+	actualizar_bitmap_pokemon(ruta_pokemon);
 	sleep(5);
 	cerrar_archivo(ruta_pokemon);
 
