@@ -114,7 +114,7 @@ memory_block_t* particionar(memory_block_t* mem_block, uint32_t size){
  */
 
 int puedeEntrar(memory_info_t* info, uint32_t size){
-	return info -> status == LIBRE && info -> size > size && info -> size > 0;
+	return info -> status == LIBRE && info -> size >= size && info -> size > 0;
 }
 
 /*

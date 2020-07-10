@@ -12,5 +12,6 @@
 #include <stdint.h>
 
 memory_block_t* buddy_system(memory_block_t*, uint32_t);
+int sonBuddies(memory_block_t*, memory_block_t*);
 
 #endif /* BROKER_ADMINISTRADORDEMEMORIA_BUDDY_SYSTEM_H_ */

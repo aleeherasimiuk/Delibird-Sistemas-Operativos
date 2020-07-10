@@ -14,8 +14,6 @@
 
 void consolidar(memory_block_t*);
 memory_block_t* merge(memory_block_t*, memory_block_t*);
-int tieneBuddy(memory_block_t*);
-int esBuddy(memory_block_t*, memory_block_t*);
 
 
 #endif /* BROKER_ADMINISTRADORDEMEMORIA_CONSOLIDACION_H_ */

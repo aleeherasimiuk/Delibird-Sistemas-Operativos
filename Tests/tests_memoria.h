@@ -10,5 +10,6 @@
 
 #include <cspecs/cspec.h>
 #include <math.h>
+#include "../Broker/AdministradorDeMemoria/buddy_system.h"
 
 #endif /* TESTS_TESTS_MEMORIA_H_ */

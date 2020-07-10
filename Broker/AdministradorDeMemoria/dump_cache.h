@@ -20,5 +20,6 @@
 void dump_cache(int signal);
 char* obtener_hora();
 char* obtener_status(memory_block_t* mem_block);
+char* guiones(int);
 
 #endif /* BROKER_ADMINISTRADORDEMEMORIA_DUMP_CACHE_H_ */

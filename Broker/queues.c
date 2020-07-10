@@ -20,6 +20,9 @@ t_list* mensajes;
 pthread_mutex_t msg_mx;
 pthread_mutex_t sub_mx;
 
+uint32_t id_siguiente = 1;
+pthread_mutex_t id_mx;
+
 
 uint32_t suscribirCliente(t_buffer* msg, uint32_t cli) {
 
@@ -125,8 +128,8 @@ void* queue(void* message_type){
 		pthread_mutex_lock(&(sem_sockets[type].mx));
 
 		paquete = recibirPaqueteSi(next_socket[type].socket_to_recv, type);
+		asignar_id(paquete, next_socket[type].socket_to_recv);
 		close(next_socket[type].socket_to_recv);
-		asignar_id(paquete, next_socket[type].id_to_assing);
 
 		pthread_mutex_unlock(&(sem_sockets[type].mx));
 		sem_post(&(sem_sockets[type].c));
@@ -183,8 +186,8 @@ void send_to_subscribers(t_paquete* paquete){
 		int bytes;
 		int bytes_p;
 		//TODO: ID Correlativo
-		// void* a_enviar = crear_paquete_con_id(type, paquete -> buffer -> stream, paquete -> buffer -> stream_size, paquete -> id, &bytes_p);
-		void* a_enviar = crear_paquete_con_ids(type, paquete -> buffer -> stream, paquete -> buffer -> stream_size, paquete -> id, paquete -> correlative_id, &bytes_p);
+		void* a_enviar = crear_paquete_con_ids(type, paquete -> buffer -> stream, paquete -> buffer -> stream_size, paquete -> id, paquete -> correlative_id ,&bytes_p);
+
 		/*
 		 * MSG_NOSIGNAL logrará hacer que en el caso de que el socket esté cerrado porque cayó la conexión
 		 * con el cliente, el broker no caiga
@@ -216,8 +219,22 @@ void listar_mensaje(t_paquete* paquete){
 	pthread_mutex_unlock(&msg_mx);
 }
 
-void asignar_id(t_paquete* paquete, uint32_t id){
-	paquete -> id = id;
+void asignar_id(t_paquete* paquete, uint32_t socket_cliente){
+
+
+	pthread_mutex_lock(&id_mx);
+	next_socket[paquete -> type].id_to_assing = id_siguiente++;
+	pthread_mutex_unlock(&id_mx);
+
+	int to_send = next_socket[paquete -> type].id_to_assing;
+	paquete -> id = next_socket[paquete -> type].id_to_assing;
+	//id_message_to_module = id_siguiente++;
+
+	uint32_t bytes;
+	void* pack_id = crear_paquete_con_id(ID, &to_send, sizeof(uint32_t), -1, &bytes);
+	int status = send(socket_cliente, pack_id, bytes, MSG_NOSIGNAL);
+	//log_debug(logger, "Envié el ID: %d, con status: %d", next_socket[type].id_to_assing, status);
+	free(pack_id);
 }
 
 int fueEnviado(t_paquete* paquete, t_client* client){

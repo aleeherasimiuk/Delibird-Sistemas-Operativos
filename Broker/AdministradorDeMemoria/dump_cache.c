@@ -14,7 +14,10 @@ void dump_cache(int n){
 	FILE* file = txt_open_for_append(dump_path);
 	char* hora = obtener_hora();
 	char* hora_string = string_from_format("Dump: %s\n", hora);
+	char* separacion = guiones(115);
+	printf(separacion);
 	printf(hora_string);
+	txt_write_in_file(file, separacion);
 	txt_write_in_file(file, hora_string);
 
 	memory_block_t* mem_block = memory;
@@ -32,13 +35,29 @@ void dump_cache(int n){
 		printf(string);
 		free(status);
 		free(string);
+
 		mem_block = mem_block -> next;
 	}
 
+	printf(separacion);
+	txt_write_in_file(file, separacion);
 	free(hora);
 	free(hora_string);
+	free(separacion);
 	txt_close_file(file);
 
+}
+
+char* guiones(int cantidad){
+	char* guiones = malloc(cantidad + 2);
+
+	for(int i = 0; i < cantidad; i++){
+		guiones[i] = '-';
+	}
+
+	guiones[cantidad] = '\n';
+	guiones[cantidad + 1] = '\0';
+	return guiones;
 }
 
 char* obtener_hora(){

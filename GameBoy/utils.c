@@ -32,6 +32,7 @@ int enviar_mensaje(int argc, char* argv[]){
 	// Abro conexión con el proceso en cuestión
 	conexion = abrirUnaConexion(ip, puerto);
 
+
 	int status = send(conexion, paquete, paquete_size, 0);
 	log_debug(logger, "Envié un mensaje con status: %d", status);
 
