@@ -23,4 +23,6 @@ extern t_list* entrenadores_blocked_waiting_caught; // acá van los que se bloqu
 extern t_list* entrenadores_blocked_full; // Bloqueados por no poder agarrar mas pokemones, pero no cumplen su objetivo
 extern t_list* entrenadores_exit; // lista de t_tcb*
 
+extern t_list* actuales_global;
+
 #endif /* VAR_GLOBALES_H_ */

@@ -39,6 +39,20 @@ void addCatchEnviado(uint32_t id, t_tcb* tcb) {
 	list_add(catch_enviados, msj);
 }
 
+int pokemonYaRecibido(char* pokemon_name) {
+	int position = 0;
+	char* actual;
+	actual = list_get(pokemones_recibidos, position);
+
+	while (actual != NULL && strcmp(actual, pokemon_name) != 0) {
+		// Recorro la lista hasta que se termine o que encuentre un inventario con el mismo nombre del pokemon
+		position++;
+		actual = list_get(pokemones_recibidos, position);
+	}
+
+	return actual != NULL;
+}
+
 t_mensaje_catch* buscarCatchEnviadoSegunIDMensaje(uint32_t id, uint32_t* index) {
 	int position = 0;
 	t_mensaje_catch* actual;

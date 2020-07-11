@@ -59,5 +59,6 @@ void realizarXCiclosDeCPU(int cant_ciclos);
 // 		OBJETIVOS + MAPA
 int pokemonNecesario(t_pokemon*);
 void agregarPokemonAlMapa(t_pokemon*, t_coords*);
+void buscarPokemonAuxiliarYPasarAlMapa(char* pokemon_name);
 
 #endif /* PLANIFICADOR_H_ */

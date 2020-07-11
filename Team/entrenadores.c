@@ -22,7 +22,11 @@ t_coords* crearCoordenadas(char* string_coord) {
 	return coords_nuevas;
 }
 
-t_list* crearListaDeInventario(char* pokemones_string, t_list* objetivo_global) {  // Se, la super negrada
+//////////////////////////////////////////
+//				INVENTARIO				//
+//////////////////////////////////////////
+
+t_list* crearListaDeInventario(char* pokemones_string, t_list* lista_global) {
 	char** pokemones_array = string_split(pokemones_string, "|");
 	t_list* lista_inventario = list_create();
 
@@ -32,8 +36,8 @@ t_list* crearListaDeInventario(char* pokemones_string, t_list* objetivo_global) 
 
 		cargarPokemonEnListaDeInventario(lista_inventario, pokemon_name);
 
-		if (objetivo_global != NULL) {	// Cargo los objetivos en el global
-			cargarPokemonEnListaDeInventario(objetivo_global, pokemon_name);
+		if (lista_global != NULL) {	// Cargo los pokemones en la lista global (actuales, objetivo)
+			cargarPokemonEnListaDeInventario(lista_global, pokemon_name);
 		}
 
 		i++;
@@ -47,7 +51,7 @@ t_list* crearListaDeInventario(char* pokemones_string, t_list* objetivo_global) 
 void cargarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_name) {
 	t_inventario* nuevo_inventario;
 	// Verifico que el pokemon no esté cargado
-	nuevo_inventario = buscarInventarioPorPokemonName(lista_inventario, pokemon_name);
+	nuevo_inventario = buscarInventarioPorPokemonName(lista_inventario, pokemon_name, NULL);
 	if(nuevo_inventario != NULL) {
 		// Si ese pokemon ya está cargado
 		nuevo_inventario->cantidad++;
@@ -61,23 +65,40 @@ void cargarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_na
 	}
 }
 
-t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name) {
-	int position = 0;
+// Saca el inventario de la lista, en caso de que no exista devuelve NULL
+t_inventario* sacarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_name) {
+	t_inventario* inventario;
+	// Verifico que el pokemon no esté cargado
+	int index;
+	inventario = buscarInventarioPorPokemonName(lista_inventario, pokemon_name, &index);
+
+	if(inventario != NULL) {
+		if (inventario->cantidad > 1) {
+			inventario->cantidad--;
+		} else {
+			list_remove(lista_inventario, index);
+		}
+	}
+
+	return inventario;
+}
+
+t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name, int* position) {
+	int pos = 0;
 	t_inventario* actual;
-	actual = list_get(lista, position);
+	actual = list_get(lista, pos);
 
 	while (actual != NULL && strcmp(actual->pokemon->name, pokemon_name) != 0) {
 		// Recorro la lista hasta que se termine o que encuentre un inventario con el mismo nombre del pokemon
-		position++;
-		actual = list_get(lista, position);
+		pos++;
+		actual = list_get(lista, pos);
 	}
+
+	if (position != NULL)
+		*position = pos;
 
 	return actual;
 }
-
-//////////////////////////////////////////
-//				INVENTARIO				//
-//////////////////////////////////////////
 
 int cantidadDePokemonesEnInventario(t_list* inventario) {
 	int pos = 0;
@@ -95,6 +116,17 @@ int cantidadDePokemonesEnInventario(t_list* inventario) {
 
 int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador) {
 	return cantidadDePokemonesEnInventario(entrenador->pokes_actuales) == cantidadDePokemonesEnInventario(entrenador->pokes_objetivos);
+}
+
+int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* objetivo) {
+	t_inventario* inv_obj = buscarInventarioPorPokemonName(objetivo, pokemon->name, NULL);
+
+	if (inv_obj != NULL) {
+		t_inventario* inv_actual = buscarInventarioPorPokemonName(actuales, pokemon->name, NULL);
+		return !(inv_actual == NULL || inv_actual->cantidad < inv_obj->cantidad);
+	} else {
+		return 1;	// Si no se tiene ese objetivo no se deberia llegar a este punto
+	}
 }
 
 //////////////////////////////////////////

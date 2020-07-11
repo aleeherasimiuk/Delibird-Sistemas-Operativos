@@ -64,12 +64,16 @@ typedef struct {
  */
 // Inicializacion
 t_coords* crearCoordenadas(char*);
-t_list* crearListaDeInventario(char*, t_list*);
-void cargarPokemonEnListaDeInventario(t_list*, char*);
-t_inventario* buscarInventarioPorPokemonName(t_list*, char*);
 
 // Inventario
+t_list* crearListaDeInventario(char*, t_list*);
+void cargarPokemonEnListaDeInventario(t_list*, char*);
+t_inventario* sacarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_name);
+t_inventario* buscarInventarioPorPokemonName(t_list*, char*, int*);
+
+int cantidadDePokemonesEnInventario(t_list* inventario);
 int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador);
+int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* objetivo);
 
 // Movimiento
 int distanciaA(t_coords*, t_coords*);

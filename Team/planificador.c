@@ -16,8 +16,10 @@ t_list* entrenadores_exit; // lista de t_tcb*
 t_tcb* entrenador_exec;
 
 t_list* objetivo_global;  // lista de t_inventario*
+t_list* actuales_global; // lista de t_inventario* para contar los pokemones que ya se tienen capturados
 
 t_queue* pokemones_en_el_mapa; // Lista de t_pokemon_en_mapa*
+t_list*	pokemones_auxiliares_en_el_mapa; // Lista para guardar los pokemones que tengo por si no se llega a atrapar uno,
 
 int retardo_ciclo_cpu;
 
@@ -45,6 +47,7 @@ t_pokemon_en_mapa* crearPokemonEnMapa(t_pokemon* pokemon, t_coords* posicion) {
 
 void cargarEntrenadores(void) {
 	entrenadores_new = list_create();
+	actuales_global = list_create();
 	objetivo_global = list_create();
 
 	char** posiciones_entrenadores = config_get_array_value(config, "POSICIONES_ENTRENADORES");
@@ -67,7 +70,7 @@ void cargarEntrenadores(void) {
 		tcb_nuevo->entrenador->posicion = crearCoordenadas(posiciones_entrenadores[i]);
 
 		tcb_nuevo->entrenador->objetivo = NULL;
-		tcb_nuevo->entrenador->pokes_actuales = crearListaDeInventario(pokemon_entrenadores[i], NULL);
+		tcb_nuevo->entrenador->pokes_actuales = crearListaDeInventario(pokemon_entrenadores[i], actuales_global);
 
 		tcb_nuevo->entrenador->pokes_objetivos = crearListaDeInventario(objetivos_entrenadores[i], objetivo_global);
 
@@ -111,6 +114,7 @@ void iniciarPlanificador(void) {
 	entrenadores_exit = list_create();
 
 	pokemones_en_el_mapa = queue_create();
+	pokemones_auxiliares_en_el_mapa = list_create();
 	retardo_ciclo_cpu = config_get_int_value(config, "RETARDO_CICLO_CPU");
 
 	sem_init(&sem_cpu_libre, 0, 1);
@@ -276,21 +280,35 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 		log_debug(logger, "Voy a esperar a que haya pokemones libres");
 
 		sem_wait(&counter_pokemones_libres);
-		log_debug(logger, "Voy a esperar a que haya entrenadores disponibles");
-		sem_wait(&counter_entrenadores_disponibles);
-
-		log_debug(logger, "Hay un pokemon disponible para buscarlo");
 		pokemon = queue_pop(pokemones_en_el_mapa);
-		tcb_entrenador = entrenadorMasCercanoA(pokemon, &lista_actual);
 
-		log_debug(logger, "El entrenador %d va a ir a buscarlo", tcb_entrenador->entrenador->id_entrenador);
+		// Verifico si el pokemon es necesario.si no lo es, lo devuelvo a la lista.
+		if (objetivoCumplidoSegunPokemon(pokemon->pokemon, actuales_global, objetivo_global)) {
+			// Lo añado a la lista auxiliar, que en caso de que no se atrape a un pokemon, se busca si hay uno de esos en esta lista
+			log_debug(logger, "Se pasa el %s de la posicion x:%d y:%d a la lista de auxiliares", pokemon->pokemon->name, pokemon->posicion->posX, pokemon->posicion->posY);
+			list_add(pokemones_auxiliares_en_el_mapa, pokemon);
 
-		tcb_entrenador->entrenador->objetivo = pokemon;
+		} else {
+			log_debug(logger, "Voy a esperar a que haya entrenadores disponibles");
+			sem_wait(&counter_entrenadores_disponibles);
 
-		log_debug(logger, "cantidad de lista actual = %d", lista_actual->elements_count);
+			log_debug(logger, "Hay un pokemon disponible para buscarlo");
 
-		cambiarDeLista(tcb_entrenador, lista_actual, entrenadores_ready);
+			// Cargo en el global, lo cargo aca para que en caso de haber mas de este,
+			// Pero necesitar menos instancias, que se queden esperando.
+			cargarPokemonEnListaDeInventario(actuales_global, pokemon->pokemon->name);
 
+
+			tcb_entrenador = entrenadorMasCercanoA(pokemon, &lista_actual);
+
+			log_debug(logger, "El entrenador %d va a ir a buscarlo", tcb_entrenador->entrenador->id_entrenador);
+
+			tcb_entrenador->entrenador->objetivo = pokemon;
+
+			log_debug(logger, "cantidad de lista actual = %d", lista_actual->elements_count);
+
+			cambiarDeLista(tcb_entrenador, lista_actual, entrenadores_ready);
+		}
 	}
 }
 
@@ -358,9 +376,11 @@ void realizarXCiclosDeCPU(int cant_ciclos) {
 //////////////////////////////////////
 
 int pokemonNecesario(t_pokemon* pokemon) {
-	t_inventario* inventario = buscarInventarioPorPokemonName(objetivo_global, pokemon->name);
-	// Si no lo encuentro o si no necesito mas
-	return !(inventario == NULL || inventario->cantidad == 0);
+	t_inventario* inventario = buscarInventarioPorPokemonName(objetivo_global, pokemon->name, NULL);
+
+
+	// Solo aceptar si existe en el objetivo, y si no lo recibí
+	return inventario != NULL && !pokemonYaRecibido(pokemon->name);
 	// TODO aca va el verificar si ya se recibio un mensaje de este pokemon?
 }
 
@@ -371,4 +391,23 @@ void agregarPokemonAlMapa(t_pokemon* pokemon, t_coords* posicion) {
 
 	queue_push(pokemones_en_el_mapa, pok_mapa);
 	sem_post(&counter_pokemones_libres);
+}
+
+void buscarPokemonAuxiliarYPasarAlMapa(char* pokemon_name) {
+	int pos = 0;
+	t_pokemon_en_mapa* actual;
+	actual = list_get(pokemones_auxiliares_en_el_mapa, pos);
+
+	while (actual != NULL && strcmp(actual->pokemon->name, pokemon_name) != 0) {
+		// Recorro la lista hasta que se termine o que encuentre un inventario con el mismo nombre del pokemon
+		pos++;
+		actual = list_get(pokemones_auxiliares_en_el_mapa, pos);
+	}
+
+	if (actual != NULL) {
+		list_remove(pokemones_auxiliares_en_el_mapa, pos);
+		log_debug(logger, "Se pasa el pokemon %s de la lista de auxiliares al mapa", actual->pokemon->name);
+		queue_push(pokemones_en_el_mapa, actual);
+		sem_post(&counter_pokemones_libres);
+	}
 }

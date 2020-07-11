@@ -258,6 +258,10 @@ void procesarAppeared(t_paquete* paquete){
 		log_debug(logger, "El pokemon es necesario");
 		agregarPokemonAlMapa(pok->pokemon, pok->coords);
 		addPokemonRecibido(pok->pokemon->name);
+	} else {
+		free(pok->pokemon->name);
+		free(pok->pokemon);
+		free(pok->coords);
 	}
 	free(pok);
 }
@@ -306,24 +310,27 @@ void procesarCaughtPokemon(t_paquete* paquete){
 
 	if(*cau_pok == YES){
 		log_debug(logger, "Yey! Atrapé un Pokemon!");
+		// Cargo en el entrenador
 		cargarPokemonEnListaDeInventario(tcb->entrenador->pokes_actuales, tcb->entrenador->objetivo->pokemon->name);
-
-
 	} else if(*cau_pok == NO){
 		log_debug(logger, "Ufa! No pude atraparlo :(");
-
+		sacarPokemonEnListaDeInventario(actuales_global, tcb->entrenador->objetivo->pokemon->name);
+		buscarPokemonAuxiliarYPasarAlMapa(tcb->entrenador->objetivo->pokemon->name);
 	} else {
 		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
 	}
 
 	// libero el objetivo
-	free(tcb->entrenador->objetivo->pokemon->name);
+	//free(tcb->entrenador->objetivo->pokemon->name); // El nombre está en los
 	free(tcb->entrenador->objetivo->pokemon);
 	free(tcb->entrenador->objetivo->posicion);
 	tcb->entrenador->objetivo = NULL;
 
 	eliminarCatchRecibido(paquete->correlative_id);
 
+	// TODO chequear si finaliza el entrenador como el proceso
+
+	// como lo cambio de lista despues de liberar al auxiliar, si hay otro entrenador, va a ir a buscarlo el otro.
 	cambiarListaSegunCapacidad(tcb);
 }
 

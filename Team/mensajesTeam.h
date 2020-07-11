@@ -25,6 +25,8 @@ void addGetEnviado(uint32_t id);
 void addPokemonRecibido(char* pokemon_name);
 void addCatchEnviado(uint32_t id, t_tcb* tcb);
 
+int pokemonYaRecibido(char* pokemon_name);
+
 t_mensaje_catch* buscarCatchEnviadoSegunIDMensaje(uint32_t id, uint32_t* index);
 
 t_tcb* traerTcbDelCatchConID(uint32_t id);
