@@ -96,7 +96,7 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 }
 
 //Me parece que esta funcion va a crear 23432 memory leaks
-char* path_para_clave(char* clave, char* path_pokemon) {
+char* path_para_clave(char* clave, char* path_pokemon, int mode) {
 
 	char** bloques = NULL;
 	char* ruta = NULL;
@@ -114,11 +114,22 @@ char* path_para_clave(char* clave, char* path_pokemon) {
 
 		t_config* bloque = config_create(ruta);
 
-		if(config_has_property(bloque, clave) || !chequear_lleno(ruta, 29)) {
+		if(mode == 1) {
+			if(config_has_property(bloque, clave)) {
+
+				return ruta;
+			}
+			i++;
+			continue;
+		}
+		else if(config_has_property(bloque, clave) || !chequear_lleno(ruta, 29)) {
 			return ruta;
 		}
+
+
 	i++;
 	}
+
 
 	bloque_disponible = agregar_bloque_disponible(path_pokemon);
 
@@ -131,6 +142,8 @@ char* path_para_clave(char* clave, char* path_pokemon) {
 	string_append(&ruta, ".bin");
 
 	log_debug(logger, "aaaaa");
+
+	free(bloques);
 
 	return ruta;
 
@@ -355,7 +368,7 @@ int chequear_lleno(char* path, size_t size) {
 	return -1;
 }
 
-void actualizar_bitmap(off_t bloque) {
+int actualizar_bitmap(off_t bloque) {
 
 	char block[2];
 
@@ -370,12 +383,13 @@ void actualizar_bitmap(off_t bloque) {
 
 		log_debug(logger, "checkpoint 3 parte 1");
 		bitarray_set_bit(bitarray, bloque);
+		return 0;
 	}
 
 	else {
-
 		bitarray_clean_bit(bitarray, bloque);
 		log_debug(logger, "checkpoint 3 parte 2");
+		return 1;
 	}
 
 }
@@ -495,6 +509,8 @@ int agregar_bloque_disponible(char* path) {
 	config_save(metadata);
 	config_destroy(metadata);
 
+	free(bloques);
+
 	return bloque_disponible;
 
 }
@@ -506,7 +522,11 @@ void quitar_bloque(char* path ,int bloque) {
 	char* bloque_string = string_itoa(bloque);
 	int i = 0;
 	int j = 0;
+	int cantidad_total = 0;
+	int tamanio_bloques = 0;
 	//TODO: arreglar repeticion logica
+
+	log_debug(logger, "el bloque es %s", bloque_string);
 
 	char* metadataPath = "/Metadata.bin";
 
@@ -516,45 +536,64 @@ void quitar_bloque(char* path ,int bloque) {
 
 	t_config* metadata = leer_metadata(ruta);
 
-	bloques = config_get_array_value(metadata, "BLOCKS");
-
-	bloques_nuevos = malloc(sizeof(bloques) * 2 + 1);
+	bloques = obtener_bloques(path);
 
 	while(bloques[i] != NULL) {
-		if(!strcmp(bloques[i], bloque_string)) {
+			tamanio_bloques++;
 			i++;
+		}
 
-			log_debug(logger, "aaaaaaaa");
+	i = 0;
+
+	bloques_nuevos = malloc(tamanio_bloques * sizeof(char*));
+
+	log_debug(logger, "fuera del while1");
+
+	while(bloques[i] != NULL) {
+		if(strcmp(bloques[i], bloque_string) == 0) {
+
+
+			i++;
 		}
 
 		else {
 			bloques_nuevos[j] = bloques[i];
 			i++;
 			j++;
+			cantidad_total++;
+
 		}
 	}
 
 	i = 0;
 
+
 	char* array_armado = string_new();
 	string_append(&array_armado, "[");
 
-	while(bloques_nuevos[i] != NULL) {
-		string_append(&array_armado, bloques_nuevos[i]);
+	log_debug(logger, "fuera del while2");
 
-		if(bloques_nuevos[++i] != NULL) {
+	while(i < cantidad_total) {
+		string_append(&array_armado, bloques_nuevos[i]);
+		log_debug(logger, "entra en el while");
+
+		if(i + 1 != cantidad_total) {
 			string_append(&array_armado, ",");
 		}
+		i++;
 	}
 
 	string_append(&array_armado, "]");
 
 	config_set_value(metadata, "BLOCKS", array_armado);
+	log_debug(logger, "estoy quitando el bloque");
 
 	config_save(metadata);
 	config_destroy(metadata);
 
+	free(bloques);
 	free(array_armado);
+	free(bloques_nuevos);
 
 
 }
@@ -599,7 +638,7 @@ void actualizar_bitmap_pokemon(char* path) {
 
 	bloques = obtener_bloques(path);
 
-	int bloques_ent[sizeof(bloques) * 4];
+	int bloques_ent[50];
 
 
 	while(bloques[i] != NULL) {
@@ -611,10 +650,14 @@ void actualizar_bitmap_pokemon(char* path) {
 	i = 0;
 
 	while (bloques_ent[i] < j) {
-		actualizar_bitmap(bloques_ent[i]);
+		if(actualizar_bitmap(bloques_ent[i])){
+			quitar_bloque(path, bloques_ent[i]);
+		}
 
 		i++;
 	}
+
+	free(bloques);
 }
 
 

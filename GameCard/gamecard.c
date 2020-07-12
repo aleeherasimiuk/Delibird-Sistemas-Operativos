@@ -29,7 +29,6 @@ int main() {
 
 
 	bitarray = iniciar_bitarray();
-
 	/*t_coords coords;
 
 	coords.posX = 1;
