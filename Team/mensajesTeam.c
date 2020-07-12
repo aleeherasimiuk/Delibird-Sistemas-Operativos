@@ -39,6 +39,23 @@ void addCatchEnviado(uint32_t id, t_tcb* tcb) {
 	list_add(catch_enviados, msj);
 }
 
+int getEnviadoConID(uint32_t id, int* index) {
+	int position = 0;
+	uint32_t* actual;
+	actual = list_get(get_enviados, position);
+
+	while (actual != NULL && id == *actual) {
+		// Recorro la lista hasta que se termine o que encuentre el id correspondiente
+		position++;
+		actual = list_get(get_enviados, position);
+	}
+
+	if (index != NULL)
+		*index = position;
+
+	return actual != NULL;
+}
+
 int pokemonYaRecibido(char* pokemon_name) {
 	int position = 0;
 	char* actual;
@@ -81,7 +98,23 @@ t_tcb* traerTcbDelCatchConID(uint32_t id) {
 	return catch->tcb;
 }
 
-void eliminarCatchRecibido(uint32_t id) {
+void eliminarGetEnviado(uint32_t id) {
+	uint32_t index;
+	uint32_t* id_get;
+
+	if (!getEnviadoConID(id, &index))
+		return;
+
+	list_remove(catch_enviados, index);
+
+	free(id_get);
+
+	log_debug(logger, "Se elimina el GET enviado con id %d", id);
+
+	return;
+}
+
+void eliminarCatchEnviado(uint32_t id) {
 	uint32_t index;
 	t_mensaje_catch* catch;
 
@@ -94,7 +127,7 @@ void eliminarCatchRecibido(uint32_t id) {
 
 	free(catch);
 
-	log_debug(logger, "Se elimina el catch enviado con id %d", id);
+	log_debug(logger, "Se elimina el CATCH enviado con id %d", id);
 
 	return;
 }

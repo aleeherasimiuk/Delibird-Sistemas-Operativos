@@ -91,15 +91,15 @@ void *escucharAlSocket(void* socket) {
 		if(paquete != NULL){
 			enviarACK(paquete -> id);
 
-			void* ptrStream = paquete->buffer->stream; // lo guardo para que no explote
+			void* ptrStream = paquete->buffer->stream; // lo guardo porque mientras se desserializa se mueve el puntero del stream
 
 			switch(paquete->type) {
 				case APPEARED_POKEMON:
 					procesarAppeared(paquete);
 					break;
 				case LOCALIZED_POKEMON:
-					// procesarLocalized(paquete); TODO
-					log_debug(logger, "Que Google Maps ni Google Maps!. Localized Pokemon PAPÁ");
+					procesarLocalized(paquete);
+					// log_debug(logger, "Que Google Maps ni Google Maps!. Localized Pokemon PAPÁ");
 					break;
 				case CAUGHT_POKEMON:
 					procesarCaughtPokemon(paquete);
@@ -246,10 +246,49 @@ void enviarGetPokemon(t_pokemon* pokemon) {
 }
 
 //////////////////////////////////////////////
+//				LOCALIZED					//
+//////////////////////////////////////////////
+
+void procesarLocalized(t_paquete* paquete){
+	t_localized_pokemon* pok = deserializarLocalizedPokemon(paquete -> buffer);
+	t_pokemon* pokemon_aux;
+
+	log_debug(logger, "Se localizaron %d Pokemon: %s!", pok->cant_coords, pok -> pokemon -> name);
+
+	if (getEnviadoConID(paquete->correlative_id, NULL)) {
+		if (pokemonNecesario(pok->pokemon)) {
+			log_debug(logger, "El pokemon es necesario");
+
+			for (int i = 0; i < pok->cant_coords; i++) {
+				pokemon_aux = malloc(sizeof(t_pokemon));
+				// Lo copio porque sino cuando se libere el pokemon en algun lado, va a liberar a todos
+				memcpy(pokemon_aux, pok->pokemon, sizeof(t_pokemon));
+
+				agregarPokemonAlMapa(pokemon_aux, pok->coords_array[i]);
+			}
+
+			addPokemonRecibido(pok->pokemon->name);
+		} else {
+			for (int i = 0; i < pok->cant_coords; i++) {
+				free(pok->coords_array[i]);
+			}
+		}
+
+		eliminarGetEnviado(paquete->correlative_id);
+	}
+	free(pok->pokemon->name);
+	free(pok->pokemon);
+	free(pok->coords_array);
+	free(pok);
+	free(pokemon_aux);
+}
+
+
+//////////////////////////////////////////////
 //				APPEARED					//
 //////////////////////////////////////////////
 
-void procesarAppeared(t_paquete* paquete){
+void procesarAppeared(t_paquete* paquete) {
 	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
 
 	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
@@ -326,9 +365,9 @@ void procesarCaughtPokemon(t_paquete* paquete){
 	free(tcb->entrenador->objetivo->posicion);
 	tcb->entrenador->objetivo = NULL;
 
-	eliminarCatchRecibido(paquete->correlative_id);
+	eliminarCatchEnviado(paquete->correlative_id);
 
-	// TODO chequear si finaliza el entrenador como el proceso
+	// TODO chequear si finaliza tanto el entrenador como el proceso
 
 	// como lo cambio de lista despues de liberar al auxiliar, si hay otro entrenador, va a ir a buscarlo el otro.
 	cambiarListaSegunCapacidad(tcb);

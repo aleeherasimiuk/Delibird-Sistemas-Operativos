@@ -25,12 +25,12 @@ void addGetEnviado(uint32_t id);
 void addPokemonRecibido(char* pokemon_name);
 void addCatchEnviado(uint32_t id, t_tcb* tcb);
 
+int getEnviadoConID(uint32_t id, int* index);
 int pokemonYaRecibido(char* pokemon_name);
-
 t_mensaje_catch* buscarCatchEnviadoSegunIDMensaje(uint32_t id, uint32_t* index);
-
 t_tcb* traerTcbDelCatchConID(uint32_t id);
 
-void eliminarCatchRecibido(uint32_t id);
+void eliminarGetEnviado(uint32_t id);
+void eliminarCatchEnviado(uint32_t id);
 
 #endif /* MENSAJESTEAM_H_ */

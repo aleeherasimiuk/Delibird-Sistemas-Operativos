@@ -44,6 +44,7 @@ void  enviarACK(uint32_t);
 
 void  enviarGetPokemon(t_pokemon* pokemon);
 void  procesarAppeared(t_paquete* paquete);
+void  procesarAppeared(t_paquete* paquete);
 uint32_t  enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa);
 void  procesarCaughtPokemon(t_paquete* paquete);
 

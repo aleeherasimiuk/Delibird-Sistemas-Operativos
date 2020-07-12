@@ -178,7 +178,7 @@ void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
 void cambiarListaSegunCapacidad(t_tcb* tcb) {
 	if (entrenadorAlMaximoDeCapacidad(tcb->entrenador)) {
 		cambiarDeLista(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_full);
-		// TODO Ejecutar detectar deadlock
+		// TODO Ejecutar detectar deadlock, ver de meter en el agregarLista de blocked_full
 	} else {
 		cambiarDeLista(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_idle);
 	}
