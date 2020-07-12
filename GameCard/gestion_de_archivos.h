@@ -25,7 +25,6 @@
 #include <sys/stat.h>
 
 
-
 typedef struct {
 	char DIRECTORY;
 	char OPEN;
@@ -34,6 +33,7 @@ typedef struct {
 }METADATA;
 
 t_config* leer_metadata(char*);
+void destruir_metadata(t_config*);
 
 void unir_paths(char*, char*, char**);
 int  archivo_en_uso(char*);
@@ -56,5 +56,6 @@ void quitar_bloque(char*, int);
 char* arreglar_string(char*, char*);
 int chequear_ocupado(int);
 void actualizar_bitmap_pokemon(char*);
+void leer_bloques_pokemon();
 
 #endif /* GAMECARD_GESTION_DE_ARCHIVOS_H_ */

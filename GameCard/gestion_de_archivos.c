@@ -25,6 +25,10 @@ t_config* leer_metadata(char* ruta) {
 	return config_create(ruta);
 }
 
+void destruir_metadata(t_config* config) {
+	config_destroy(config);
+}
+
 
 int archivo_en_uso(char* path){
 
@@ -45,7 +49,7 @@ int archivo_en_uso(char* path){
 
 	if(!strcmp(open, "Y")) {
 		log_debug(logger, "entra por yes");
-		config_destroy(metadata);
+		destruir_metadata(metadata);
 
 		return 1;
 	}
@@ -323,12 +327,12 @@ void cerrar_archivo(char* path) {
 	string_append(&rutameta, path);
 	string_append(&rutameta, "/Metadata.bin");
 
-	t_config* metadata = config_create(rutameta);
+	t_config* metadata = leer_metadata(rutameta);
 
 	config_set_value(metadata, "OPEN", "N");
 
 	config_save(metadata);
-	config_destroy(metadata);
+	destruir_metadata(metadata);
 }
 
 int chequear_lleno(char* path, size_t size) {
@@ -400,7 +404,7 @@ char** obtener_bloques(char* path) {
 
 	bloques = config_get_array_value(metadata, "BLOCKS");
 
-	config_destroy(metadata);
+	destruir_metadata(metadata);
 
 	return bloques;
 }
@@ -493,7 +497,7 @@ int agregar_bloque_disponible(char* path) {
 	config_set_value(metadata, "BLOCKS", nuevos_bloques);
 
 	config_save(metadata);
-	config_destroy(metadata);
+	destruir_metadata(metadata);
 
 	return bloque_disponible;
 
@@ -552,7 +556,7 @@ void quitar_bloque(char* path ,int bloque) {
 	config_set_value(metadata, "BLOCKS", array_armado);
 
 	config_save(metadata);
-	config_destroy(metadata);
+	destruir_metadata(metadata);
 
 	free(array_armado);
 
