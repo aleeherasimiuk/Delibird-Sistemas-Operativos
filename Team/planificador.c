@@ -49,6 +49,7 @@ void cargarEntrenadores(void) {
 	entrenadores_new = list_create();
 	actuales_global = list_create();
 	objetivo_global = list_create();
+	sem_init(&counter_entrenadores_disponibles, 0, 0);
 
 	char** posiciones_entrenadores = config_get_array_value(config, "POSICIONES_ENTRENADORES");
 	char** pokemon_entrenadores    = config_get_array_value(config, "POKEMON_ENTRENADORES");
@@ -76,22 +77,20 @@ void cargarEntrenadores(void) {
 
 		sem_init(&(tcb_nuevo->sem_ejecucion), 0, 0); // TODO pthread_mutex_destroy cuando se deje de usar para siempre
 
-		list_add(entrenadores_new, tcb_nuevo);
-
-
+		if (entrenadorAlMaximoDeCapacidad(tcb_nuevo->entrenador)) {
+			agregarALista(tcb_nuevo, entrenadores_blocked_full); // Si ya viene lleno desde el config, lo mando a full
+		} else {
+			agregarALista(tcb_nuevo, entrenadores_new);
+		}
 
 		pthread_create(&thread, NULL, entrenadorMain, tcb_nuevo);
 		pthread_detach(thread);
 		i++;
 	}
 
-
 	liberarListaDePunteros(posiciones_entrenadores);
 	liberarListaDePunteros(pokemon_entrenadores);
 	liberarListaDePunteros(objetivos_entrenadores);
-
-
-	sem_init(&counter_entrenadores_disponibles, 0, i); // i es la cantidad de entrenadores cargados, que siempre seria la misma.
 }
 
 void enviarGetsAlBroker(void) {

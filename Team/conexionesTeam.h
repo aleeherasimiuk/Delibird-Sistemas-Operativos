@@ -28,11 +28,14 @@
 #include "mensajesTeam.h"
 #include "planificador.h"
 
-
+typedef struct {
+	int socket;
+	message_type cola;
+} t_escucha_socket;
 
 void  suscribirseAlBroker(void);
 void* escucharAlSocket(void*);
-void  suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id);
+void  suscribirAUnaCola(int conexion, message_type cola);
 int   abrirUnaConexion(t_config*);
 void* abrirSocketParaGameboy();
 void  serve_client(int*);
@@ -43,9 +46,9 @@ void  escucharAlGameboy();
 void  enviarACK(uint32_t);
 
 void  enviarGetPokemon(t_pokemon* pokemon);
+void  procesarLocalized(t_paquete* paquete);
 void  procesarAppeared(t_paquete* paquete);
-void  procesarAppeared(t_paquete* paquete);
-uint32_t  enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa);
+void  enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb);
 void  procesarCaughtPokemon(t_paquete* paquete);
 
 #endif /* CONEXIONES_H_ */

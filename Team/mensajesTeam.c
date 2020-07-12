@@ -44,7 +44,7 @@ int getEnviadoConID(uint32_t id, int* index) {
 	uint32_t* actual;
 	actual = list_get(get_enviados, position);
 
-	while (actual != NULL && id == *actual) {
+	while (actual != NULL && id != *actual) {
 		// Recorro la lista hasta que se termine o que encuentre el id correspondiente
 		position++;
 		actual = list_get(get_enviados, position);
@@ -105,7 +105,7 @@ void eliminarGetEnviado(uint32_t id) {
 	if (!getEnviadoConID(id, &index))
 		return;
 
-	list_remove(catch_enviados, index);
+	id_get = list_remove(catch_enviados, index);
 
 	free(id_get);
 

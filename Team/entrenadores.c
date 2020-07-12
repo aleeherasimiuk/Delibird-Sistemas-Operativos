@@ -115,7 +115,7 @@ int cantidadDePokemonesEnInventario(t_list* inventario) {
 }
 
 int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador) {
-	return cantidadDePokemonesEnInventario(entrenador->pokes_actuales) == cantidadDePokemonesEnInventario(entrenador->pokes_objetivos);
+	return cantidadDePokemonesEnInventario(entrenador->pokes_actuales) >= cantidadDePokemonesEnInventario(entrenador->pokes_objetivos);
 }
 
 int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* objetivo) {
@@ -174,8 +174,7 @@ void moverseAlobjetivo(t_entrenador* entrenador) {
 
 void intentarAtraparPokemon(t_tcb* tcb) {
 	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
-	uint32_t id = enviarCatchPokemon(tcb->entrenador->objetivo);
-	addCatchEnviado(id, tcb);
+	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
 	terminarDeEjecutar(tcb);
 	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
 	bloquearPorEsperarCaught(tcb);
