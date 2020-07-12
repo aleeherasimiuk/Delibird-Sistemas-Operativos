@@ -261,10 +261,6 @@ void disminuir_cantidad(t_coords* coordenadas, char* path) {
 
 }
 
-void obtener_posiciones(char* path){
-
-}
-
 
 void leer_archivo(FILE* file) {
 
@@ -384,6 +380,7 @@ void actualizar_bitmap(off_t bloque) {
 
 }
 
+// esta función devuleve los bloques en un array de strings
 char** obtener_bloques(char* path) {
 
 	char** bloques = NULL;
@@ -621,4 +618,38 @@ void actualizar_bitmap_pokemon(char* path) {
 	}
 }
 
+//void leer_bloques_pokemon(char* path) {
+//
+//	char** bloques = obtener_bloques(path);
+//	char* metadataPath = "/Metadata.bin";
+//	t_coords_con_cant* buffer;
+//
+//	for(int i = 0; i < strlen(bloques); i++){
+//		FILE* file = fopen(bloques[i], "r");
+//		while(!feof(file)) {
+//			file = fread();
+//		}
+//
+//	}
+//
+//
+//
+//}
 
+//void obtener_posiciones(char* bloque){
+//
+//}
+//
+//char* obtener_pokemon_del_path(char* path) {
+//
+//	char* caracter;
+//	char** path_separado = string_split(path, "/"); //me retorna un array de strings separados del path en base al /, la ultima posición del array es siempre NULL
+//	char* pokemon;
+//	int i = 0;
+//
+//	while(path_separado[i] != NULL){
+//		pokemon = path_separado[i++];
+//	}
+//
+//	return pokemon;
+//}

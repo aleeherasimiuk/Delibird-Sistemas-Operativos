@@ -35,6 +35,8 @@ typedef struct {
 t_config* leer_metadata(char*);
 void destruir_metadata(t_config*);
 
+//char* obtener_pokemon_del_path(char*);
+
 void unir_paths(char*, char*, char**);
 int  archivo_en_uso(char*);
 char* verificar_pokemon(char*, char*, int);
@@ -57,5 +59,7 @@ char* arreglar_string(char*, char*);
 int chequear_ocupado(int);
 void actualizar_bitmap_pokemon(char*);
 void leer_bloques_pokemon();
+
+void obtener_posiciones(char*);
 
 #endif /* GAMECARD_GESTION_DE_ARCHIVOS_H_ */

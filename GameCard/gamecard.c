@@ -27,8 +27,7 @@ int main() {
 
 	logger = iniciar_logger(logfile);
 
-
-	bitarray = iniciar_bitarray();
+	bitarray = iniciar_bitarray(); //porque me rompe?
 
 	/*t_coords coords;
 
