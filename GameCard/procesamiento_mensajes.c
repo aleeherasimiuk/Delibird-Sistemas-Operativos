@@ -159,7 +159,7 @@ void procesarGet(t_paquete* paquete){
 			sleep(5);
 		}
 
-		obtener_posiciones("/home/utnso/Escritorio/tall-grass/Files");
+		//obtener_posiciones("/home/utnso/Escritorio/tall-grass/Files");
 
 		sleep(5);
 		cerrar_archivo(ruta_pokemon);
