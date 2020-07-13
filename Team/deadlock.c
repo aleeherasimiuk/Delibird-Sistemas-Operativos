@@ -28,6 +28,7 @@ void corregirUnDeadlock(void) {
 	char* pokemon_a_dar;
 
 	t_intercambio* intercambio = malloc(sizeof(t_intercambio));
+	t_list* pokemones_no_necesarios = NULL;
 
 	for (int pos_necesitado = 0; pos_necesitado < cantidad_enrenadores_full; pos_necesitado++) {
 		necesitado = list_get(entrenadores_blocked_full, pos_necesitado);
@@ -49,13 +50,17 @@ void corregirUnDeadlock(void) {
 				// Trato de darle un pokemon que necesite, sino uno random
 				pokemon_a_dar = pokemonQueNoNecesiteYelOtroSi(necesitado->entrenador, buscado->entrenador);
 				if (pokemon_a_dar == NULL) {
-					t_inventario* inv = (t_inventario*) list_get(pokemonesNoNecesariosDe(necesitado->entrenador), 0);
-					pokemon_a_dar = inv->pokemon->name;
+					pokemones_no_necesarios = pokemonesNoNecesariosDe(necesitado->entrenador);
+					t_inventario* inv = (t_inventario*) list_get(pokemones_no_necesarios, 0);
+					pokemon_a_dar = malloc(inv->pokemon->name_size);
+					memcpy(pokemon_a_dar, inv->pokemon->name, inv->pokemon->name_size);	// Lo copio para poder hacer free de la lista entera
 				}
 
 				intercambio->mi_pokemon = pokemon_a_dar;
-
 				necesitado->intercambio = intercambio;
+
+				if (pokemones_no_necesarios != NULL)
+					liberarListaDeInventario(pokemones_no_necesarios);
 
 				cambiarDeLista(buscado, entrenadores_blocked_full, entrenadores_blocked_waiting_trade);
 				cambiarDeLista(necesitado, entrenadores_blocked_full, entrenadores_ready);

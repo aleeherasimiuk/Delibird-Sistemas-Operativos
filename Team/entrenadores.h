@@ -64,6 +64,8 @@ typedef struct t_tcb {
 
 // FIN ESTRUCTURAS
 
+#include "utilsTeam.h"
+
 // FUNCIONES PARA CREACION
 
 /*
@@ -75,7 +77,7 @@ t_coords* crearCoordenadas(char*);
 // Inventario
 t_list* crearListaDeInventario(char*, t_list*);
 void cargarPokemonEnListaDeInventario(t_list*, char*);
-t_inventario* sacarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_name);
+void sacarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_name);
 t_inventario* buscarInventarioPorPokemonName(t_list*, char*, int*);
 
 int cantidadDePokemonesEnInventario(t_list* inventario);

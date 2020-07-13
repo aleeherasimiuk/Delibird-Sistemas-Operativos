@@ -66,7 +66,7 @@ void cargarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_na
 }
 
 // Saca el inventario de la lista, en caso de que no exista devuelve NULL
-t_inventario* sacarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_name) {
+void sacarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_name) {
 	t_inventario* inventario;
 	// Verifico que el pokemon no esté cargado
 	int index;
@@ -76,11 +76,10 @@ t_inventario* sacarPokemonEnListaDeInventario(t_list* lista_inventario, char* po
 		if (inventario->cantidad > 1) {
 			inventario->cantidad--;
 		} else {
-			list_remove(lista_inventario, index);
+			inventario = list_remove(lista_inventario, index);
+			liberarInventario(inventario);
 		}
 	}
-
-	return inventario;
 }
 
 t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name, int* position) {
@@ -119,7 +118,9 @@ t_list* clonarListaInventario (t_list* lista) {
 
 	for (int i = 0; i < list_size(lista); i++) {
 		inv = list_get(lista, i);
-		cargarPokemonEnListaDeInventario(clonada, inv->pokemon->name);
+		for (int j = 0; j < inv->cantidad; j++){
+			cargarPokemonEnListaDeInventario(clonada, inv->pokemon->name);
+		}
 	}
 
 	return clonada;
@@ -153,14 +154,18 @@ int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* o
 
 char* pokemonQueNoNecesiteYelOtroSi(t_entrenador* buscado, t_entrenador* necesitado) {
 	t_list* pokemones_necesitados = pokemonesNecesitadosDe(necesitado);
+	char* pokemon_name = NULL;
 	for (int i = 0; i < list_size(pokemones_necesitados); i++) {
 		t_inventario* inv_pok = list_get(pokemones_necesitados, i);
 		if (tienePokemonYNoLoNecesita(buscado, inv_pok->pokemon->name)) {
-			return inv_pok->pokemon->name;
+			pokemon_name = malloc(inv_pok->pokemon->name_size);
+			memcpy(pokemon_name, inv_pok->pokemon->name, inv_pok->pokemon->name_size);	// Lo copio para poder hacer free de la lista entera
+			break;
 		}
 	}
 
-	return NULL;
+	liberarListaDeInventario(pokemones_necesitados);
+	return pokemon_name;
 }
 
 // Devuelve una lista de t_inventario* con los pokemones que le falta para completar el objetivo
@@ -177,7 +182,7 @@ t_list* diferenciaDeInventarios(t_list* minuendo, t_list* sustraendo) {
 	t_list* resultado = clonarListaInventario(minuendo);
 
 	t_inventario* inv;
-
+	t_inventario* inventario_sacado;
 	for(int i = 0; i < list_size(sustraendo); i++) {
 		inv = list_get(sustraendo, i);
 		sacarPokemonEnListaDeInventario(resultado, inv->pokemon->name);
@@ -186,7 +191,13 @@ t_list* diferenciaDeInventarios(t_list* minuendo, t_list* sustraendo) {
 }
 
 int tienePokemonYNoLoNecesita(t_entrenador* entrenador, char* pokemon_name) {
-	return buscarInventarioPorPokemonName(pokemonesNoNecesariosDe(entrenador), pokemon_name, NULL) != NULL;
+	t_list* pokemones_no_necesarios = pokemonesNoNecesariosDe(entrenador);
+	t_inventario* inv = buscarInventarioPorPokemonName(pokemones_no_necesarios, pokemon_name, NULL);
+	int resultado = inv != NULL;
+
+	liberarListaDeInventario(pokemones_no_necesarios);
+
+	return resultado;
 }
 
 //////////////////////////////////////////
@@ -262,6 +273,10 @@ void realizarIntercambio(t_tcb* tcb) {
 
 	cambiarListaSegunObjetivo(tcb_intercambio, entrenadores_blocked_waiting_trade); // TODO entrenadores_blocked_in_deadlock
 	cambiarListaSegunObjetivo(tcb, NULL);
+
+	free(tcb->intercambio->mi_pokemon);
+	free(tcb->intercambio->su_pokemon);
+	free(tcb->intercambio);
 }
 
 void *entrenadorMain(void* arg) {

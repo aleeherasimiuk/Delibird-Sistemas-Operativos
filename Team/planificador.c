@@ -49,7 +49,6 @@ t_pokemon_en_mapa* crearPokemonEnMapa(t_pokemon* pokemon, t_coords* posicion) {
 //////////////////////////////////////
 
 void cargarEntrenadores(void) {
-	entrenadores_new = list_create();
 	actuales_global = list_create();
 	objetivo_global = list_create();
 	sem_init(&counter_entrenadores_disponibles, 0, 0);
@@ -167,6 +166,7 @@ void* sacarDeLista(t_tcb* tcb, t_list* lista) {
 }
 
 void agregarALista(t_tcb* tcb, t_list* lista) {
+	// TODO mandar a finalizado
 	list_add(lista, tcb);
 
 	if (tcb != NULL) {
@@ -175,7 +175,7 @@ void agregarALista(t_tcb* tcb, t_list* lista) {
 			sem_post(&counter_entrenadores_disponibles);
 		} else if (lista == entrenadores_ready) {
 			sem_post(&counter_entrenadores_ready);
-		} else if (lista == entrenadores_blocked_full || lista == entrenadores_exit) {
+		} else if (lista == entrenadores_blocked_full) {
 			// Verifico si el team ya está lleno, en cuyo caso lanzo algoritmo de deteccion de deadlock
 			pthread_t thread;	// Lo ejecuto en un hilo, porque sino nunca se completaria el agregarLista
 			pthread_create(&thread, NULL, verificarSiTeamTerminoDeCapturar, NULL);
