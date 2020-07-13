@@ -101,11 +101,10 @@ t_inventario* buscarInventarioPorPokemonName(t_list* lista, char* pokemon_name, 
 }
 
 int cantidadDePokemonesEnInventario(t_list* inventario) {
-	int pos = 0;
 	int cantidadTotal = 0;
 	t_inventario* inv;
 
-	for(; pos < inventario->elements_count; pos++)
+	for(int pos = 0; pos < list_size(inventario); pos++)
 	{
 		inv = list_get(inventario, pos);
 		cantidadTotal += inv->cantidad;
@@ -127,6 +126,45 @@ int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* o
 	} else {
 		return 1;	// Si no se tiene ese objetivo no se deberia llegar a este punto
 	}
+}
+
+char* pokemonQueNoNecesiteYelOtroSi(t_entrenador* buscado, t_entrenador* necesitado) {
+	t_list* pokemones_necesitados = pokemonesNecesitadosDe(necesitado);
+
+	for (int i = 0; i < list_size(pokemones_necesitados); i++) {
+		t_inventario* inv_pok = list_get(pokemones_necesitados, i);
+		if (tienePokemonYNoLoNecesita(buscado, inv_pok->pokemon->name)) {
+			return inv_pok->pokemon->name;
+		}
+	}
+
+	return NULL;
+}
+
+// Devuelve una lista de t_inventario* con los pokemones que le falta para completar el objetivo
+t_list* pokemonesNecesitadosDe(t_entrenador* entrenador) {
+	return diferenciaDeInventarios(entrenador->pokes_objetivos, entrenador->pokes_actuales);
+}
+
+// Devuelve lista de t_inventario* con los pokemones que le sobren (no necesarios para el objetivo) al entrenador
+t_list* pokemonesNoNecesariosDe(t_entrenador* entrenador) {
+	return diferenciaDeInventarios(entrenador->pokes_actuales, entrenador->pokes_objetivos);
+}
+
+t_list* diferenciaDeInventarios(t_list* minuendo, t_list* sustraendo) {
+	t_list* resultado = list_duplicate(minuendo);
+
+	t_inventario* inv;
+
+	for(int i = 0; i < list_size(sustraendo); i++) {
+		inv = list_get(sustraendo, i);
+		sacarPokemonEnListaDeInventario(resultado, inv->pokemon->name);
+	}
+	return resultado;
+}
+
+int tienePokemonYNoLoNecesita(t_entrenador* entrenador, char* pokemon_name) {
+	return buscarInventarioPorPokemonName(pokemonesNoNecesariosDe(entrenador), pokemon_name, NULL) != NULL;
 }
 
 //////////////////////////////////////////

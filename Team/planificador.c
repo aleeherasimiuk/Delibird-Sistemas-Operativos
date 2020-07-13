@@ -29,6 +29,8 @@ sem_t counter_pokemones_libres; // para ver si hay pokemones que no están siend
 sem_t counter_entrenadores_disponibles; // para ver si hay entrenadores disponibles (new/blocked_idle)
 sem_t counter_entrenadores_ready;
 
+int entrenadores_cargando = 1; // para que no se pueda ejecutar el algoritmo de deadlock
+
 //////////////////////////////////////
 //				STRUCTS				//
 //////////////////////////////////////
@@ -77,7 +79,13 @@ void cargarEntrenadores(void) {
 
 		sem_init(&(tcb_nuevo->sem_ejecucion), 0, 0); // TODO pthread_mutex_destroy cuando se deje de usar para siempre
 
+		if (posiciones_entrenadores[i + 1] == NULL)	// Si es el ultimo entrenador en cargarse, activo que se pueda ejecutar el deadlock
+			entrenadores_cargando = 0;
+
+
 		if (entrenadorAlMaximoDeCapacidad(tcb_nuevo->entrenador)) {
+
+
 			agregarALista(tcb_nuevo, entrenadores_blocked_full); // Si ya viene lleno desde el config, lo mando a full
 		} else {
 			agregarALista(tcb_nuevo, entrenadores_new);
@@ -161,9 +169,13 @@ void agregarALista(t_tcb* tcb, t_list* lista) {
 		// no se puede hacer switch en punteros
 		if (lista == entrenadores_new || lista == entrenadores_blocked_idle) {
 			sem_post(&counter_entrenadores_disponibles);
-		}
-		else if (lista == entrenadores_ready) {
+		} else if (lista == entrenadores_ready) {
 			sem_post(&counter_entrenadores_ready);
+		} else if (lista == entrenadores_blocked_full || lista == entrenadores_exit) {
+			// Verifico si el team ya está lleno, en cuyo caso lanzo algoritmo de deteccion de deadlock
+			pthread_t thread;	// Lo ejecuto en un hilo, porque sino nunca se completaria el agregarLista
+			pthread_create(&thread, NULL, verificarSiTeamTerminoDeCapturar, NULL);
+			pthread_detach(thread);
 		}
 	}
 }
@@ -177,7 +189,6 @@ void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
 void cambiarListaSegunCapacidad(t_tcb* tcb) {
 	if (entrenadorAlMaximoDeCapacidad(tcb->entrenador)) {
 		cambiarDeLista(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_full);
-		// TODO Ejecutar detectar deadlock, ver de meter en el agregarLista de blocked_full
 	} else {
 		cambiarDeLista(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_idle);
 	}
@@ -409,4 +420,27 @@ void buscarPokemonAuxiliarYPasarAlMapa(char* pokemon_name) {
 		queue_push(pokemones_en_el_mapa, actual);
 		sem_post(&counter_pokemones_libres);
 	}
+}
+
+int teamAlMaximoDeCapacidad(void) {
+	return cantidadDePokemonesEnInventario(actuales_global) >= cantidadDePokemonesEnInventario(objetivo_global);
+}
+
+void* verificarSiTeamTerminoDeCapturar(void* _) {
+	if (entrenadores_cargando)
+		return NULL;
+
+	if (teamAlMaximoDeCapacidad()) {
+
+		deteccionYCorreccionDeadlock();	// Sigo verificando hasta terminar todos los dea
+		// Deadlocks ++
+
+
+		if (list_size(entrenadores_blocked_full) == 1) {
+			log_debug(logger, "El entrenador %d es el único que no pudo cumplir su objetivo", ((t_tcb*)entrenadores_blocked_full->head)->entrenador->id_entrenador);
+		} else {
+			// TODO FINALIZAR TEAM
+		}
+	}
+	return NULL;
 }

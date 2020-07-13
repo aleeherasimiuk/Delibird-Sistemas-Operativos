@@ -11,6 +11,7 @@
 #include<commons/config.h>
 #include<commons/log.h>
 #include<commons/collections/list.h>
+#include<stdint.h>
 
 extern t_config* config;
 extern t_log* logger;

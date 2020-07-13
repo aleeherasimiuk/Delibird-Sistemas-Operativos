@@ -50,8 +50,8 @@ typedef struct {
 
 typedef struct {
 	t_entrenador* entrenador;
-	//pthread_t thread; // TODO Referencia al hilo=???
 	sem_t sem_ejecucion; // Solo se activa cuando pasa a exec
+
 	// TODO Agregar info para los distintos algoritmos de planificacion
 } t_tcb;
 
@@ -74,6 +74,11 @@ t_inventario* buscarInventarioPorPokemonName(t_list*, char*, int*);
 int cantidadDePokemonesEnInventario(t_list* inventario);
 int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador);
 int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* objetivo);
+
+char* pokemonQueNoNecesiteYelOtroSi(t_entrenador* buscado, t_entrenador* necesitado);
+t_list* pokemonesNecesitadosDe(t_entrenador* entrenador);
+t_list* pokemonesNoNecesariosDe(t_entrenador* entrenador);
+t_list* diferenciaDeInventarios(t_list* minuendo, t_list* sustraendo);
 
 // Movimiento
 int distanciaA(t_coords*, t_coords*);

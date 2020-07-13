@@ -12,6 +12,7 @@
 #include "conexionesTeam.h"
 #include "entrenadores.h"
 #include "planificador.h"
+#include "deadlock.h"
 #include "var_globales.h"
 
 

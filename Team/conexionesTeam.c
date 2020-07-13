@@ -85,6 +85,7 @@ void *escucharAlSocket(void* data) {
 	t_escucha_socket* escucha_socket = (t_escucha_socket*) data;
 	int socket = escucha_socket->socket;
 	message_type cola = escucha_socket->cola;
+	pthread_t* thread;
 
 	int i = 1;
 	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
@@ -99,23 +100,26 @@ void *escucharAlSocket(void* data) {
 
 			switch(paquete->type) {
 				case APPEARED_POKEMON:
-					procesarAppeared(paquete);
+					pthread_create(&thread, NULL, procesarAppeared, paquete);
+					pthread_detach(thread);
 					break;
 				case LOCALIZED_POKEMON:
-					procesarLocalized(paquete);
+					pthread_create(&thread, NULL, procesarLocalized, paquete);
+					pthread_detach(thread);
 					// log_debug(logger, "Que Google Maps ni Google Maps!. Localized Pokemon PAPÁ");
 					break;
 				case CAUGHT_POKEMON:
-					procesarCaughtPokemon(paquete);
+					pthread_create(&thread, NULL, procesarCaughtPokemon, paquete);
+					pthread_detach(thread);
 					break;
 				default:
 					log_debug(logger, "What is this SHIT?.");
 					break;
 			}
 
-			free(ptrStream);
-			free(paquete->buffer);
-			free(paquete);
+			//free(ptrStream);
+			//free(paquete->buffer);
+			//free(paquete);
 		} else {
 			// Políticas de reconexión
 			close(socket);

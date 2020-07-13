@@ -60,5 +60,7 @@ void realizarXCiclosDeCPU(int cant_ciclos);
 int pokemonNecesario(t_pokemon*);
 void agregarPokemonAlMapa(t_pokemon*, t_coords*);
 void buscarPokemonAuxiliarYPasarAlMapa(char* pokemon_name);
+int teamAlMaximoDeCapacidad(void);
+void* verificarSiTeamTerminoDeCapturar(void*);
 
 #endif /* PLANIFICADOR_H_ */
