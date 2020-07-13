@@ -118,6 +118,7 @@ void* queue(void* message_type){
 	 * Si el paquete efectivamente se recibió se envía a todos los suscriptores y se guarda en la caché
 	 *
 	 *
+	 * Si el paquete posee un id correlativo que ya existe, el mensaje se ignora.
 	 * */
 
 	uint32_t type = (uint32_t) message_type;
