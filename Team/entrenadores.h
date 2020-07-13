@@ -48,7 +48,14 @@ typedef struct {
 	t_list* pokes_objetivos;
 } t_entrenador;
 
-typedef struct {
+typedef struct t_intercambio {
+	struct t_tcb* tcb;
+	char* mi_pokemon;
+	char* su_pokemon;
+} t_intercambio;
+
+typedef struct t_tcb {
+	t_intercambio* intercambio;
 	t_entrenador* entrenador;
 	sem_t sem_ejecucion; // Solo se activa cuando pasa a exec
 
@@ -72,6 +79,7 @@ t_inventario* sacarPokemonEnListaDeInventario(t_list* lista_inventario, char* po
 t_inventario* buscarInventarioPorPokemonName(t_list*, char*, int*);
 
 int cantidadDePokemonesEnInventario(t_list* inventario);
+t_list* clonarListaInventario (t_list* lista);
 int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador);
 int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* objetivo);
 
@@ -83,10 +91,11 @@ t_list* diferenciaDeInventarios(t_list* minuendo, t_list* sustraendo);
 // Movimiento
 int distanciaA(t_coords*, t_coords*);
 int signo(int n);
-void moverseAlobjetivo(t_entrenador* entrenador);
+void moverseAlobjetivo(t_coords** pos_actual, t_coords* posicion_destino, uint32_t id_entrenador);
 
 // Ejecución
 void intentarAtraparPokemon(t_tcb* tcb);
+void realizarIntercambio(t_tcb* tcb);
 void *entrenadorMain(void*);
 
 #endif /* ENTRENADORES_H_ */

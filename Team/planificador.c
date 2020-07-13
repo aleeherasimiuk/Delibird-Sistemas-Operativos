@@ -12,6 +12,7 @@ t_list* entrenadores_ready; // lista de t_tcb*
 t_list* entrenadores_blocked_idle; // lista de t_tcb* que se bloquea sin tareas
 t_list* entrenadores_blocked_waiting_caught; // acá van los que se bloquean esperando a recibir un caught
 t_list* entrenadores_blocked_full; // Bloqueados por no poder agarrar mas pokemones, pero no cumplen su objetivo
+t_list* entrenadores_blocked_waiting_trade; // Bloqueados por esperar a que alguien venga a hacer un intercambio
 t_list* entrenadores_exit; // lista de t_tcb*
 t_tcb* entrenador_exec;
 
@@ -79,6 +80,8 @@ void cargarEntrenadores(void) {
 
 		sem_init(&(tcb_nuevo->sem_ejecucion), 0, 0); // TODO pthread_mutex_destroy cuando se deje de usar para siempre
 
+		tcb_nuevo->intercambio = NULL;
+
 		if (posiciones_entrenadores[i + 1] == NULL)	// Si es el ultimo entrenador en cargarse, activo que se pueda ejecutar el deadlock
 			entrenadores_cargando = 0;
 
@@ -118,6 +121,7 @@ void iniciarPlanificador(void) {
 	entrenadores_blocked_idle = list_create();
 	entrenadores_blocked_waiting_caught = list_create();
 	entrenadores_blocked_full = list_create();
+	entrenadores_blocked_waiting_trade = list_create();
 	entrenadores_exit = list_create();
 
 	pokemones_en_el_mapa = queue_create();
@@ -181,9 +185,11 @@ void agregarALista(t_tcb* tcb, t_list* lista) {
 }
 
 void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
-	t_tcb* tcb_sacado = sacarDeLista(tcb, lista_actual);
 
-	agregarALista(tcb_sacado, lista_destino);
+	if (lista_actual != NULL)
+		sacarDeLista(tcb, lista_actual);
+
+	agregarALista(tcb, lista_destino);
 }
 
 void cambiarListaSegunCapacidad(t_tcb* tcb) {
@@ -191,6 +197,15 @@ void cambiarListaSegunCapacidad(t_tcb* tcb) {
 		cambiarDeLista(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_full);
 	} else {
 		cambiarDeLista(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_idle);
+	}
+}
+
+void cambiarListaSegunObjetivo(t_tcb* tcb, t_list* lista_actual) {
+	if (entrenadorCumpleObjetivo(tcb->entrenador)) {
+		log_debug(logger, "Felicidades! El entrenador %d cumplió su objetivo", tcb->entrenador->id_entrenador);
+		cambiarDeLista(tcb, lista_actual, entrenadores_exit);
+	} else {
+		cambiarDeLista(tcb, lista_actual, entrenadores_blocked_full);
 	}
 }
 
@@ -433,14 +448,6 @@ void* verificarSiTeamTerminoDeCapturar(void* _) {
 	if (teamAlMaximoDeCapacidad()) {
 
 		deteccionYCorreccionDeadlock();	// Sigo verificando hasta terminar todos los dea
-		// Deadlocks ++
-
-
-		if (list_size(entrenadores_blocked_full) == 1) {
-			log_debug(logger, "El entrenador %d es el único que no pudo cumplir su objetivo", ((t_tcb*)entrenadores_blocked_full->head)->entrenador->id_entrenador);
-		} else {
-			// TODO FINALIZAR TEAM
-		}
 	}
 	return NULL;
 }

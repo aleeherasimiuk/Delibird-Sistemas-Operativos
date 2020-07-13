@@ -113,8 +113,31 @@ int cantidadDePokemonesEnInventario(t_list* inventario) {
 	return cantidadTotal;
 }
 
+t_list* clonarListaInventario (t_list* lista) {
+	t_list* clonada = list_create();
+	t_inventario* inv;
+
+	for (int i = 0; i < list_size(lista); i++) {
+		inv = list_get(lista, i);
+		cargarPokemonEnListaDeInventario(clonada, inv->pokemon->name);
+	}
+
+	return clonada;
+}
+
 int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador) {
 	return cantidadDePokemonesEnInventario(entrenador->pokes_actuales) >= cantidadDePokemonesEnInventario(entrenador->pokes_objetivos);
+}
+
+int entrenadorCumpleObjetivo(t_entrenador* entrenador) {
+	t_inventario* pok;
+	for(int i = 0; i < list_size(entrenador->pokes_objetivos); i++) {
+		pok = list_get(entrenador->pokes_objetivos, i);
+		if (!objetivoCumplidoSegunPokemon(pok->pokemon, entrenador->pokes_actuales, entrenador->pokes_objetivos)) {
+			return 0;
+		}
+	}
+	return 1;
 }
 
 int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* objetivo) {
@@ -130,7 +153,6 @@ int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* o
 
 char* pokemonQueNoNecesiteYelOtroSi(t_entrenador* buscado, t_entrenador* necesitado) {
 	t_list* pokemones_necesitados = pokemonesNecesitadosDe(necesitado);
-
 	for (int i = 0; i < list_size(pokemones_necesitados); i++) {
 		t_inventario* inv_pok = list_get(pokemones_necesitados, i);
 		if (tienePokemonYNoLoNecesita(buscado, inv_pok->pokemon->name)) {
@@ -152,7 +174,7 @@ t_list* pokemonesNoNecesariosDe(t_entrenador* entrenador) {
 }
 
 t_list* diferenciaDeInventarios(t_list* minuendo, t_list* sustraendo) {
-	t_list* resultado = list_duplicate(minuendo);
+	t_list* resultado = clonarListaInventario(minuendo);
 
 	t_inventario* inv;
 
@@ -184,24 +206,21 @@ int signo(int n) {
 	return (0 < n) - (n < 0);
 }
 
-void moverseAlobjetivo(t_entrenador* entrenador) {
-	t_coords* pos = entrenador->posicion;
-	t_pokemon_en_mapa* obj = entrenador->objetivo;
-
-	int direccion = signo(obj->posicion->posX - pos->posX);
-	log_debug(logger, "El entrenador %d va a buscar un %s en la posición x: %d y: %d", entrenador->id_entrenador, obj->pokemon->name, obj->posicion->posX, obj->posicion->posY);
-	for (int x = pos->posX + direccion; pos->posX != obj->posicion->posX; x += direccion) {
+void moverseAlobjetivo(t_coords** pos_actual, t_coords* posicion_destino, uint32_t id_entrenador) {
+	t_coords* posicion_actual = *pos_actual;
+	int direccion = signo(posicion_destino->posX - posicion_actual->posX);
+	for (int x = posicion_actual->posX + direccion; posicion_actual->posX != posicion_destino->posX; x += direccion) {
 		realizarCicloDeCPU();
-		pos->posX = x;
-		log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", entrenador->id_entrenador, pos->posX, pos->posY);
+		posicion_actual->posX = x;
+		log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
 	}
 
-	direccion = signo(obj->posicion->posY - pos->posY);
+	direccion = signo(posicion_destino->posY - posicion_actual->posY);
 
-	for (int y = pos->posY + direccion; pos->posY != obj->posicion->posY; y += direccion) {
+	for (int y = posicion_actual->posY + direccion; posicion_actual->posY != posicion_destino->posY; y += direccion) {
 		realizarCicloDeCPU();
-		pos->posY = y;
-		log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", entrenador->id_entrenador, pos->posX, pos->posY);
+		posicion_actual->posY = y;
+		log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
 	}
 }
 
@@ -218,6 +237,33 @@ void intentarAtraparPokemon(t_tcb* tcb) {
 	bloquearPorEsperarCaught(tcb);
 }
 
+void realizarIntercambio(t_tcb* tcb) {
+	t_tcb* tcb_intercambio = tcb->intercambio->tcb;
+
+	log_debug(logger, "Se va a hacer el intercambio entre el entrenador %d y el entrenador %d", tcb->entrenador->id_entrenador, tcb_intercambio->entrenador->id_entrenador);
+
+	realizarCicloDeCPU();
+
+	sacarPokemonEnListaDeInventario(tcb_intercambio->entrenador->pokes_actuales, tcb->intercambio->su_pokemon);
+
+	realizarCicloDeCPU();
+
+	cargarPokemonEnListaDeInventario(tcb->entrenador->pokes_actuales, tcb->intercambio->su_pokemon);
+
+	realizarCicloDeCPU();
+
+	sacarPokemonEnListaDeInventario(tcb->entrenador->pokes_actuales, tcb->intercambio->mi_pokemon);
+
+	realizarCicloDeCPU();
+
+	cargarPokemonEnListaDeInventario(tcb_intercambio->entrenador->pokes_actuales, tcb->intercambio->mi_pokemon);
+
+	realizarCicloDeCPU();
+
+	cambiarListaSegunObjetivo(tcb_intercambio, entrenadores_blocked_waiting_trade); // TODO entrenadores_blocked_in_deadlock
+	cambiarListaSegunObjetivo(tcb, NULL);
+}
+
 void *entrenadorMain(void* arg) {
 	t_tcb* tcb = (t_tcb*)arg;
 	t_entrenador* entrenador = tcb->entrenador;
@@ -227,14 +273,28 @@ void *entrenadorMain(void* arg) {
 		sem_wait(&(tcb->sem_ejecucion));
 		log_debug(logger, "Entrenador %d empieza a ejecutarse", entrenador->id_entrenador);
 
+
 		// Moverse al objetivo
-		moverseAlobjetivo(entrenador);
-		log_debug(logger, "El entrenador %d llega a su objetivo", entrenador->id_entrenador);
+		if (entrenador->objetivo != NULL) {
+			log_debug(logger, "El entrenador %d va a buscar un %s en la posición x: %d y: %d", entrenador->id_entrenador, entrenador->objetivo->pokemon->name, entrenador->objetivo->posicion->posX, entrenador->objetivo->posicion->posY);
 
-		terminarDeEjecutar();
-		log_debug(logger, "Entrenador %d va a intentar atrapar al pokemon", entrenador->id_entrenador);
+			moverseAlobjetivo(&entrenador->posicion, entrenador->objetivo->posicion, entrenador->id_entrenador);
 
-		intentarAtraparPokemon(tcb);
+			terminarDeEjecutar();
+
+			intentarAtraparPokemon(tcb);
+
+			log_debug(logger, "El entrenador %d llega a su objetivo", entrenador->id_entrenador);
+		} else if (tcb->intercambio != NULL) {
+			log_debug(logger, "El entrenador %d va a ir a la posicion del entrenador %d para realizar un intercambio de %s, por %s", entrenador->id_entrenador, tcb->intercambio->tcb->entrenador->id_entrenador, tcb->intercambio->mi_pokemon, tcb->intercambio->su_pokemon);
+
+			moverseAlobjetivo(&entrenador->posicion, tcb->intercambio->tcb->entrenador->posicion, entrenador->id_entrenador);
+			terminarDeEjecutar();
+
+			realizarIntercambio(tcb);
+		}
+
+
 
 		// intento atrapar y se bloquea
 
