@@ -12,9 +12,16 @@
 #include <string.h>
 #include <commons/string.h>
 #include <commons/collections/list.h>
+#include <semaphore.h>
 
 #include "../Utils/mensajes.h"
 #include "var_globales.h"
+
+
+typedef struct {
+	t_pokemon* pokemon;
+	t_coords* posicion;
+} t_pokemon_en_mapa;
 
 // STRUCT ENTRENADOR
 
@@ -36,19 +43,28 @@ typedef struct {
 typedef struct {
 	uint32_t id_entrenador;
 	t_coords* posicion;
-	t_coords* destino;
+	t_pokemon_en_mapa* objetivo;
 	t_list* pokes_actuales;
 	t_list* pokes_objetivos;
 } t_entrenador;
 
-typedef struct {
+typedef struct t_intercambio {
+	struct t_tcb* tcb;
+	char* mi_pokemon;
+	char* su_pokemon;
+} t_intercambio;
+
+typedef struct t_tcb {
+	t_intercambio* intercambio;
 	t_entrenador* entrenador;
-	//pthread_t thread; // TODO Referencia al hilo=???
-	pthread_mutex_t mutex_ejecucion; // Solo se activa cuando pasa a exec
+	sem_t sem_ejecucion; // Solo se activa cuando pasa a exec
+
 	// TODO Agregar info para los distintos algoritmos de planificacion
 } t_tcb;
 
 // FIN ESTRUCTURAS
+
+#include "utilsTeam.h"
 
 // FUNCIONES PARA CREACION
 
@@ -57,17 +73,31 @@ typedef struct {
  */
 // Inicializacion
 t_coords* crearCoordenadas(char*);
+
+// Inventario
 t_list* crearListaDeInventario(char*, t_list*);
 void cargarPokemonEnListaDeInventario(t_list*, char*);
-t_inventario* buscarInventarioPorPokemonName(t_list*, char*);
-int distanciaA(t_coords*, t_coords*);
+void sacarPokemonEnListaDeInventario(t_list* lista_inventario, char* pokemon_name);
+t_inventario* buscarInventarioPorPokemonName(t_list*, char*, int*);
 
-// Estados
-int indexOf(t_tcb* tcb, t_list* lista);
-void* sacarDeLista(t_tcb* tcb, t_list* lista);
-void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino);
+int cantidadDePokemonesEnInventario(t_list* inventario);
+t_list* clonarListaInventario (t_list* lista);
+int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador);
+int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* objetivo);
+
+char* pokemonQueNoNecesiteYelOtroSi(t_entrenador* buscado, t_entrenador* necesitado);
+t_list* pokemonesNecesitadosDe(t_entrenador* entrenador);
+t_list* pokemonesNoNecesariosDe(t_entrenador* entrenador);
+t_list* diferenciaDeInventarios(t_list* minuendo, t_list* sustraendo);
+
+// Movimiento
+int distanciaA(t_coords*, t_coords*);
+int signo(int n);
+void moverseAlobjetivo(t_coords** pos_actual, t_coords* posicion_destino, uint32_t id_entrenador);
 
 // Ejecución
+void intentarAtraparPokemon(t_tcb* tcb);
+void realizarIntercambio(t_tcb* tcb);
 void *entrenadorMain(void*);
 
 #endif /* ENTRENADORES_H_ */

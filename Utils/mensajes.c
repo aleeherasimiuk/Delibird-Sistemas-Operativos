@@ -75,6 +75,9 @@ void* serializarCatchPokemon(t_catch_pokemon* catch_pokemon, uint32_t * bytes) {
 
 	void* serialized_catch_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
+	free(serialized_pokemon);
+	free(serialized_coords);
+
 	return serialized_catch_pokemon;
 }
 
@@ -246,6 +249,8 @@ t_ack* deserializarACK(t_buffer* buffer){
 }
 
 //Firmas de Deserialización
+
+/// ESTO MUEVE EL PUNTERO DEL STREAM
 t_pokemon* deserializarPokemon(t_buffer** buffer) {
 
 	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
@@ -255,7 +260,7 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 
 	pokemon -> name = malloc(pokemon -> name_size);
 	memcpy(pokemon -> name, (*buffer) -> stream, pokemon -> name_size);
-	(*buffer) -> stream += pokemon -> name_size * sizeof(char);
+	(*buffer) -> stream += (pokemon -> name_size - 1) * sizeof(char);
 
 	char* name = pokemon -> name;
 	name[pokemon -> name_size - 1] = '\0';
@@ -263,7 +268,7 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 	return pokemon;
 }
 
-
+/// ESTO MUEVE EL PUNTERO DEL STREAM
 t_coords* deserializarCoordenadas(t_buffer** buffer) {
 
 	t_coords* coords = malloc(sizeof(t_coords));
@@ -335,8 +340,7 @@ t_catch_pokemon* deserializarCatchPokemon(t_buffer* buffer) {
 
 t_caught_pokemon* deserializarCaughtPokemon(t_buffer* buffer){
 
-	t_caught_pokemon* caught_pok = malloc(sizeof(t_caught_pokemon));
-	caught_pok = (uint32_t*) buffer -> stream;
+	t_caught_pokemon* caught_pok = (uint32_t*) buffer -> stream;
 
 	return caught_pok;
 
@@ -495,9 +499,9 @@ t_paquete* recibirPaqueteSi(int socket, message_type type) {
 t_pokemon* crearPokemon(char* name) {
 	t_pokemon* pokemon = malloc(sizeof(t_pokemon));
 	pokemon->name_size = strlen(name) + 1;
-	pokemon->name = name;
-	//pokemon->name = malloc(pokemon->name_size);
-	//memcpy(pokemon->name, name, pokemon->name_size);
+	//strcpy(pokemon->name, name);
+	pokemon->name = malloc(pokemon->name_size);
+	memcpy(pokemon->name, name, pokemon->name_size);
 
 	return pokemon;
 }
