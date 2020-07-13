@@ -24,8 +24,9 @@
 
 t_config* leer_config(void);
 void iniciarSubscribers(void);
-t_log* iniciar_logger(char*);
+t_log* iniciar_logger(char*, char*);
 void iniciarSignals();
+void cerrar_servidor();
 void terminar_programa(int);
 
 

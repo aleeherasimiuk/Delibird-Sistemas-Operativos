@@ -16,6 +16,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "mensajes.h"
+#include <commons/log.h>
 
 #define CANT_CONNECT -10
 

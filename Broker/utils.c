@@ -8,10 +8,11 @@
 #include"utils.h"
 #include"var_globales.h"
 
+int server_socket;
 
 void iniciar_servidor(char* ip, char* puerto){
 	pthread_mutex_init(&id_mx, NULL);
-	crear_servidor(ip, puerto, serve_client);
+	crear_servidor_cuando_se_pueda(ip, puerto, serve_client, logger_extra);
 }
 
 void serve_client(int* socket) {

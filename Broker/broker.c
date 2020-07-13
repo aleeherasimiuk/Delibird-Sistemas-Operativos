@@ -10,25 +10,28 @@
 
 t_config* config = NULL;
 t_log* logger = NULL;
+t_log* logger_extra = NULL;
 
 int main(void) {
 
 	char* ip;
 	char* puerto;
 	char* logfile;
+	char* log_extra;
 
 	config = leer_config();
 
-	ip      = config_get_string_value(config, "IP");
-	puerto  = config_get_string_value(config, "PUERTO");
-	logfile = config_get_string_value(config, "LOG_FILE");
-
+	ip        = config_get_string_value(config, "IP");
+	puerto    = config_get_string_value(config, "PUERTO");
+	logfile   = config_get_string_value(config, "LOG_FILE");
+	log_extra = config_get_string_value(config, "LOG_EXTRA");
 	/*Test Valgrind*/
 //	ip      = "127.0.0.1";
 //	puerto  = "5003";
 //	logfile = "/home/utnso/log_broker.txt";
 
-	logger = iniciar_logger(logfile);
+	logger = iniciar_logger(logfile, "BROKER");
+	logger_extra = iniciar_logger(log_extra, "SERVER");
 	iniciarSignals();
 	iniciarMemoria();
 	iniciarSubscribers();
@@ -46,9 +49,11 @@ t_config* leer_config(void){
 	return config_create("broker.config");
 }
 
-t_log* iniciar_logger(char* logfile){
-	return log_create(logfile, "Broker", true, LOG_LEVEL_INFO);
+t_log* iniciar_logger(char* logfile, char* name){
+	return log_create(logfile, name, true, LOG_LEVEL_INFO);
 }
+
+
 
 void iniciarSignals(){
 	signal(SIGUSR1, dump_cache);
@@ -57,15 +62,16 @@ void iniciarSignals(){
 
 void terminar_programa(int signal){
 
+	close(server_socket);
+
 	if(config != NULL)
 		config_destroy(config);
 
 	if(logger != NULL)
 		log_destroy(logger);
-
-	//destruir_colas();
+//
+//	//destruir_colas();
 	destruir_mensajes();
-
 	exit(0);
 
 }
