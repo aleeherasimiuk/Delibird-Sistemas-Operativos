@@ -139,8 +139,17 @@ void* queue(void* message_type){
 
 		if(paquete != NULL){
 			log_info(logger, "Se recibió un mensaje en la cola <%s>", queue_name(type));
-			send_to_subscribers(paquete);
-			guardar(paquete);
+			int ya_existe = existe_id_correlativo(paquete -> correlative_id);
+
+			if(!ya_existe){
+				send_to_subscribers(paquete);
+				guardar(paquete);
+			} else {
+				log_info(logger_extra, "Se ignorará el mensaje por haberse repetido el ID Correlativo: #%d", paquete -> correlative_id);
+				free(paquete -> buffer -> stream);
+				free(paquete -> buffer);
+				free(paquete);
+			}
 		}
 
 	}
@@ -262,6 +271,10 @@ int fueEnviado(t_paquete* paquete, t_client* client){
 	return status_msg -> ack;
 }
 
+int existe_id_correlativo(int id_correlativo){
+	return obtenerMensajeIDCorrelativo(id_correlativo) != NULL;
+}
+
 clientes_por_mensaje_t* agregarMensaje(t_paquete* paquete){
 
 	clientes_por_mensaje_t* cxm = malloc(sizeof(clientes_por_mensaje_t));
@@ -309,6 +322,27 @@ clientes_por_mensaje_t* obtenerMensajeYPosicion(int id_mensaje, int* posicion){
 
 		if(msg -> id_mensaje == id_mensaje){
 			*posicion = i;
+			return msg;
+		}
+
+	}
+	return NULL;
+
+}
+
+clientes_por_mensaje_t* obtenerMensajeIDCorrelativo(int id_correlativo){
+
+	pthread_mutex_lock(&msg_mx);
+	int size = list_size(mensajes);
+	pthread_mutex_unlock(&msg_mx);
+
+	for(int i = 0; i < size; i++){
+
+		pthread_mutex_lock(&msg_mx);
+		clientes_por_mensaje_t* msg = list_get(mensajes, i);
+		pthread_mutex_unlock(&msg_mx);
+
+		if(msg -> id_correlativo == id_correlativo){
 			return msg;
 		}
 
