@@ -8,6 +8,7 @@
 #ifndef VAR_GLOBALES_H_
 #define VAR_GLOBALES_H_
 
+#include<semaphore.h>
 #include<commons/config.h>
 #include<commons/log.h>
 #include<commons/collections/list.h>
@@ -26,5 +27,9 @@ extern t_list* entrenadores_blocked_waiting_trade;
 extern t_list* entrenadores_exit; // lista de t_tcb*
 
 extern t_list* actuales_global;
+
+// mutexs
+
+extern sem_t mutex_entrenadores_blocked_full;
 
 #endif /* VAR_GLOBALES_H_ */

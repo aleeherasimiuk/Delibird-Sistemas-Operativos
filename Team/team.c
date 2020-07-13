@@ -14,6 +14,9 @@ int main() {
 	logger = iniciar_logger(logfile);
 
 	inicializar_team();
+
+	log_debug(logger, "El team finaliza satisfactoriamente");
+	terminar_programa(logger, config);
 	return 1;
 }
 
@@ -28,7 +31,7 @@ void inicializar_team(void) {
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
 	enviarGetsAlBroker();
 	escucharAlGameboy();
-	suscribirseAlBroker();
+	suscribirseAlBroker();	// Tiene que estar a lo ultimo ya que tiene los wait ara que los entrenadores finalicen
 }
 
 t_log* iniciar_logger(char* logfile)
@@ -40,10 +43,7 @@ t_config* leer_config(void) {
 	return config_create("team.config");
 }
 
-void terminar_programa(int socket, t_log* logger, t_config* config) {
-	if(socket != CANT_CONNECT){
-		close(socket);
-	}
+void terminar_programa(t_log* logger, t_config* config) {
 	if(logger != NULL){
 		log_destroy(logger);
 	}

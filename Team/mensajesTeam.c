@@ -99,7 +99,7 @@ t_tcb* traerTcbDelCatchConID(uint32_t id) {
 }
 
 void eliminarGetEnviado(uint32_t id) {
-	uint32_t index;
+	int index;
 	uint32_t* id_get;
 
 	if (!getEnviadoConID(id, &index))

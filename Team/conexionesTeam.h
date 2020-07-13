@@ -45,10 +45,10 @@ uint32_t procesarID(t_paquete* paquete);
 void  escucharAlGameboy();
 void  enviarACK(uint32_t);
 
-void  enviarGetPokemon(t_pokemon* pokemon);
-void  procesarLocalized(t_paquete* paquete);
-void  procesarAppeared(t_paquete* paquete);
+void*  enviarGetPokemon(void* data);
+void*  procesarLocalized(void* paquete);
+void*  procesarAppeared(void* paquete);
 void  enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb);
-void  procesarCaughtPokemon(t_paquete* paquete);
+void*  procesarCaughtPokemon(void* paquete);
 
 #endif /* CONEXIONES_H_ */

@@ -18,8 +18,14 @@
 #include "conexionesTeam.h"
 #include "entrenadores.h"
 #include "var_globales.h"
+#include "deadlock.h"
 
 t_pokemon_en_mapa* crearPokemonEnMapa(t_pokemon* pokemon, t_coords* posicion);
+
+typedef struct {
+	t_list* lista;
+	sem_t mutex;
+} t_cola_planificacion;
 
 //      INICIALIZACION
 void cargarEntrenadores(void);
@@ -27,6 +33,7 @@ void enviarGetsAlBroker(void);
 void iniciarPlanificador(void);
 
 // Estados
+void esperarAQueFinalicenLosEntrenadores(void);
 int indexOf(t_tcb* tcb, t_list* lista);
 void* sacarDeLista(t_tcb* tcb, t_list* lista);
 void agregarALista(t_tcb* tcb, t_list* lista);

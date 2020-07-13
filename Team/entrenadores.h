@@ -57,6 +57,7 @@ typedef struct t_intercambio {
 typedef struct t_tcb {
 	t_intercambio* intercambio;
 	t_entrenador* entrenador;
+	int finalizado;
 	sem_t sem_ejecucion; // Solo se activa cuando pasa a exec
 
 	// TODO Agregar info para los distintos algoritmos de planificacion
@@ -64,7 +65,11 @@ typedef struct t_tcb {
 
 // FIN ESTRUCTURAS
 
+
+// INCLUDES QUE NECESITAN STRUCTS DE ENTRENADORES
 #include "utilsTeam.h"
+#include "planificador.h"
+#include "conexionesTeam.h"
 
 // FUNCIONES PARA CREACION
 
@@ -83,12 +88,15 @@ t_inventario* buscarInventarioPorPokemonName(t_list*, char*, int*);
 int cantidadDePokemonesEnInventario(t_list* inventario);
 t_list* clonarListaInventario (t_list* lista);
 int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador);
+int entrenadorCumpleObjetivo(t_entrenador* entrenador);
+int seCumplenTodosLosObjetivos(t_list* actuales, t_list* objetivos);
 int objetivoCumplidoSegunPokemon(t_pokemon* pokemon, t_list* actuales, t_list* objetivo);
 
 char* pokemonQueNoNecesiteYelOtroSi(t_entrenador* buscado, t_entrenador* necesitado);
 t_list* pokemonesNecesitadosDe(t_entrenador* entrenador);
 t_list* pokemonesNoNecesariosDe(t_entrenador* entrenador);
 t_list* diferenciaDeInventarios(t_list* minuendo, t_list* sustraendo);
+int tienePokemonYNoLoNecesita(t_entrenador* entrenador, char* pokemon_name);
 
 // Movimiento
 int distanciaA(t_coords*, t_coords*);

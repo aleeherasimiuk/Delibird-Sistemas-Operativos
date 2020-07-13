@@ -131,10 +131,14 @@ int entrenadorAlMaximoDeCapacidad(t_entrenador* entrenador) {
 }
 
 int entrenadorCumpleObjetivo(t_entrenador* entrenador) {
+	return seCumplenTodosLosObjetivos(entrenador->pokes_actuales, entrenador->pokes_objetivos);
+}
+
+int seCumplenTodosLosObjetivos(t_list* actuales, t_list* objetivos) {
 	t_inventario* pok;
-	for(int i = 0; i < list_size(entrenador->pokes_objetivos); i++) {
-		pok = list_get(entrenador->pokes_objetivos, i);
-		if (!objetivoCumplidoSegunPokemon(pok->pokemon, entrenador->pokes_actuales, entrenador->pokes_objetivos)) {
+	for(int i = 0; i < list_size(objetivos); i++) {
+		pok = list_get(objetivos, i);
+		if (!objetivoCumplidoSegunPokemon(pok->pokemon, actuales, objetivos)) {
 			return 0;
 		}
 	}
@@ -182,7 +186,6 @@ t_list* diferenciaDeInventarios(t_list* minuendo, t_list* sustraendo) {
 	t_list* resultado = clonarListaInventario(minuendo);
 
 	t_inventario* inv;
-	t_inventario* inventario_sacado;
 	for(int i = 0; i < list_size(sustraendo); i++) {
 		inv = list_get(sustraendo, i);
 		sacarPokemonEnListaDeInventario(resultado, inv->pokemon->name);
@@ -243,7 +246,7 @@ void moverseAlobjetivo(t_coords** pos_actual, t_coords* posicion_destino, uint32
 void intentarAtraparPokemon(t_tcb* tcb) {
 	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
 	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
-	terminarDeEjecutar(tcb);
+	terminarDeEjecutar();
 	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
 	bloquearPorEsperarCaught(tcb);
 }
@@ -283,7 +286,8 @@ void *entrenadorMain(void* arg) {
 	t_tcb* tcb = (t_tcb*)arg;
 	t_entrenador* entrenador = tcb->entrenador;
 	log_debug(logger, "Soy el entrenador %d", entrenador->id_entrenador);
-	while(1){	// TODO proceso no esté en finalizado
+
+	while(!tcb->finalizado) {	// TODO proceso no esté en finalizado
 		log_debug(logger, "Entrenador %d esperando para ejecutarse", entrenador->id_entrenador);
 		sem_wait(&(tcb->sem_ejecucion));
 		log_debug(logger, "Entrenador %d empieza a ejecutarse", entrenador->id_entrenador);
@@ -295,8 +299,6 @@ void *entrenadorMain(void* arg) {
 
 			moverseAlobjetivo(&entrenador->posicion, entrenador->objetivo->posicion, entrenador->id_entrenador);
 
-			terminarDeEjecutar();
-
 			intentarAtraparPokemon(tcb);
 
 			log_debug(logger, "El entrenador %d llega a su objetivo", entrenador->id_entrenador);
@@ -304,24 +306,14 @@ void *entrenadorMain(void* arg) {
 			log_debug(logger, "El entrenador %d va a ir a la posicion del entrenador %d para realizar un intercambio de %s, por %s", entrenador->id_entrenador, tcb->intercambio->tcb->entrenador->id_entrenador, tcb->intercambio->mi_pokemon, tcb->intercambio->su_pokemon);
 
 			moverseAlobjetivo(&entrenador->posicion, tcb->intercambio->tcb->entrenador->posicion, entrenador->id_entrenador);
+
 			terminarDeEjecutar();
 
 			realizarIntercambio(tcb);
 		}
-
-
-
-		// intento atrapar y se bloquea
-
-		/*	TODO: tengo que bloquearlo aca? o al recibir el caught
-			sem_wait(&(tcb->sem_ejecucion));
-
-			log_debug(logger, "Entrenador %d se va a bloquear por idle", entrenador->id_entrenador);
-			terminarDeEjecutar(tcb);
-			bloquearPorIdle(tcb);
-		 *
-		 * */
 	}
+
+	log_debug(logger, "El entrenador %d finaliza", entrenador->id_entrenador);
 
 	return NULL;
 }

@@ -3,6 +3,7 @@
 
 #include<stdio.h>
 #include<stdlib.h>
+#include<semaphore.h>
 #include<commons/log.h>
 #include<commons/string.h>
 #include<commons/config.h>
@@ -20,6 +21,6 @@
 void inicializar_team(void);
 t_log* iniciar_logger(char*);
 t_config* leer_config(void);
-void terminar_programa(int, t_log*, t_config*);
+void terminar_programa(t_log*, t_config*);
 
 #endif /* TEAM_H_ */

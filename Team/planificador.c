@@ -7,13 +7,13 @@
 
 #include "planificador.h"
 
-t_list* entrenadores_new; // lista de t_tcb*
-t_list* entrenadores_ready; // lista de t_tcb*
-t_list* entrenadores_blocked_idle; // lista de t_tcb* que se bloquea sin tareas
-t_list* entrenadores_blocked_waiting_caught; // acá van los que se bloquean esperando a recibir un caught
-t_list* entrenadores_blocked_full; // Bloqueados por no poder agarrar mas pokemones, pero no cumplen su objetivo
-t_list* entrenadores_blocked_waiting_trade; // Bloqueados por esperar a que alguien venga a hacer un intercambio
-t_list* entrenadores_exit; // lista de t_tcb*
+t_cola_planificacion* entrenadores_new; // lista de t_tcb*
+t_cola_planificacion* entrenadores_ready; // lista de t_tcb*
+t_cola_planificacion* entrenadores_blocked_idle; // lista de t_tcb* que se bloquea sin tareas
+t_cola_planificacion* entrenadores_blocked_waiting_caught; // acá van los que se bloquean esperando a recibir un caught
+t_cola_planificacion* entrenadores_blocked_full; // Bloqueados por no poder agarrar mas pokemones, pero no cumplen su objetivo
+t_cola_planificacion* entrenadores_blocked_waiting_trade; // Bloqueados por esperar a que alguien venga a hacer un intercambio
+t_cola_planificacion* entrenadores_exit; // lista de t_tcb*
 t_tcb* entrenador_exec;
 
 t_list* objetivo_global;  // lista de t_inventario*
@@ -29,6 +29,11 @@ sem_t sem_cpu_libre;
 sem_t counter_pokemones_libres; // para ver si hay pokemones que no están siendo buscados por algún entrenador
 sem_t counter_entrenadores_disponibles; // para ver si hay entrenadores disponibles (new/blocked_idle)
 sem_t counter_entrenadores_ready;
+sem_t counter_entrenadores_terminados;
+
+sem_t mutex_entrenadores_blocked_full;
+
+int entrenadores_totales = 0;
 
 int entrenadores_cargando = 1; // para que no se pueda ejecutar el algoritmo de deadlock
 
@@ -80,14 +85,13 @@ void cargarEntrenadores(void) {
 		sem_init(&(tcb_nuevo->sem_ejecucion), 0, 0); // TODO pthread_mutex_destroy cuando se deje de usar para siempre
 
 		tcb_nuevo->intercambio = NULL;
+		tcb_nuevo->finalizado = 0;
 
 		if (posiciones_entrenadores[i + 1] == NULL)	// Si es el ultimo entrenador en cargarse, activo que se pueda ejecutar el deadlock
 			entrenadores_cargando = 0;
 
 
 		if (entrenadorAlMaximoDeCapacidad(tcb_nuevo->entrenador)) {
-
-
 			agregarALista(tcb_nuevo, entrenadores_blocked_full); // Si ya viene lleno desde el config, lo mando a full
 		} else {
 			agregarALista(tcb_nuevo, entrenadores_new);
@@ -97,6 +101,8 @@ void cargarEntrenadores(void) {
 		pthread_detach(thread);
 		i++;
 	}
+
+	entrenadores_totales = i;
 
 	liberarListaDePunteros(posiciones_entrenadores);
 	liberarListaDePunteros(pokemon_entrenadores);
@@ -108,7 +114,7 @@ void enviarGetsAlBroker(void) {
 	pthread_t thread;
 	for(int i = 0; i < objetivo_global->elements_count; i++) {
 		objetivo = list_get(objetivo_global, i);
-		pthread_create(&thread, NULL, enviarGetPokemon, objetivo->pokemon);
+		pthread_create(&thread, NULL, enviarGetPokemon, (void*) objetivo->pokemon);
 		pthread_detach(thread);
 	}
 }
@@ -131,8 +137,9 @@ void iniciarPlanificador(void) {
 
 	sem_init(&counter_pokemones_libres, 0, 0);	// inicio el semaforo en 0 ya que todavia no tengo pokemones.
 	sem_init(&counter_entrenadores_ready, 0, 0);
+	sem_init(&counter_entrenadores_terminados, 0, 0);
 
-
+	sem_init(&mutex_entrenadores_blocked_full, 0, 1);
 
 	pthread_t thread;
 
@@ -148,6 +155,12 @@ void iniciarPlanificador(void) {
 //////////////////////////////////////
 //				ESTADOS				//
 //////////////////////////////////////
+
+void esperarAQueFinalicenLosEntrenadores() {
+	for (int i = 0; i < entrenadores_totales; i++) {
+		sem_wait(&counter_entrenadores_terminados);
+	}
+}
 
 int indexOf(t_tcb* tcb, t_list* lista) {
 	int index;
@@ -203,7 +216,11 @@ void cambiarListaSegunCapacidad(t_tcb* tcb) {
 void cambiarListaSegunObjetivo(t_tcb* tcb, t_list* lista_actual) {
 	if (entrenadorCumpleObjetivo(tcb->entrenador)) {
 		log_debug(logger, "Felicidades! El entrenador %d cumplió su objetivo", tcb->entrenador->id_entrenador);
+		tcb->finalizado = 1;
 		cambiarDeLista(tcb, lista_actual, entrenadores_exit);
+
+		sem_post(&(tcb->sem_ejecucion));	// Activo el semáforo para que se desbloquee y pueda terminar.
+		sem_post(&counter_entrenadores_terminados);
 	} else {
 		cambiarDeLista(tcb, lista_actual, entrenadores_blocked_full);
 	}
@@ -442,6 +459,7 @@ int teamAlMaximoDeCapacidad(void) {
 }
 
 void* verificarSiTeamTerminoDeCapturar(void* _) {
+	log_debug(logger, "Entrenadores cargando = %d", entrenadores_cargando);
 	if (entrenadores_cargando)
 		return NULL;
 

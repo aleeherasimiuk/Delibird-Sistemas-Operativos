@@ -8,9 +8,11 @@
 #include "deadlock.h"
 
 void deteccionYCorreccionDeadlock(void) {
+	sem_wait(&mutex_entrenadores_blocked_full);
 	while (list_size(entrenadores_blocked_full) >= 2) {
 		corregirUnDeadlock();	// TODO ver como planificar varios deadlocks distintos
 	}
+	sem_post(&mutex_entrenadores_blocked_full);
 
 	/*
 	 * Si queda 1 solo entrenador, significa que se capturó un pokemon que no tendría que haberse capturado
