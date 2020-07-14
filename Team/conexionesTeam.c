@@ -429,7 +429,11 @@ void* procesarCaughtPokemon(void* data) {
 		cargarPokemonEnListaDeInventario(tcb->entrenador->pokes_actuales, tcb->entrenador->objetivo->pokemon->name);
 	} else if(*cau_pok == NO){
 		log_debug(logger, "Ufa! No pude atraparlo :(");
-		sacarPokemonEnListaDeInventario(actuales_global, tcb->entrenador->objetivo->pokemon->name);
+		
+		sem_wait(&mutex_actuales_global);
+		t_list* actuales = actuales_global;
+		sacarPokemonEnListaDeInventario(actuales, tcb->entrenador->objetivo->pokemon->name);
+		sem_post(&mutex_actuales_global);
 		buscarPokemonAuxiliarYPasarAlMapa(tcb->entrenador->objetivo->pokemon->name);
 	} else {
 		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);

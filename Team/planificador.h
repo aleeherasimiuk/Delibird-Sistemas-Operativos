@@ -22,11 +22,6 @@
 
 t_pokemon_en_mapa* crearPokemonEnMapa(t_pokemon* pokemon, t_coords* posicion);
 
-typedef struct {
-	t_list* lista;
-	sem_t mutex;
-} t_cola_planificacion;
-
 //      INICIALIZACION
 void cargarEntrenadores(void);
 void enviarGetsAlBroker(void);
@@ -34,12 +29,13 @@ void iniciarPlanificador(void);
 
 // Estados
 void esperarAQueFinalicenLosEntrenadores(void);
-int indexOf(t_tcb* tcb, t_list* lista);
-void* sacarDeLista(t_tcb* tcb, t_list* lista);
-void agregarALista(t_tcb* tcb, t_list* lista);
-void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino);
+int indexOf(t_tcb* tcb, t_cola_planificacion* lista);
+void sacarDeLista(t_tcb* tcb, t_cola_planificacion* lista);
+void agregarALista(t_tcb* tcb, t_cola_planificacion* lista);
+int sonListasIguales(t_cola_planificacion* primero, t_cola_planificacion* segundo);
+void cambiarDeLista(t_tcb* tcb, t_cola_planificacion* lista_actual, t_cola_planificacion* lista_destino);
 void cambiarListaSegunCapacidad(t_tcb* tcb);
-void cambiarListaSegunObjetivo(t_tcb* tcb, t_list* lista_actual);
+void cambiarListaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* lista_actual);
 
 void ponerAEjecutarEntrenador(t_tcb* tcb);
 void terminarDeEjecutar(void);
@@ -48,7 +44,7 @@ void bloquearPorIdle(t_tcb* tcb);
 void bloquearPorEsperarCaught(t_tcb* tcb);
 
 // Planificacion largo plazo
-t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista);
+t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_cola_planificacion** lista);
 void *mandarABuscarPokemones(void*);
 
 // Planificacion corto plazo

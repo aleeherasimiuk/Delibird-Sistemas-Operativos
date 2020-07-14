@@ -27,23 +27,26 @@ t_coords* crearCoordenadas(char* string_coord) {
 //////////////////////////////////////////
 
 t_list* crearListaDeInventario(char* pokemones_string, t_list* lista_global) {
-	char** pokemones_array = string_split(pokemones_string, "|");
 	t_list* lista_inventario = list_create();
 
-	int i = 0;
-	while(pokemones_array[i] != NULL) {
-		char* pokemon_name = pokemones_array[i];
+	if (pokemones_string != NULL) {
+		char** pokemones_array = string_split(pokemones_string, "|");
 
-		cargarPokemonEnListaDeInventario(lista_inventario, pokemon_name);
+		int i = 0;
+		while(pokemones_array[i] != NULL) {
+			char* pokemon_name = pokemones_array[i];
 
-		if (lista_global != NULL) {	// Cargo los pokemones en la lista global (actuales, objetivo)
-			cargarPokemonEnListaDeInventario(lista_global, pokemon_name);
+			cargarPokemonEnListaDeInventario(lista_inventario, pokemon_name);
+
+			if (lista_global != NULL) {	// Cargo los pokemones en la lista global (actuales, objetivo)
+				cargarPokemonEnListaDeInventario(lista_global, pokemon_name);
+			}
+
+			i++;
 		}
 
-		i++;
+		liberarListaDePunteros(pokemones_array);
 	}
-
-	liberarListaDePunteros(pokemones_array);
 
 	return lista_inventario;
 }
@@ -246,7 +249,6 @@ void moverseAlobjetivo(t_coords** pos_actual, t_coords* posicion_destino, uint32
 void intentarAtraparPokemon(t_tcb* tcb) {
 	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
 	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
-	terminarDeEjecutar();
 	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
 	bloquearPorEsperarCaught(tcb);
 }
@@ -298,6 +300,8 @@ void *entrenadorMain(void* arg) {
 			log_debug(logger, "El entrenador %d va a buscar un %s en la posición x: %d y: %d", entrenador->id_entrenador, entrenador->objetivo->pokemon->name, entrenador->objetivo->posicion->posX, entrenador->objetivo->posicion->posY);
 
 			moverseAlobjetivo(&entrenador->posicion, entrenador->objetivo->posicion, entrenador->id_entrenador);
+
+			terminarDeEjecutar();
 
 			intentarAtraparPokemon(tcb);
 

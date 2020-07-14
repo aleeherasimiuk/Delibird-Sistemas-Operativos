@@ -7,13 +7,13 @@
 
 #include "planificador.h"
 
-t_cola_planificacion* entrenadores_new; // lista de t_tcb*
-t_cola_planificacion* entrenadores_ready; // lista de t_tcb*
-t_cola_planificacion* entrenadores_blocked_idle; // lista de t_tcb* que se bloquea sin tareas
-t_cola_planificacion* entrenadores_blocked_waiting_caught; // acá van los que se bloquean esperando a recibir un caught
-t_cola_planificacion* entrenadores_blocked_full; // Bloqueados por no poder agarrar mas pokemones, pero no cumplen su objetivo
-t_cola_planificacion* entrenadores_blocked_waiting_trade; // Bloqueados por esperar a que alguien venga a hacer un intercambio
-t_cola_planificacion* entrenadores_exit; // lista de t_tcb*
+t_cola_planificacion* entrenadores_new; 					// lista de t_tcb*
+t_cola_planificacion* entrenadores_ready; 					// lista de t_tcb*
+t_cola_planificacion* entrenadores_blocked_idle; 			// lista de t_tcb* que se bloquea sin tareas
+t_cola_planificacion* entrenadores_blocked_waiting_caught; 	// acá van los que se bloquean esperando a recibir un caught
+t_cola_planificacion* entrenadores_blocked_full; 			// Bloqueados por no poder agarrar mas pokemones, pero no cumplen su objetivo
+t_cola_planificacion* entrenadores_blocked_waiting_trade; 	// Bloqueados por esperar a que alguien venga a hacer un intercambio
+t_cola_planificacion* entrenadores_exit; 					// lista de t_tcb*
 t_tcb* entrenador_exec;
 
 t_list* objetivo_global;  // lista de t_inventario*
@@ -31,7 +31,14 @@ sem_t counter_entrenadores_disponibles; // para ver si hay entrenadores disponib
 sem_t counter_entrenadores_ready;
 sem_t counter_entrenadores_terminados;
 
-sem_t mutex_entrenadores_blocked_full;
+
+sem_t mutex_entrenador_exec;
+
+sem_t mutex_entrenadores_cargando;
+sem_t mutex_actuales_global;
+sem_t mutex_objetivo_global;
+sem_t mutex_pokemones_en_el_mapa;
+sem_t mutex_pokemones_auxiliares_en_el_mapa;
 
 int entrenadores_totales = 0;
 
@@ -66,6 +73,7 @@ void cargarEntrenadores(void) {
 	pthread_t thread;
 
 	int i = 0;
+	int index_actuales = 0;
 	while(posiciones_entrenadores[i] != NULL) {
 
 		// CADA i ES UN ENTRENADOR NUEVO
@@ -78,18 +86,28 @@ void cargarEntrenadores(void) {
 		tcb_nuevo->entrenador->posicion = crearCoordenadas(posiciones_entrenadores[i]);
 
 		tcb_nuevo->entrenador->objetivo = NULL;
-		tcb_nuevo->entrenador->pokes_actuales = crearListaDeInventario(pokemon_entrenadores[i], actuales_global);
+		sem_wait(&mutex_actuales_global);
+		tcb_nuevo->entrenador->pokes_actuales = crearListaDeInventario(pokemon_entrenadores[index_actuales], actuales_global);
+		sem_post(&mutex_actuales_global);
 
+		if (pokemon_entrenadores[index_actuales] != NULL) {	// Por si no todos los entrenadores tienen pokemones
+			index_actuales++;
+		}
+
+		sem_wait(&mutex_objetivo_global);
 		tcb_nuevo->entrenador->pokes_objetivos = crearListaDeInventario(objetivos_entrenadores[i], objetivo_global);
+		sem_post(&mutex_objetivo_global);
 
-		sem_init(&(tcb_nuevo->sem_ejecucion), 0, 0); // TODO pthread_mutex_destroy cuando se deje de usar para siempre
+		sem_init(&(tcb_nuevo->sem_ejecucion), 0, 0);
 
 		tcb_nuevo->intercambio = NULL;
 		tcb_nuevo->finalizado = 0;
 
-		if (posiciones_entrenadores[i + 1] == NULL)	// Si es el ultimo entrenador en cargarse, activo que se pueda ejecutar el deadlock
+		if (posiciones_entrenadores[i + 1] == NULL)	{ // Si es el ultimo entrenador en cargarse, activo que se pueda ejecutar el deadlock
+			sem_wait(&mutex_entrenadores_cargando);
 			entrenadores_cargando = 0;
-
+			sem_post(&mutex_entrenadores_cargando);
+		}
 
 		if (entrenadorAlMaximoDeCapacidad(tcb_nuevo->entrenador)) {
 			agregarALista(tcb_nuevo, entrenadores_blocked_full); // Si ya viene lleno desde el config, lo mando a full
@@ -112,22 +130,41 @@ void cargarEntrenadores(void) {
 void enviarGetsAlBroker(void) {
 	t_inventario* objetivo;
 	pthread_t thread;
+	sem_wait(&mutex_objetivo_global);
 	for(int i = 0; i < objetivo_global->elements_count; i++) {
-		objetivo = list_get(objetivo_global, i);
+		t_list* objetivos = objetivo_global;
+		objetivo = list_get(objetivos, i);
 		pthread_create(&thread, NULL, enviarGetPokemon, (void*) objetivo->pokemon);
 		pthread_detach(thread);
 	}
+	sem_post(&mutex_objetivo_global);
 }
 
 void iniciarPlanificador(void) {
 	// Listas de estados
-	entrenadores_new = list_create();
-	entrenadores_ready = list_create();
-	entrenadores_blocked_idle = list_create();
-	entrenadores_blocked_waiting_caught = list_create();
-	entrenadores_blocked_full = list_create();
-	entrenadores_blocked_waiting_trade = list_create();
-	entrenadores_exit = list_create();
+	entrenadores_new 					= malloc(sizeof(t_cola_planificacion));
+	entrenadores_ready 					= malloc(sizeof(t_cola_planificacion));
+	entrenadores_blocked_idle 			= malloc(sizeof(t_cola_planificacion));
+	entrenadores_blocked_waiting_caught = malloc(sizeof(t_cola_planificacion));
+	entrenadores_blocked_full 			= malloc(sizeof(t_cola_planificacion));
+	entrenadores_blocked_waiting_trade 	= malloc(sizeof(t_cola_planificacion));
+	entrenadores_exit 					= malloc(sizeof(t_cola_planificacion));
+
+	entrenadores_new->lista 					= list_create();
+	entrenadores_ready->lista 					= list_create();
+	entrenadores_blocked_idle->lista 			= list_create();
+	entrenadores_blocked_waiting_caught->lista 	= list_create();
+	entrenadores_blocked_full->lista 			= list_create();
+	entrenadores_blocked_waiting_trade->lista 	= list_create();
+	entrenadores_exit->lista 					= list_create();
+
+	sem_init(&(entrenadores_new->mutex)						, 0, 1);
+	sem_init(&(entrenadores_ready->mutex)					, 0, 1);
+	sem_init(&(entrenadores_blocked_idle->mutex)			, 0, 1);
+	sem_init(&(entrenadores_blocked_waiting_caught->mutex)	, 0, 1);
+	sem_init(&(entrenadores_blocked_full->mutex)			, 0, 1);
+	sem_init(&(entrenadores_blocked_waiting_trade->mutex)	, 0, 1);
+	sem_init(&(entrenadores_exit->mutex)					, 0, 1);
 
 	pokemones_en_el_mapa = queue_create();
 	pokemones_auxiliares_en_el_mapa = list_create();
@@ -139,7 +176,12 @@ void iniciarPlanificador(void) {
 	sem_init(&counter_entrenadores_ready, 0, 0);
 	sem_init(&counter_entrenadores_terminados, 0, 0);
 
-	sem_init(&mutex_entrenadores_blocked_full, 0, 1);
+	sem_init(&mutex_entrenador_exec, 0, 1);
+	sem_init(&mutex_entrenadores_cargando, 0, 1);
+	sem_init(&mutex_actuales_global, 0, 1);
+	sem_init(&mutex_objetivo_global, 0, 1);
+	sem_init(&mutex_pokemones_en_el_mapa, 0, 1);
+	sem_init(&mutex_pokemones_auxiliares_en_el_mapa, 0, 1);
 
 	pthread_t thread;
 
@@ -162,33 +204,41 @@ void esperarAQueFinalicenLosEntrenadores() {
 	}
 }
 
-int indexOf(t_tcb* tcb, t_list* lista) {
+int indexOf(t_tcb* tcb, t_cola_planificacion* cola) {
 	int index;
-	for (index = 0; index < list_size(lista); index++) {
-		if (tcb == (t_tcb*)list_get(lista, index)) {
+	sem_wait(&(cola->mutex));
+	for (index = 0; index < list_size(cola->lista); index++) {
+		if (tcb == (t_tcb*)list_get(cola->lista, index)) {
+			sem_post(&(cola->mutex));
 			return index;
 		}
 	}
+	sem_post(&(cola->mutex));
 	return -1;
 }
 
-void* sacarDeLista(t_tcb* tcb, t_list* lista) {
-	int index = indexOf(tcb, lista); // Busco el indice donde se encuentra el elemento
+void sacarDeLista(t_tcb* tcb, t_cola_planificacion* cola) {
 
-	return list_remove(lista, index);
+	int index = indexOf(tcb, cola); // Busco el indice donde se encuentra el elemento
+
+	sem_wait(&(cola->mutex));
+	list_remove(cola->lista, index);
+	sem_post(&(cola->mutex));
 }
 
-void agregarALista(t_tcb* tcb, t_list* lista) {
+void agregarALista(t_tcb* tcb, t_cola_planificacion* cola) {
 	// TODO mandar a finalizado
-	list_add(lista, tcb);
+	sem_wait(&(cola->mutex));
+	list_add(cola->lista, tcb);
+	sem_post(&(cola->mutex));
 
 	if (tcb != NULL) {
 		// no se puede hacer switch en punteros
-		if (lista == entrenadores_new || lista == entrenadores_blocked_idle) {
+		if (sonListasIguales(cola, entrenadores_new) || sonListasIguales(cola, entrenadores_blocked_idle)) {
 			sem_post(&counter_entrenadores_disponibles);
-		} else if (lista == entrenadores_ready) {
+		} else if (sonListasIguales(cola, entrenadores_ready)) {
 			sem_post(&counter_entrenadores_ready);
-		} else if (lista == entrenadores_blocked_full) {
+		} else if (sonListasIguales(cola, entrenadores_blocked_full)) {
 			// Verifico si el team ya está lleno, en cuyo caso lanzo algoritmo de deteccion de deadlock
 			pthread_t thread;	// Lo ejecuto en un hilo, porque sino nunca se completaria el agregarLista
 			pthread_create(&thread, NULL, verificarSiTeamTerminoDeCapturar, NULL);
@@ -197,12 +247,24 @@ void agregarALista(t_tcb* tcb, t_list* lista) {
 	}
 }
 
-void cambiarDeLista(t_tcb* tcb, t_list* lista_actual, t_list* lista_destino) {
+int sonListasIguales(t_cola_planificacion* primero, t_cola_planificacion* segundo) {
+	sem_wait(&(primero->mutex));
+	t_list* primera_lista = primero->lista;
+	sem_post(&(primero->mutex));
 
-	if (lista_actual != NULL)
-		sacarDeLista(tcb, lista_actual);
+	sem_wait(&(segundo->mutex));
+	int resultado = primera_lista == segundo->lista;
+	sem_post(&(segundo->mutex));
 
-	agregarALista(tcb, lista_destino);
+	return resultado;
+}
+
+void cambiarDeLista(t_tcb* tcb, t_cola_planificacion* cola_actual, t_cola_planificacion* cola_destino) {
+
+	if (cola_actual != NULL)
+		sacarDeLista(tcb, cola_actual);
+
+	agregarALista(tcb, cola_destino);
 }
 
 void cambiarListaSegunCapacidad(t_tcb* tcb) {
@@ -213,27 +275,33 @@ void cambiarListaSegunCapacidad(t_tcb* tcb) {
 	}
 }
 
-void cambiarListaSegunObjetivo(t_tcb* tcb, t_list* lista_actual) {
+void cambiarListaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* cola_actual) {
 	if (entrenadorCumpleObjetivo(tcb->entrenador)) {
 		log_debug(logger, "Felicidades! El entrenador %d cumplió su objetivo", tcb->entrenador->id_entrenador);
 		tcb->finalizado = 1;
-		cambiarDeLista(tcb, lista_actual, entrenadores_exit);
+		cambiarDeLista(tcb, cola_actual, entrenadores_exit);
 
 		sem_post(&(tcb->sem_ejecucion));	// Activo el semáforo para que se desbloquee y pueda terminar.
 		sem_post(&counter_entrenadores_terminados);
 	} else {
-		cambiarDeLista(tcb, lista_actual, entrenadores_blocked_full);
+		cambiarDeLista(tcb, cola_actual, entrenadores_blocked_full);
 	}
 }
 
 void ponerAEjecutarEntrenador(t_tcb* tcb) {
+	sem_wait(&mutex_entrenador_exec);
 	entrenador_exec = tcb;
+	sem_post(&mutex_entrenador_exec);
+
 	sem_post(&(entrenador_exec->sem_ejecucion));
 }
 
 //Solo lo saca de ejecucion, otro metodo tiene que cambiarlo de lista
 void terminarDeEjecutar(void) {
+	sem_wait(&mutex_entrenador_exec);
 	entrenador_exec = NULL;
+	sem_post(&mutex_entrenador_exec);
+
 	sem_post(&sem_cpu_libre);
 }
 
@@ -251,7 +319,7 @@ void bloquearPorEsperarCaught(t_tcb* tcb) {
 //			PLANI LARGO PLAZO		//
 //////////////////////////////////////
 
-t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista) {
+t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_cola_planificacion** cola) {
 
 	t_tcb* entrenador_temp = NULL;
 	int distancia_temp;
@@ -259,18 +327,24 @@ t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista) {
 	t_tcb* entrenador_mas_cercano;
 	int index;
 
-	log_debug(logger, "Tamaño de entrenadores_blocked_idle: %d", entrenadores_blocked_idle->elements_count);
+	log_debug(logger, "Tamaño de entrenadores_blocked_idle: %d", entrenadores_blocked_idle->lista->elements_count);
 
 	// busco en blocked_idle
-	if (!list_is_empty(entrenadores_blocked_idle)) {
-		entrenador_mas_cercano = list_get(entrenadores_blocked_idle, 0);
-		menor_distancia = distanciaA(entrenador_mas_cercano->entrenador->posicion, pokemon->posicion);
-		*lista = entrenadores_blocked_idle;
+	sem_wait(&(entrenadores_blocked_idle->mutex));
+	int blocked_idle_vacio = list_is_empty(entrenadores_blocked_idle->lista);
+	sem_post(&(entrenadores_blocked_idle->mutex));
 
-		for (index = 1; index < list_size(entrenadores_blocked_idle); index++) {
+	if (!blocked_idle_vacio) {
+
+		sem_wait(&(entrenadores_blocked_idle->mutex));
+		entrenador_mas_cercano = list_get(entrenadores_blocked_idle->lista, 0);
+		menor_distancia = distanciaA(entrenador_mas_cercano->entrenador->posicion, pokemon->posicion);
+		*cola = entrenadores_blocked_idle;
+
+		for (index = 1; index < list_size(entrenadores_blocked_idle->lista); index++) {
 			if (menor_distancia == 0) break;	// corto porque sería la distancia minima, entonces dejo de recorrer
 
-			entrenador_temp = list_get(entrenadores_blocked_idle, index);
+			entrenador_temp = list_get(entrenadores_blocked_idle->lista, index);
 			distancia_temp = distanciaA(entrenador_temp->entrenador->posicion, pokemon->posicion);
 
 			if (distancia_temp < menor_distancia) {
@@ -279,35 +353,52 @@ t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista) {
 				menor_distancia = distancia_temp;
 			}
 		}
+		sem_post(&(entrenadores_blocked_idle->mutex));
+
 		// Si ya tengo al minimo, directamente salgo
-		if (menor_distancia == 0) return entrenador_mas_cercano;
+		if (menor_distancia == 0) {
+			return entrenador_mas_cercano;
+		}
 	}
 
+
 	// Busco en new
-	if (!list_is_empty(entrenadores_new)) {
+	sem_wait(&(entrenadores_new->mutex));
+	int new_vacio = list_is_empty(entrenadores_new->lista);
+	sem_post(&(entrenadores_new->mutex));
+
+	if (!new_vacio) {
 
 		index = 0;
 
-		if (list_is_empty(entrenadores_blocked_idle)) { // Si no se busco en los bloqueados
-			entrenador_mas_cercano = list_get(entrenadores_new, index++);
+		sem_wait(&(entrenadores_blocked_idle->mutex));
+		int blocked_idle_vacio = list_is_empty(entrenadores_blocked_idle->lista);
+		sem_post(&(entrenadores_blocked_idle->mutex));
+
+		if (blocked_idle_vacio) { // Si no se busco en los bloqueados
+			sem_wait(&(entrenadores_new->mutex));
+			entrenador_mas_cercano = list_get(entrenadores_new->lista, index++);
 			menor_distancia = distanciaA(entrenador_mas_cercano->entrenador->posicion, pokemon->posicion);
-			*lista = entrenadores_new;
+			*cola = entrenadores_new;
+			sem_post(&(entrenadores_new->mutex));
 		}
 
 
 		// Recorro en los de estado new
-		for (; index < list_size(entrenadores_new); index++) {
+		sem_wait(&(entrenadores_new->mutex));
+		for (; index < list_size(entrenadores_new->lista); index++) {
 			if (menor_distancia == 0) break;	// corto porque sería la distancia minima, entonces dejo de recorrer
 
-			entrenador_temp = list_get(entrenadores_new, index);
+			entrenador_temp = list_get(entrenadores_new->lista, index);
 			distancia_temp = distanciaA(entrenador_temp->entrenador->posicion, pokemon->posicion);
 
 			if (distancia_temp < menor_distancia) {
-				*lista = entrenadores_new;
+				*cola = entrenadores_new;
 				entrenador_mas_cercano = entrenador_temp;
 				menor_distancia = distancia_temp;
 			}
 		}
+		sem_post(&(entrenadores_new->mutex));
 	}
 
 	return entrenador_mas_cercano;
@@ -316,20 +407,33 @@ t_tcb* entrenadorMasCercanoA(t_pokemon_en_mapa* pokemon, t_list** lista) {
 void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Planificador a largo plazo)
 	t_tcb* tcb_entrenador; // entrenador a pasar a ready - desde new o blocked_idle
 	t_pokemon_en_mapa* pokemon;
-	t_list* lista_actual = NULL; // Lista en la que se encuentra el entrenador mas cercano
+	t_cola_planificacion* cola_actual = NULL; // Lista en la que se encuentra el entrenador mas cercano
 
 	while(1)  { // TODO no esté en exit el team
 		log_debug(logger, "Voy a esperar a que haya pokemones libres");
 
 		sem_wait(&counter_pokemones_libres);
+
+		sem_wait(&mutex_pokemones_en_el_mapa);
 		pokemon = queue_pop(pokemones_en_el_mapa);
+		sem_post(&mutex_pokemones_en_el_mapa);
 
 		// Verifico si el pokemon es necesario.si no lo es, lo devuelvo a la lista.
-		if (objetivoCumplidoSegunPokemon(pokemon->pokemon, actuales_global, objetivo_global)) {
+		sem_wait(&mutex_actuales_global);
+		t_list* actuales = actuales_global;
+		sem_wait(&mutex_objetivo_global);
+		t_list* objetivos = objetivo_global;
+		int objetivo_cumplido = objetivoCumplidoSegunPokemon(pokemon->pokemon, actuales, objetivos);
+		sem_post(&mutex_objetivo_global);
+		sem_post(&mutex_actuales_global);
+
+		if (objetivo_cumplido) {
 			// Lo añado a la lista auxiliar, que en caso de que no se atrape a un pokemon, se busca si hay uno de esos en esta lista
 			log_debug(logger, "Se pasa el %s de la posicion x:%d y:%d a la lista de auxiliares", pokemon->pokemon->name, pokemon->posicion->posX, pokemon->posicion->posY);
-			list_add(pokemones_auxiliares_en_el_mapa, pokemon);
 
+			sem_wait(&mutex_pokemones_auxiliares_en_el_mapa);
+			list_add(pokemones_auxiliares_en_el_mapa, pokemon);
+			sem_post(&mutex_pokemones_auxiliares_en_el_mapa);
 		} else {
 			log_debug(logger, "Voy a esperar a que haya entrenadores disponibles");
 			sem_wait(&counter_entrenadores_disponibles);
@@ -338,18 +442,20 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 
 			// Cargo en el global, lo cargo aca para que en caso de haber mas de este,
 			// Pero necesitar menos instancias, que se queden esperando.
+			sem_wait(&mutex_actuales_global);
 			cargarPokemonEnListaDeInventario(actuales_global, pokemon->pokemon->name);
+			sem_post(&mutex_actuales_global);
 
 
-			tcb_entrenador = entrenadorMasCercanoA(pokemon, &lista_actual);
+			tcb_entrenador = entrenadorMasCercanoA(pokemon, &cola_actual);
 
 			log_debug(logger, "El entrenador %d va a ir a buscarlo", tcb_entrenador->entrenador->id_entrenador);
 
 			tcb_entrenador->entrenador->objetivo = pokemon;
 
-			log_debug(logger, "cantidad de lista actual = %d", lista_actual->elements_count);
+			log_debug(logger, "cantidad de lista actual = %d", cola_actual->lista->elements_count);
 
-			cambiarDeLista(tcb_entrenador, lista_actual, entrenadores_ready);
+			cambiarDeLista(tcb_entrenador, cola_actual, entrenadores_ready);
 		}
 	}
 }
@@ -383,7 +489,10 @@ void *planificadorCortoPlazo(void* _) {
 
 void planificarSegunFifo(void) {
 	// tecnicamente si o si hay un entrenador en ready
-	t_tcb* entrenador_a_ejecutar = (t_tcb*)list_remove(entrenadores_ready, 0); // Saco el primero
+	sem_wait(&(entrenadores_ready->mutex));
+	t_tcb* entrenador_a_ejecutar = (t_tcb*)list_remove(entrenadores_ready->lista, 0); // Saco el primero
+	sem_post(&(entrenadores_ready->mutex));
+
 	log_debug(logger, "Entrenador %s sacado de ready", entrenador_a_ejecutar == NULL ? "NULL" : "Not null");
 
 	// como es sin desalojo, tengo que esperar a que este la "cpu" libre
@@ -418,12 +527,13 @@ void realizarXCiclosDeCPU(int cant_ciclos) {
 //////////////////////////////////////
 
 int pokemonNecesario(t_pokemon* pokemon) {
+	sem_wait(&mutex_objetivo_global);
 	t_inventario* inventario = buscarInventarioPorPokemonName(objetivo_global, pokemon->name, NULL);
+	sem_post(&mutex_objetivo_global);
 
 
 	// Solo aceptar si existe en el objetivo, y si no lo recibí
 	return inventario != NULL && !pokemonYaRecibido(pokemon->name);
-	// TODO aca va el verificar si ya se recibio un mensaje de este pokemon?
 }
 
 void agregarPokemonAlMapa(t_pokemon* pokemon, t_coords* posicion) {
@@ -431,36 +541,65 @@ void agregarPokemonAlMapa(t_pokemon* pokemon, t_coords* posicion) {
 	pok_mapa->pokemon = pokemon;
 	pok_mapa->posicion = posicion;
 
+	sem_wait(&mutex_pokemones_en_el_mapa);
 	queue_push(pokemones_en_el_mapa, pok_mapa);
+	sem_post(&mutex_pokemones_en_el_mapa);
+
 	sem_post(&counter_pokemones_libres);
 }
 
 void buscarPokemonAuxiliarYPasarAlMapa(char* pokemon_name) {
 	int pos = 0;
 	t_pokemon_en_mapa* actual;
+	sem_wait(&mutex_pokemones_auxiliares_en_el_mapa);
 	actual = list_get(pokemones_auxiliares_en_el_mapa, pos);
+	sem_post(&mutex_pokemones_auxiliares_en_el_mapa);
 
 	while (actual != NULL && strcmp(actual->pokemon->name, pokemon_name) != 0) {
 		// Recorro la lista hasta que se termine o que encuentre un inventario con el mismo nombre del pokemon
 		pos++;
+		sem_wait(&mutex_pokemones_auxiliares_en_el_mapa);
 		actual = list_get(pokemones_auxiliares_en_el_mapa, pos);
+		sem_post(&mutex_pokemones_auxiliares_en_el_mapa);
 	}
 
 	if (actual != NULL) {
+		sem_wait(&mutex_pokemones_auxiliares_en_el_mapa);
 		list_remove(pokemones_auxiliares_en_el_mapa, pos);
+		sem_post(&mutex_pokemones_auxiliares_en_el_mapa);
+
 		log_debug(logger, "Se pasa el pokemon %s de la lista de auxiliares al mapa", actual->pokemon->name);
+
+		sem_wait(&mutex_pokemones_en_el_mapa);
 		queue_push(pokemones_en_el_mapa, actual);
+		sem_post(&mutex_pokemones_en_el_mapa);
+
 		sem_post(&counter_pokemones_libres);
 	}
 }
 
 int teamAlMaximoDeCapacidad(void) {
-	return cantidadDePokemonesEnInventario(actuales_global) >= cantidadDePokemonesEnInventario(objetivo_global);
+
+	sem_wait(&mutex_actuales_global);
+	t_list* actuales = actuales_global;
+	int cant_actuales = cantidadDePokemonesEnInventario(actuales);
+	sem_post(&mutex_actuales_global);
+
+	sem_wait(&mutex_objetivo_global);
+	t_list* objetivos = objetivo_global;
+	int cant_objetivo = cantidadDePokemonesEnInventario(objetivos);
+	sem_post(&mutex_objetivo_global);
+
+	return cant_actuales >= cant_objetivo;
 }
 
 void* verificarSiTeamTerminoDeCapturar(void* _) {
-	log_debug(logger, "Entrenadores cargando = %d", entrenadores_cargando);
-	if (entrenadores_cargando)
+	sem_wait(&mutex_entrenadores_cargando);
+	int cargando = entrenadores_cargando;
+	sem_post(&mutex_entrenadores_cargando);
+
+	log_debug(logger, "Entrenadores cargando = %d", cargando);
+	if (cargando)
 		return NULL;
 
 	if (teamAlMaximoDeCapacidad()) {

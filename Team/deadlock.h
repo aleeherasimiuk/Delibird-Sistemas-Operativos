@@ -14,6 +14,7 @@
 #include "planificador.h"
 #include "entrenadores.h"
 
+void inicializarDeadlock(void);
 void deteccionYCorreccionDeadlock(void);
 void corregirUnDeadlock(void);
 
