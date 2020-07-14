@@ -452,11 +452,10 @@ int buscar_bloque_disponible(void) {
 	while(pos <= max) {
 
 		bit_ocupado = bitarray_test_bit(bitarray, pos);
+		log_debug(logger, "El bit de la posición %d, %s", pos, bit_ocupado? "está ocupado": "está libre");
 		if(!bit_ocupado) {
 			return pos;
-		}
-
-		else {
+		} else {
 			pos++;
 		}
 	}

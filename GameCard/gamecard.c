@@ -124,7 +124,7 @@ t_bitarray* iniciar_bitarray(void) {
 
 	log_debug(logger, "%s", buffer);
 
-	array = bitarray_create_with_mode(buffer, bitmap_size, LSB_FIRST);
+	array = bitarray_create_with_mode(buffer, bitmap_size, MSB_FIRST);
 
 	return array;
 }
