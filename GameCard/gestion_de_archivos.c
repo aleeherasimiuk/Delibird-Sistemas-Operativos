@@ -8,10 +8,7 @@
 
 #include "gestion_de_archivos.h"
 
-typedef struct {
-	t_coords coordenadas;
-	uint32_t cantidad;
-}	t_coords_con_cant;
+t_list* lista_coordenadas;
 
 /*void unir_paths(char* path1, char* path2, char **ruta) {
 
@@ -510,8 +507,6 @@ int agregar_bloque_disponible(char* path) {
 	config_save(metadata);
 	destruir_metadata(metadata);
 
-	free(bloques);
-
 	return bloque_disponible;
 
 }
@@ -661,38 +656,45 @@ void actualizar_bitmap_pokemon(char* path) {
 	free(bloques);
 }
 
-//void leer_bloques_pokemon(char* path) {
-//
-//	char** bloques = obtener_bloques(path);
-//	char* metadataPath = "/Metadata.bin";
-//	t_coords_con_cant* buffer;
-//
-//	for(int i = 0; i < strlen(bloques); i++){
-//		FILE* file = fopen(bloques[i], "r");
-//		while(!feof(file)) {
-//			file = fread();
-//		}
-//
-//	}
-//
-//
-//
-//}
+t_list* leer_bloques_pokemon(char* path) {
+	char* path_bloques = "/home/utnso/Escritorio/tall-grass/Blocks/";
 
-//void obtener_posiciones(char* bloque){
-//
-//}
-//
-//char* obtener_pokemon_del_path(char* path) {
-//
-//	char* caracter;
-//	char** path_separado = string_split(path, "/"); //me retorna un array de strings separados del path en base al /, la ultima posición del array es siempre NULL
-//	char* pokemon;
-//	int i = 0;
-//
-//	while(path_separado[i] != NULL){
-//		pokemon = path_separado[i++];
-//	}
-//
-//	return pokemon;
+	char** bloques = obtener_bloques(path);
+
+	lista_coordenadas = list_create();
+
+	for(int i = 0; bloques[i] != NULL; i++){
+		char* ruta = string_new();
+		string_append(&ruta, path_bloques);
+		string_append(&ruta, bloques[i]);
+		string_append(&ruta, ".bin");
+
+		t_config* bloque = config_create(ruta);
+		t_dictionary* dict = bloque -> properties;
+		dictionary_iterator(dict, agregar_coordenadas);
+	}
+
+	for(int j = 0; j < list_size(lista_coordenadas); j++){
+		t_coords_con_cant* coords = list_get(lista_coordenadas, j);
+		log_debug(logger, "posicionX: %d, posicionY: %d", coords -> coordenadas.posX, coords -> coordenadas.posY);
+	}// solo para probar que esta armando bien la lista de coordenadas
+
+	return lista_coordenadas;
+
+}
+
+void agregar_coordenadas(char* key, void* value){
+	char** coords_separated = string_split(key, "-");
+	int posX = string_itoa(coords_separated[0]);
+	int posY = string_itoa(coords_separated[1]);
+	t_coords* coords = crear_coordenadas_from_int(posX, posY);
+	t_coords_con_cant* coords_con_cant = malloc(sizeof(t_coords_con_cant));
+	coords_con_cant -> coordenadas = coords;
+	coords_con_cant -> cantidad = value;
+	list_add(lista_coordenadas, coords_con_cant);
+}
+
+
+//int cantidad_de_posiciones(char* bloque){
+//	return (sizeof(bloque) / sizeof(t_coords_con_cant));
 //}

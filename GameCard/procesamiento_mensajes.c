@@ -15,9 +15,9 @@ void procesarID(t_paquete* paquete){
 }
 
 void procesarNew(t_paquete* paquete){
-	//char* ruta_del_archivo = strcat(ruta_punto_montaje,"/Files");
-	//	int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
-	//	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
+
+	int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
+	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
 	int i;
 
 	//FILE* archivo = ruta_del_archivo;
@@ -38,7 +38,7 @@ void procesarNew(t_paquete* paquete){
 	while(archivo_en_uso(ruta_pokemon)) {
 
 		log_debug(logger, "esperando a que cierren el archivo");
-		sleep(5);
+		sleep(tiempo_reintento);
 	}
 
 
@@ -48,7 +48,7 @@ void procesarNew(t_paquete* paquete){
 	agregar_posicion_y_cantidad(coords, cantidad, path_clave);
 
 	actualizar_bitmap_pokemon(ruta_pokemon);
-	sleep(5);
+	sleep(tiempo_retardo);
 	cerrar_archivo(ruta_pokemon);
 
 	for(i = 0; i < (pok -> cantidad); i++){
@@ -85,9 +85,9 @@ void procesarNew(t_paquete* paquete){
 }
 
 void procesarCatch(t_paquete* paquete){
-	//char* ruta_del_archivo = strcat(ruta_punto_montaje,"/Files");
-	//	 int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
-	//	 int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
+
+	int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
+	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
 
 	//FILE* archivo = ruta_del_archivo;
 
@@ -108,7 +108,7 @@ void procesarCatch(t_paquete* paquete){
 		while(archivo_en_uso(ruta_pokemon)) {
 
 			log_debug(logger, "esperando a que cierren el archivo");
-			sleep(5);
+			sleep(tiempo_reintento);
 		}
 
 		char* clave = pos_a_clave(posX, posY);
@@ -116,8 +116,7 @@ void procesarCatch(t_paquete* paquete){
 
 		disminuir_cantidad(coords, path_clave);
 		actualizar_bitmap_pokemon(ruta_pokemon);
-
-		sleep(5);
+		sleep(tiempo_retardo);
 		cerrar_archivo(ruta_pokemon);
 
 	}
@@ -145,50 +144,56 @@ void procesarGet(t_paquete* paquete){
 	t_get_pokemon* pok = deserializarPokemon(&(paquete -> buffer));
 	char* nombre_pokemon = pok -> name;
 
-	//int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
-	//int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
-	//int contador_coordenadas; se va a usar cuando se traigan las coordenadas del archivo, ahora estamos poniendo coords al azar para probar mensajes
-
+	int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
+	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
 
 	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 0);
+	t_list* lista_de_coordenadas;
+	uint32_t cantidad_de_coordenadas;
+	t_coords** coordenadas;
+
+	t_localized_pokemon* loc_pokemon;
 
 	if(ruta_pokemon != "NULL") {
 		while(archivo_en_uso(ruta_pokemon)) {
-
 			log_debug(logger, "esperando a que cierren el archivo");
-			sleep(5);
+			sleep(tiempo_reintento);
 		}
 
-		//obtener_posiciones("/home/utnso/Escritorio/tall-grass/Files");
+		lista_de_coordenadas = leer_bloques_pokemon(ruta_pokemon);
+		cantidad_de_coordenadas = list_size(lista_de_coordenadas);
 
-		sleep(5);
+		for(int i = 0; i < list_size(lista_de_coordenadas); i++){
+			t_coords_con_cant* coordenadas_y_cantidad = list_get(lista_coordenadas, i);
+			coordenadas[i] = coordenadas_y_cantidad -> coordenadas;
+		}
+
+		loc_pokemon = localized_pokemon(pok, cantidad_de_coordenadas, coordenadas);
+
+		sleep(tiempo_retardo);
 		cerrar_archivo(ruta_pokemon);
-		}
+
+	} else {
+		loc_pokemon = localized_pokemon(pok, 0, 0);
+	}
 
 	int conexion_con_broker = abrirUnaConexionGameCard(config);
+	if(conexion_con_broker == CANT_CONNECT){
+		log_info(logger, "no se pudo establecer conexión con el broker");
+	}else {
+		uint32_t bytes;
+		uint32_t bytes_paquete;
 
+		void* serialized_localized_pokemon = serializarLocalizedPokemon(loc_pokemon, &bytes);
+		void* a_enviar = crear_paquete_con_id_correlativo(LOCALIZED_POKEMON, serialized_localized_pokemon, bytes, paquete -> id, &bytes_paquete);
+		int status = send(conexion_con_broker, a_enviar , bytes_paquete , 0);
+		log_debug(logger, "envie un mensaje al broker con status: %d", status);
+		close(conexion_con_broker);
 
-	t_coords* coords1 = crear_coordenadas_from_int(2,5);
-
-	t_coords* coords2 = crear_coordenadas_from_int(3,5);
-
-	t_coords** array = coords_array(2, coords1, coords2);
-
-	t_localized_pokemon* loc_pokemon = localized_pokemon(pok, 2, array);
-
-	uint32_t bytes;
-	uint32_t bytes_paquete;
-
-	void* serialized_localized_pokemon = serializarLocalizedPokemon(loc_pokemon, &bytes);
-	void* a_enviar = crear_paquete_con_id_correlativo(LOCALIZED_POKEMON, serialized_localized_pokemon, bytes, paquete -> id, &bytes_paquete);
-	int status = send(conexion_con_broker, a_enviar , bytes_paquete , 0);
-	log_debug(logger, "envie un mensaje al broker con status: %d", status);
-	close(conexion_con_broker);
-
-	free(coords1);// son coordenadas inventadas para probar,cuando se traigan del archivo los free se van a plantear diferente
-	free(coords2);//
-	free(loc_pokemon);
-	free(a_enviar);
+		list_destroy(lista_de_coordenadas);
+		free(loc_pokemon);
+		free(a_enviar);
+	}
 
 	free(pok);
 }

@@ -8,22 +8,22 @@
 #ifndef GAMECARD_GESTION_DE_ARCHIVOS_H_
 #define GAMECARD_GESTION_DE_ARCHIVOS_H_
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<signal.h>
-#include<stdint.h>
-#include<unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <stdint.h>
+#include <unistd.h>
 #include <sys/socket.h>
-#include<netdb.h>
-#include<string.h>
+#include <netdb.h>
+#include <string.h>
 #include <pthread.h>
-#include<commons/config.h>
-#include<commons/bitarray.h>
+#include <commons/config.h>
+#include <commons/bitarray.h>
 #include "../Utils/conexiones.h"
 #include "var_globales_gamecard.h"
 #include <sys/types.h>
 #include <sys/stat.h>
-
+#include <commons/collections/list.h>
 
 typedef struct {
 	char DIRECTORY;
@@ -36,6 +36,9 @@ t_config* leer_metadata(char*);
 void destruir_metadata(t_config*);
 
 //char* obtener_pokemon_del_path(char*);
+int cantidad_de_posiciones(char*);
+
+void agregar_coordenadas(char*, void*);
 
 void unir_paths(char*, char*, char**);
 int  archivo_en_uso(char*);
@@ -58,7 +61,7 @@ void quitar_bloque(char*, int);
 char* arreglar_string(char*, char*);
 int chequear_ocupado(int);
 void actualizar_bitmap_pokemon(char*);
-void leer_bloques_pokemon();
+t_list* leer_bloques_pokemon(char*);
 
 //void obtener_posiciones(char*);
 

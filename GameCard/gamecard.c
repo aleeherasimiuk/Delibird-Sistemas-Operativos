@@ -70,6 +70,7 @@ int main() {
 
 	disminuir_cantidad(&coords, "/home/utnso/Escritorio/tall-grass/Blocks/1.bin");
 */
+//	leer_bloques_pokemon("/home/utnso/Escritorio/tall-grass/Files/Pikachu");
 
 	while(1) {
 		if(abrirUnaConexionGameCard(config) == CANT_CONNECT)

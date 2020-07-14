@@ -94,8 +94,6 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 	//TODO: Handlear error
 	send(conexion, paquete_serializado, paquete_size, 0);
 	//free(subscripcion);
-	free(serialized_subscribe);
-	free(paquete_serializado);
 	log_debug(logger, "Me suscribí a %d", cola);
 }
 
