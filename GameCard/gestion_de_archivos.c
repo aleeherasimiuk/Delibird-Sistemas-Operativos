@@ -449,6 +449,7 @@ int buscar_bloque_disponible(void) {
 	while(pos <= max) {
 
 		bit_ocupado = bitarray_test_bit(bitarray, pos);
+		log_debug(logger, "el bit ocupado vale %i", bit_ocupado);
 		log_debug(logger, "El bit de la posición %d, %s", pos, bit_ocupado? "está ocupado": "está libre");
 		if(!bit_ocupado) {
 			return pos;
@@ -506,10 +507,7 @@ int agregar_bloque_disponible(char* path) {
 	config_save(metadata);
 	destruir_metadata(metadata);
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 90c395531c6e270748f58b6e5528507cf6437421
 	return bloque_disponible;
 
 }
@@ -680,7 +678,7 @@ t_list* leer_bloques_pokemon(char* path) {
 
 	for(int j = 0; j < list_size(lista_coordenadas); j++){
 		t_coords_con_cant* coords = list_get(lista_coordenadas, j);
-		log_debug(logger, "posicionX: %d, posicionY: %d", coords -> coordenadas.posX, coords -> coordenadas.posY);
+		log_debug(logger, "posicionX: %d, posicionY: %d", coords -> coordenadas->posX, coords -> coordenadas->posY);
 	}// solo para probar que esta armando bien la lista de coordenadas
 
 	return lista_coordenadas;

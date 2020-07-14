@@ -63,6 +63,11 @@ int chequear_ocupado(int);
 void actualizar_bitmap_pokemon(char*);
 t_list* leer_bloques_pokemon(char*);
 
+typedef struct {
+	t_coords* coordenadas;
+	 uint32_t* cantidad;
+}t_coords_con_cant;
+
 //void obtener_posiciones(char*);
 
 #endif /* GAMECARD_GESTION_DE_ARCHIVOS_H_ */

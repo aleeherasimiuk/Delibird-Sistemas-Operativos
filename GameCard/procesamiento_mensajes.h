@@ -19,8 +19,7 @@
 #include <pthread.h>
 #include<commons/config.h>
 #include "../Utils/conexiones.h"
-#include "var_globales_gamecard.h"    //TODO: Sacar los includes que no son necesarios
-
+#include "var_globales_gamecard.h"
 #include "gestion_de_archivos.h"
 
 void procesarID(t_paquete*);

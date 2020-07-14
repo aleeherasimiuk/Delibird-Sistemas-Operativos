@@ -145,6 +145,8 @@ void procesarCatch(t_paquete* paquete){
 
 void procesarGet(t_paquete* paquete){
 
+	t_list* lista_coordenadas;
+
 	t_get_pokemon* pok = deserializarPokemon(&(paquete -> buffer));
 	char* nombre_pokemon = pok -> name;
 

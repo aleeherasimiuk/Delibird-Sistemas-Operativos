@@ -18,11 +18,11 @@ extern t_log* logger;
 extern uint32_t process_id;
 extern char* ruta_punto_montaje;
 
-extern typedef struct {
+/*extern typedef struct {
 	extern t_coords coordenadas;
 	extern uint32_t cantidad;
 }t_coords_con_cant;
 
-
+*/
 
 #endif /* GAMECARD_VAR_GLOBALES_GAMECARD_H_ */
