@@ -671,15 +671,12 @@ t_list* leer_bloques_pokemon(char* path) {
 		string_append(&ruta, bloques[i]);
 		string_append(&ruta, ".bin");
 
+		log_debug(logger, "la ruta es: %s", ruta);
+
 		t_config* bloque = config_create(ruta);
 		t_dictionary* dict = bloque -> properties;
 		dictionary_iterator(dict, agregar_coordenadas);
 	}
-
-	for(int j = 0; j < list_size(lista_coordenadas); j++){
-		t_coords_con_cant* coords = list_get(lista_coordenadas, j);
-		log_debug(logger, "posicionX: %d, posicionY: %d", coords -> coordenadas->posX, coords -> coordenadas->posY);
-	}// solo para probar que esta armando bien la lista de coordenadas
 
 	return lista_coordenadas;
 
@@ -687,8 +684,8 @@ t_list* leer_bloques_pokemon(char* path) {
 
 void agregar_coordenadas(char* key, void* value){
 	char** coords_separated = string_split(key, "-");
-	int posX = string_itoa(coords_separated[0]);
-	int posY = string_itoa(coords_separated[1]);
+	int posX = atoi(coords_separated[0]);
+	int posY = atoi(coords_separated[1]);
 	t_coords* coords = crear_coordenadas_from_int(posX, posY);
 	t_coords_con_cant* coords_con_cant = malloc(sizeof(t_coords_con_cant));
 	coords_con_cant -> coordenadas = coords;

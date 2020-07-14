@@ -145,8 +145,6 @@ void procesarCatch(t_paquete* paquete){
 
 void procesarGet(t_paquete* paquete){
 
-	t_list* lista_coordenadas;
-
 	t_get_pokemon* pok = deserializarPokemon(&(paquete -> buffer));
 	char* nombre_pokemon = pok -> name;
 
@@ -156,7 +154,6 @@ void procesarGet(t_paquete* paquete){
 	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 0);
 	t_list* lista_de_coordenadas;
 	uint32_t cantidad_de_coordenadas;
-	t_coords** coordenadas;
 
 	t_localized_pokemon* loc_pokemon;
 
@@ -168,19 +165,20 @@ void procesarGet(t_paquete* paquete){
 
 		lista_de_coordenadas = leer_bloques_pokemon(ruta_pokemon);
 		cantidad_de_coordenadas = list_size(lista_de_coordenadas);
+		t_coords** coordenadas = malloc(sizeof(t_coords) * cantidad_de_coordenadas);
 
 		for(int i = 0; i < list_size(lista_de_coordenadas); i++){
-			t_coords_con_cant* coordenadas_y_cantidad = list_get(lista_coordenadas, i);
+			t_coords_con_cant* coordenadas_y_cantidad = list_get(lista_de_coordenadas, i);
+			coordenadas[i] = malloc(sizeof(t_coords));
 			coordenadas[i] = coordenadas_y_cantidad -> coordenadas;
 		}
-
 		loc_pokemon = localized_pokemon(pok, cantidad_de_coordenadas, coordenadas);
 
 		sleep(tiempo_retardo);
 		cerrar_archivo(ruta_pokemon);
 
 	} else {
-		loc_pokemon = localized_pokemon(pok, 0, 0);
+		loc_pokemon = localized_pokemon(pok, 0, NULL);
 	}
 
 	int conexion_con_broker = abrirUnaConexionGameCard(config);
