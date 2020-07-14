@@ -447,12 +447,12 @@ int chequear_bloque_disponible(int bloque) {
 int buscar_bloque_disponible(void) {
 	int pos = 1;
 	int max = bitarray_get_max_bit(bitarray);
-	int found;
+	int bit_ocupado;
 
 	while(pos <= max) {
 
-		found = bitarray_test_bit(bitarray, pos);
-		if(!found) {
+		bit_ocupado = bitarray_test_bit(bitarray, pos);
+		if(!bit_ocupado) {
 			return pos;
 		}
 
@@ -510,7 +510,6 @@ int agregar_bloque_disponible(char* path) {
 	config_save(metadata);
 	destruir_metadata(metadata);
 
-	free(bloques);
 
 	return bloque_disponible;
 
@@ -632,8 +631,8 @@ int chequear_ocupado(int bloque) {
 void actualizar_bitmap_pokemon(char* path) {
 
 	char** bloques;
-	int i = 0;
-	int j = 1;
+	int posicion_array = 0;
+	int maximo_array = 0;
 
 
 
@@ -642,20 +641,21 @@ void actualizar_bitmap_pokemon(char* path) {
 	int bloques_ent[50];
 
 
-	while(bloques[i] != NULL) {
-		bloques_ent[i] = atoi(bloques[i]);
-		i++;
-		j++;
+	while(bloques[posicion_array] != NULL) {
+		bloques_ent[posicion_array] = atoi(bloques[posicion_array]);
+		posicion_array++;
+		maximo_array++;
 	}
 
-	i = 0;
+	posicion_array = 0;
 
-	while (bloques_ent[i] < j) {
-		if(actualizar_bitmap(bloques_ent[i])){
-			quitar_bloque(path, bloques_ent[i]);
+	while (posicion_array < maximo_array) {
+		if(actualizar_bitmap(bloques_ent[posicion_array])){
+
+			quitar_bloque(path, bloques_ent[posicion_array]);
 		}
 
-		i++;
+		posicion_array++;
 	}
 
 	free(bloques);

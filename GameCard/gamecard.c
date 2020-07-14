@@ -33,6 +33,7 @@ int main() {
 	coords.posX = 1;
 	coords.posY = 2;
 
+
 	char* clave = "1-2";
 	char* path_clave;
 
