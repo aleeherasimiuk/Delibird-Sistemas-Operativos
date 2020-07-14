@@ -33,6 +33,7 @@ int main() {
 	coords.posX = 1;
 	coords.posY = 2;
 
+
 	char* clave = "1-2";
 	char* path_clave;
 
@@ -124,7 +125,7 @@ t_bitarray* iniciar_bitarray(void) {
 
 	log_debug(logger, "%s", buffer);
 
-	array = bitarray_create_with_mode(buffer, bitmap_size, LSB_FIRST);
+	array = bitarray_create_with_mode(buffer, bitmap_size, MSB_FIRST);
 
 	return array;
 }

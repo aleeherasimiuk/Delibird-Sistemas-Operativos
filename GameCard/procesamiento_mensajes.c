@@ -47,9 +47,13 @@ void procesarNew(t_paquete* paquete){
 
 	agregar_posicion_y_cantidad(coords, cantidad, path_clave);
 
+
 	actualizar_bitmap_pokemon(ruta_pokemon);
+
 	sleep(tiempo_retardo);
+
 	cerrar_archivo(ruta_pokemon);
+
 
 	for(i = 0; i < (pok -> cantidad); i++){
 
