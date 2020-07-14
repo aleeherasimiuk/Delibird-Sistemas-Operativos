@@ -47,7 +47,7 @@ void* guardarEnMemoria(){
 		memory_block_t* particion = asignarUnaParticion(data -> buffer -> stream_size);
 		copiarDatos(particion, data);
 		relacionarBloqueConMensaje(particion, data);
-		log_info(logger, "Guardé un dato en una particion de tamaño: %d, para un dato de tamaño: %d", particion -> data -> size, data -> buffer -> stream_size);
+		log_debug(logger, "Guardé un dato en una particion de tamaño: %d, para un dato de tamaño: %d", particion -> data -> size, data -> buffer -> stream_size);
 		liberarPaquete(data);
 		estadoDeLaMemoria();
 		pthread_mutex_unlock(&mx_mem);
@@ -119,7 +119,7 @@ void relacionarBloqueConMensaje(memory_block_t* particion, t_paquete* data){
 	actualizarFlag(cxm);
 	particion -> data -> msg_id = cxm -> id_mensaje;
 
-	log_info(logger, "Se guardó el mensaje #%d, en la caché [%6p]", cxm -> id_mensaje, particion -> data -> base);
+	log_info(logger, "Se guardó el mensaje #%d, en la caché [%6p]. Byte #%d", cxm -> id_mensaje, particion -> data -> base, (particion -> data -> base) - (memory -> data -> base));
 }
 
 void actualizarFlag(clientes_por_mensaje_t* cxm){
