@@ -15,9 +15,12 @@
 #include<pthread.h>
 #include<commons/collections/queue.h>
 
+extern int server_socket;
+
 
 extern t_config* config;
 extern t_log* logger;
+extern t_log* logger_extra;
 
 
 

@@ -24,6 +24,51 @@ int crear_conexion(char *ip, char* puerto)
 	return socket_cliente;
 }
 
+void crear_servidor_cuando_se_pueda(char* ip, char* puerto, void* serve_client, t_log* logger){
+
+	int socket_servidor;
+
+    struct addrinfo hints, *servinfo, *p;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    getaddrinfo(ip, puerto, &hints, &servinfo);
+
+    for (p=servinfo; p != NULL; p = p->ai_next) {
+        if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+            continue;
+
+        int st = bind(socket_servidor, p->ai_addr, p->ai_addrlen);
+        if (st == -1) {
+            close(socket_servidor);
+            log_error(logger, "No se ha podido realizar la conexión. Reintentando en 10 segundos");
+            sleep(10);
+            crear_servidor_cuando_se_pueda(ip, puerto, serve_client, logger);
+            return;
+        }
+        break;
+    }
+
+    log_info(logger, "Broker inicializado. Escuchando en: %s:%s", ip, puerto);
+
+    //int t = 1;
+    //setsockopt(*socket_servidor, SOL_SOCKET, SO_REUSEADDR, &t, sizeof(t));
+
+	listen(socket_servidor, SOMAXCONN);
+
+    freeaddrinfo(servinfo);
+
+
+    while(1)
+    	esperar_cliente(socket_servidor, serve_client);
+
+    close(socket_servidor);
+    exit(0);
+}
+
 void crear_servidor(char* ip, char* puerto, void* serve_client){
 
 	int socket_servidor;
