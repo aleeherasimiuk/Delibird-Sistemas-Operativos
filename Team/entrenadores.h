@@ -61,6 +61,11 @@ typedef struct t_tcb {
 	pthread_mutex_t exec_mutex;
 	int ejecucion;
 	int finalizado;
+
+	int estim_ant;
+	int real_ant;
+	int estim_actual;
+	int real_actual;
 	// TODO Agregar info para los distintos algoritmos de planificacion
 } t_tcb;
 

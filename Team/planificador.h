@@ -57,6 +57,9 @@ void planificarSegunRR(void);
 void vaciarQuantum(void);
 	// SJF
 void planificarSegunSJFSD(void);
+t_tcb* entrenadorConMenorEstimacion(void);
+void calcularEstimacion(t_tcb* tcb);
+void actualizarValoresSJF(t_tcb* tcb);
 
 //		EJECUCION
 void realizarCicloDeCPU(void);
