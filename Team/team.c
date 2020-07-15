@@ -26,8 +26,8 @@ int main() {
  */
 
 void inicializar_team(void) {
-	inciarListasMensajes();
 	iniciarPlanificador();
+	inciarListasMensajes();
 	inicializarDeadlock();
 	cargarEntrenadores(); // Tambien se define el objetivo global aca
 	enviarGetsAlBroker();

@@ -223,8 +223,8 @@ int signo(int n) {
 	return (0 < n) - (n < 0);
 }
 
-void moverseAlobjetivo(t_coords** pos_actual, t_coords* posicion_destino, uint32_t id_entrenador) {
-	t_coords* posicion_actual = *pos_actual;
+void moverseAlobjetivo(t_tcb* tcb, t_coords* posicion_destino, uint32_t id_entrenador) {
+	t_coords* posicion_actual = tcb->entrenador->posicion;
 	int direccion = signo(posicion_destino->posX - posicion_actual->posX);
 	for (int x = posicion_actual->posX + direccion; posicion_actual->posX != posicion_destino->posX; x += direccion) {
 		realizarCicloDeCPU();
@@ -276,8 +276,8 @@ void realizarIntercambio(t_tcb* tcb) {
 
 	realizarCicloDeCPU();
 
-	cambiarListaSegunObjetivo(tcb_intercambio, entrenadores_blocked_waiting_trade); // TODO entrenadores_blocked_in_deadlock
-	cambiarListaSegunObjetivo(tcb, NULL);
+	cambiarColaSegunObjetivo(tcb_intercambio, entrenadores_blocked_waiting_trade);
+	cambiarColaSegunObjetivo(tcb, NULL);
 
 	free(tcb->intercambio->mi_pokemon);
 	free(tcb->intercambio->su_pokemon);
@@ -291,7 +291,7 @@ void *entrenadorMain(void* arg) {
 
 	while(!tcb->finalizado) {	// TODO proceso no esté en finalizado
 		log_debug(logger, "Entrenador %d esperando para ejecutarse", entrenador->id_entrenador);
-		sem_wait(&(tcb->sem_ejecucion));
+		verificarSiTieneQueEjecutar(tcb);
 		log_debug(logger, "Entrenador %d empieza a ejecutarse", entrenador->id_entrenador);
 
 
@@ -299,25 +299,31 @@ void *entrenadorMain(void* arg) {
 		if (entrenador->objetivo != NULL) {
 			log_debug(logger, "El entrenador %d va a buscar un %s en la posición x: %d y: %d", entrenador->id_entrenador, entrenador->objetivo->pokemon->name, entrenador->objetivo->posicion->posX, entrenador->objetivo->posicion->posY);
 
-			moverseAlobjetivo(&entrenador->posicion, entrenador->objetivo->posicion, entrenador->id_entrenador);
+			moverseAlobjetivo(tcb, entrenador->objetivo->posicion, entrenador->id_entrenador);
+			log_debug(logger, "El entrenador %d llega a su objetivo", entrenador->id_entrenador);
 
 			terminarDeEjecutar();
 
 			intentarAtraparPokemon(tcb);
 
-			log_debug(logger, "El entrenador %d llega a su objetivo", entrenador->id_entrenador);
 		} else if (tcb->intercambio != NULL) {
 			log_debug(logger, "El entrenador %d va a ir a la posicion del entrenador %d para realizar un intercambio de %s, por %s", entrenador->id_entrenador, tcb->intercambio->tcb->entrenador->id_entrenador, tcb->intercambio->mi_pokemon, tcb->intercambio->su_pokemon);
 
-			moverseAlobjetivo(&entrenador->posicion, tcb->intercambio->tcb->entrenador->posicion, entrenador->id_entrenador);
-
-			terminarDeEjecutar();
+			moverseAlobjetivo(tcb, tcb->intercambio->tcb->entrenador->posicion, entrenador->id_entrenador);
 
 			realizarIntercambio(tcb);
+
+			terminarDeEjecutar();
 		}
 	}
 
 	log_debug(logger, "El entrenador %d finaliza", entrenador->id_entrenador);
 
 	return NULL;
+}
+
+void verificarSiTieneQueEjecutar(t_tcb* tcb) {
+	pthread_mutex_lock(&(tcb->exec_mutex));
+	while (!tcb->ejecucion) pthread_cond_wait(&(tcb->exec_cond), &(tcb->exec_mutex));
+	pthread_mutex_unlock(&(tcb->exec_mutex));
 }

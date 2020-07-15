@@ -7,27 +7,27 @@
 
 #include "deadlock.h"
 
-sem_t mutex_deadlock;
+pthread_mutex_t mutex_deadlock;
 
 void inicializarDeadlock(void) {
-	sem_init(&mutex_deadlock, 0, 1);
+	pthread_mutex_init(&mutex_deadlock, NULL);
 }
 
 void deteccionYCorreccionDeadlock(void) {
 
-	sem_wait(&mutex_deadlock);
-	sem_wait(&(entrenadores_blocked_full->mutex));
+	pthread_mutex_lock(&mutex_deadlock);
+	pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 	int cant_blocked_full = list_size(entrenadores_blocked_full->lista);
-	sem_post(&(entrenadores_blocked_full->mutex));
+	pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 
 	while (cant_blocked_full >= 2) {
 		corregirUnDeadlock();
 
-		sem_wait(&(entrenadores_blocked_full->mutex));
+		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 		cant_blocked_full = list_size(entrenadores_blocked_full->lista);
-		sem_post(&(entrenadores_blocked_full->mutex));
+		pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 	}
-	sem_post(&mutex_deadlock);
+	pthread_mutex_unlock(&mutex_deadlock);
 	/*
 	 * Si queda 1 solo entrenador, significa que se capturó un pokemon que no tendría que haberse capturado
 	 */
@@ -35,9 +35,9 @@ void deteccionYCorreccionDeadlock(void) {
 
 void corregirUnDeadlock(void) {
 	// Buscar un entrenador que necesite un pokemon que otro entrenador no necesite
-	sem_wait(&(entrenadores_blocked_full->mutex));
+	pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 	int cantidad_enrenadores_full = list_size(entrenadores_blocked_full->lista);
-	sem_post(&(entrenadores_blocked_full->mutex));
+	pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 
 	log_debug(logger, "Se lanza algoritmo de detección de deadlock");
 
@@ -50,18 +50,18 @@ void corregirUnDeadlock(void) {
 	t_list* pokemones_no_necesarios = NULL;
 
 	for (int pos_necesitado = 0; pos_necesitado < cantidad_enrenadores_full; pos_necesitado++) {
-		sem_wait(&(entrenadores_blocked_full->mutex));
+		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 		necesitado = list_get(entrenadores_blocked_full->lista, pos_necesitado);
-		sem_post(&(entrenadores_blocked_full->mutex));
+		pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 
 		for (int pos_buscado = 0; pos_buscado < cantidad_enrenadores_full; pos_buscado++) {
 
 			if (pos_necesitado == pos_buscado)	// Si son el mismo salteo
 				continue;
 
-			sem_wait(&(entrenadores_blocked_full->mutex));
+			pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 			buscado = list_get(entrenadores_blocked_full->lista, pos_buscado);
-			sem_post(&(entrenadores_blocked_full->mutex));
+			pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 
 			pokemon_necesitado = pokemonQueNoNecesiteYelOtroSi(buscado->entrenador, necesitado->entrenador);
 
@@ -86,8 +86,8 @@ void corregirUnDeadlock(void) {
 				if (pokemones_no_necesarios != NULL)
 					liberarListaDeInventario(pokemones_no_necesarios);
 
-				cambiarDeLista(buscado, entrenadores_blocked_full, entrenadores_blocked_waiting_trade);
-				cambiarDeLista(necesitado, entrenadores_blocked_full, entrenadores_ready);
+				cambiarDeCola(buscado, entrenadores_blocked_full, entrenadores_blocked_waiting_trade);
+				cambiarDeCola(necesitado, entrenadores_blocked_full, entrenadores_ready);
 				return;
 			}
 		}

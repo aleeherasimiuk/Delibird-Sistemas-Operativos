@@ -36,9 +36,6 @@ void suscribirseAlBroker(void) {
 
 	esperarAQueFinalicenLosEntrenadores();
 	log_debug(logger, "Ya finalizaron todos los entrenadores");
-	//pthread_kill(thread1, SIGTERM);
-	//pthread_kill(thread2, SIGTERM);
-	//pthread_kill(thread3, SIGTERM);
 
 	return;
 }
@@ -430,10 +427,9 @@ void* procesarCaughtPokemon(void* data) {
 	} else if(*cau_pok == NO){
 		log_debug(logger, "Ufa! No pude atraparlo :(");
 		
-		sem_wait(&mutex_actuales_global);
-		t_list* actuales = actuales_global;
-		sacarPokemonEnListaDeInventario(actuales, tcb->entrenador->objetivo->pokemon->name);
-		sem_post(&mutex_actuales_global);
+		pthread_mutex_lock(&mutex_actuales_global);
+		sacarPokemonEnListaDeInventario(actuales_global, tcb->entrenador->objetivo->pokemon->name);
+		pthread_mutex_unlock(&mutex_actuales_global);
 		buscarPokemonAuxiliarYPasarAlMapa(tcb->entrenador->objetivo->pokemon->name);
 	} else {
 		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
@@ -450,7 +446,7 @@ void* procesarCaughtPokemon(void* data) {
 	// TODO chequear si finaliza tanto el entrenador como el proceso
 
 	// como lo cambio de lista despues de liberar al auxiliar, si hay otro entrenador, va a ir a buscarlo el otro.
-	cambiarListaSegunCapacidad(tcb);
+	cambiarColaSegunCapacidad(tcb);
 
 	return NULL;
 }
