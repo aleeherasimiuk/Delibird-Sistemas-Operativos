@@ -44,6 +44,7 @@ int entrenadores_cargando = 1; // para que no se pueda ejecutar el algoritmo de 
 
 // Configs
 int retardo_ciclo_cpu;
+char* algoritmo_planificacion;
 int quantum_max;
 int quantum_actual;
 pthread_mutex_t mutex_quantum;
@@ -476,7 +477,7 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 //////////////////////////////////////////
 
 void *planificadorCortoPlazo(void* _) {
-	char* algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+	algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
 
 	while (1) {	// TODO proceso no en exit
 		log_debug(logger, "Planificador de corto plazo esperando a que haya entrenadores en ready");
@@ -491,10 +492,10 @@ void *planificadorCortoPlazo(void* _) {
 
 		if (strcmp(algoritmo_planificacion, "SJF-CD") == 0)
 			//planificarSegunSJFCD();
+		*/
 
 		if (strcmp(algoritmo_planificacion, "SJF-SD") == 0)
-			//planificarSegunSJFSD();
-		*/
+			planificarSegunSJFSD();
 	}
 }
 
@@ -527,9 +528,9 @@ void planificarSegunFifo(void) {
 	log_debug(logger, "Entrenador %s sacado de ready", entrenador_a_ejecutar == NULL ? "NULL" : "Not null");
 
 	// como es sin desalojo, tengo que esperar a que este la "cpu" libre
-	log_debug(logger, "Planificador FIFO esperando a que la cpu libere");
+	log_debug(logger, "Planificador %s esperando a que la cpu libere", algoritmo_planificacion);
 	esperarCpuLibre();
-	log_debug(logger, "Planificador FIFO pone a ejecutar al entrenador %d", entrenador_a_ejecutar->entrenador->id_entrenador);
+	log_debug(logger, "Planificador %s pone a ejecutar al entrenador %d", algoritmo_planificacion, entrenador_a_ejecutar->entrenador->id_entrenador);
 	ponerAEjecutarEntrenador(entrenador_a_ejecutar);
 }
 
@@ -540,24 +541,11 @@ void planificarSegunFifo(void) {
 void planificarSegunRR(void) {
 	quantum_actual = quantum_max;
 
-	// tecnicamente si o si hay un entrenador en ready
-	pthread_mutex_lock(&(entrenadores_ready->mutex));
-	t_tcb* entrenador_a_ejecutar = (t_tcb*)list_remove(entrenadores_ready->lista, 0); // Saco el primero
-	pthread_mutex_unlock(&(entrenadores_ready->mutex));
-
-	log_debug(logger, "Entrenador %s sacado de ready", entrenador_a_ejecutar == NULL ? "NULL" : "Not null");
-
-	// tengo que esperar a que este la "cpu" libre
-	log_debug(logger, "Planificador RR esperando a que la cpu libere");
-	esperarCpuLibre();
-	log_debug(logger, "Planificador RR pone a ejecutar al entrenador %d", entrenador_a_ejecutar->entrenador->id_entrenador);
-	ponerAEjecutarEntrenador(entrenador_a_ejecutar);
-
-	// Hasta acá es FIFO
+	planificarSegunFifo();
 
 	// Esperar a que se termine el quantum, o que el proceso libere la cpu;
 	pthread_mutex_lock(&mutex_quantum);
-	while(quantum_actual > 0) pthread_cond_wait(&cond_quantum, &mutex_quantum);
+	while(quantum_actual > 0 && entrenador_exec != NULL) pthread_cond_wait(&cond_quantum, &mutex_quantum);
 	pthread_mutex_unlock(&mutex_quantum);
 
 	log_debug(logger, "Planificador RR se vació el quantum");
@@ -575,7 +563,13 @@ void vaciarQuantum(void) {
 	pthread_mutex_unlock(&mutex_quantum);
 }
 
+	//////////////////////////////////////////
+	//				 	 SJF				//
+	//////////////////////////////////////////
 
+void planificarSegunSJFSD(void) {
+
+}
 
 //////////////////////////////////////
 //				EJECUCION			//
@@ -587,8 +581,8 @@ void realizarCicloDeCPU(void) {
 	pthread_mutex_unlock(&mutex_entrenador_exec);
 
 	log_debug(logger, "Se realizara 1 ciclo de CPU");
-	vaciarQuantum();
 
+	vaciarQuantum();
 
 	sleep(retardo_ciclo_cpu);
 }

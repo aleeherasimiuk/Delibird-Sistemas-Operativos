@@ -248,8 +248,10 @@ void moverseAlobjetivo(t_tcb* tcb, t_coords* posicion_destino, uint32_t id_entre
 
 void intentarAtraparPokemon(t_tcb* tcb) {
 	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
+	realizarCicloDeCPU();
 	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
 	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
+	terminarDeEjecutar();
 	bloquearPorEsperarCaught(tcb);
 }
 
@@ -301,8 +303,6 @@ void *entrenadorMain(void* arg) {
 
 			moverseAlobjetivo(tcb, entrenador->objetivo->posicion, entrenador->id_entrenador);
 			log_debug(logger, "El entrenador %d llega a su objetivo", entrenador->id_entrenador);
-
-			terminarDeEjecutar();
 
 			intentarAtraparPokemon(tcb);
 

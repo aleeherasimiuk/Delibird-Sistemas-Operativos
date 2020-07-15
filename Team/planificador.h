@@ -55,8 +55,8 @@ void planificarSegunFifo(void);
 	// RR
 void planificarSegunRR(void);
 void vaciarQuantum(void);
-
-
+	// SJF
+void planificarSegunSJFSD(void);
 
 //		EJECUCION
 void realizarCicloDeCPU(void);
