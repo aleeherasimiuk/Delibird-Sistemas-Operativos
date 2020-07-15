@@ -55,7 +55,6 @@ void consolidarParticiones(memory_block_t* bloque_eliminado){
 		merge(bloque_eliminado, bloque_siguiente);
 	}
 
-	log_info(logger, "Se han consolidado ");
 
 }
 

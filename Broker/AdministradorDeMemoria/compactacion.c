@@ -9,7 +9,7 @@
 
 void compactar(){
 
-	log_info(logger, "EJECUTANDO COMPACTACIÓN");
+	log_info(logger, "Ejecutando compactación");
 
 	/*Proceso de Compactación
 	 *
@@ -62,7 +62,7 @@ void compactar(){
 	liberarMemoriaVieja();
 	memory = compacted_memory;
 	estadoDeLaMemoria();
-	log_info(logger, "Compacté");
+	log_info(logger, "Se ha finalizado la compactación");
 }
 
 void liberarMemoriaVieja(){
