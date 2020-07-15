@@ -89,7 +89,7 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 
 			log_error(logger, "No existe ese pokemon");
 
-			return "NULL";
+			return NULL;
 
 		}
 
@@ -670,8 +670,6 @@ t_list* leer_bloques_pokemon(char* path) {
 		string_append(&ruta, path_bloques);
 		string_append(&ruta, bloques[i]);
 		string_append(&ruta, ".bin");
-
-		log_debug(logger, "la ruta es: %s", ruta);
 
 		t_config* bloque = config_create(ruta);
 		t_dictionary* dict = bloque -> properties;

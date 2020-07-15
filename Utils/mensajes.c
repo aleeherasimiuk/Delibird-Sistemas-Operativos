@@ -657,7 +657,7 @@ t_coords** coords_array(uint32_t cant_coords, ...){
 	// cargo los argumentos en args
 	va_start(args, cant_coords);
 
-	t_coords** array = malloc(cant_coords * sizeof(t_coords));
+	t_coords** array = malloc(cant_coords * sizeof(t_coords*));
 
 	for(int i = 0; i < cant_coords; i++){
 		array[i] = va_arg(args, t_coords*);

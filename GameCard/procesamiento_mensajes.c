@@ -152,12 +152,12 @@ void procesarGet(t_paquete* paquete){
 	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
 
 	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 0);
-	t_list* lista_de_coordenadas;
+	t_list* lista_de_coordenadas = NULL;
 	uint32_t cantidad_de_coordenadas;
 
 	t_localized_pokemon* loc_pokemon;
 
-	if(ruta_pokemon != "NULL") {
+	if(ruta_pokemon != NULL) {
 		while(archivo_en_uso(ruta_pokemon)) {
 			log_debug(logger, "esperando a que cierren el archivo");
 			sleep(tiempo_reintento);
@@ -165,7 +165,7 @@ void procesarGet(t_paquete* paquete){
 
 		lista_de_coordenadas = leer_bloques_pokemon(ruta_pokemon);
 		cantidad_de_coordenadas = list_size(lista_de_coordenadas);
-		t_coords** coordenadas = malloc(sizeof(t_coords) * cantidad_de_coordenadas);
+		t_coords** coordenadas = malloc(sizeof(t_coords*) * cantidad_de_coordenadas);
 
 		for(int i = 0; i < list_size(lista_de_coordenadas); i++){
 			t_coords_con_cant* coordenadas_y_cantidad = list_get(lista_de_coordenadas, i);
@@ -178,7 +178,9 @@ void procesarGet(t_paquete* paquete){
 		cerrar_archivo(ruta_pokemon);
 
 	} else {
+		log_debug(logger, "luis marico");
 		loc_pokemon = localized_pokemon(pok, 0, NULL);
+		log_debug(logger, "luis marico x2");
 	}
 
 	int conexion_con_broker = abrirUnaConexionGameCard(config);
@@ -194,7 +196,9 @@ void procesarGet(t_paquete* paquete){
 		log_debug(logger, "envie un mensaje al broker con status: %d", status);
 		close(conexion_con_broker);
 
-		list_destroy(lista_de_coordenadas);
+		if(lista_de_coordenadas != NULL)
+			list_destroy(lista_de_coordenadas);
+
 		free(loc_pokemon);
 		free(a_enviar);
 	}
