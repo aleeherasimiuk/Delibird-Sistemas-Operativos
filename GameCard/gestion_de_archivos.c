@@ -37,15 +37,12 @@ int archivo_en_uso(char* path){
 
 	t_config* metadata = leer_metadata(ruta);
 
-	log_debug(logger, "llega hasta aca");
 
 	char* open = config_get_string_value(metadata, "OPEN");
 
-	log_debug(logger, "%s\n", open);
 
 
 	if(!strcmp(open, "Y")) {
-		log_debug(logger, "entra por yes");
 		destruir_metadata(metadata);
 
 		return 1;
@@ -55,7 +52,7 @@ int archivo_en_uso(char* path){
 		config_set_value(metadata, "OPEN", "Y");
 		config_save(metadata);
 		config_destroy(metadata);
-		log_debug(logger, "entra por no");
+
 
 		return 0;
 
@@ -142,7 +139,6 @@ char* path_para_clave(char* clave, char* path_pokemon, int mode) {
 	string_append(&ruta, bloque_ruta);
 	string_append(&ruta, ".bin");
 
-	log_debug(logger, "aaaaa");
 
 	free(bloques);
 
@@ -185,8 +181,6 @@ void agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 		string_append(&a_escribir, "=0");
 
 
-		log_debug(logger, "aca llega");
-
 		fseek(file, 0, SEEK_END);
 
 		fprintf(file, a_escribir);
@@ -195,15 +189,12 @@ void agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 
 		data = config_create(path);
 
-		log_debug(logger, "aca llega2");
 
 	}
 
 	int cant_vieja = config_get_int_value(data, clave);
 
 	int cantidad_act = cant_vieja + cant;
-
-	log_debug(logger, "aca llega3");
 
 	char* cantidad_nueva;
 
@@ -231,7 +222,6 @@ void disminuir_cantidad(t_coords* coordenadas, char* path) {
 
 	char cantidad_nueva[2];
 
-	log_debug(logger, "hasta aca voy");
 
 	t_config* datos = config_create(path);
 
@@ -259,8 +249,6 @@ void disminuir_cantidad(t_coords* coordenadas, char* path) {
 		sprintf(cantidad_nueva, "%d", cantidad_act);
 
 		config_set_value(datos, clave, cantidad_nueva);
-
-		log_debug(logger, "hasta aca estoy");
 
 	}
 
@@ -371,21 +359,15 @@ int actualizar_bitmap(off_t bloque) {
 
 	sprintf(block, "%d", bloque);
 
-	log_debug(logger, "checkpoint 1");
-
-
-	log_debug(logger, "checkpoint 2");
 
 	if(chequear_ocupado(bloque)) {
 
-		log_debug(logger, "checkpoint 3 parte 1");
 		bitarray_set_bit(bitarray, bloque);
 		return 0;
 	}
 
 	else {
 		bitarray_clean_bit(bitarray, bloque);
-		log_debug(logger, "checkpoint 3 parte 2");
 		return 1;
 	}
 
@@ -544,7 +526,6 @@ void quitar_bloque(char* path ,int bloque) {
 
 	bloques_nuevos = malloc(tamanio_bloques * sizeof(char*));
 
-	log_debug(logger, "fuera del while1");
 
 	while(bloques[i] != NULL) {
 		if(strcmp(bloques[i], bloque_string) == 0) {
@@ -568,11 +549,9 @@ void quitar_bloque(char* path ,int bloque) {
 	char* array_armado = string_new();
 	string_append(&array_armado, "[");
 
-	log_debug(logger, "fuera del while2");
 
 	while(i < cantidad_total) {
 		string_append(&array_armado, bloques_nuevos[i]);
-		log_debug(logger, "entra en el while");
 
 		if(i + 1 != cantidad_total) {
 			string_append(&array_armado, ",");
@@ -583,7 +562,6 @@ void quitar_bloque(char* path ,int bloque) {
 	string_append(&array_armado, "]");
 
 	config_set_value(metadata, "BLOCKS", array_armado);
-	log_debug(logger, "estoy quitando el bloque");
 
 	config_save(metadata);
 	destruir_metadata(metadata);
