@@ -451,6 +451,7 @@ void* procesarCaughtPokemon(void* data) {
 	//free(tcb->entrenador->objetivo->pokemon->name); // El nombre está
 	free(tcb->entrenador->objetivo->pokemon);
 	free(tcb->entrenador->objetivo->posicion);
+	free(tcb->entrenador->objetivo);
 	tcb->entrenador->objetivo = NULL;
 
 	eliminarCatchEnviado(paquete->correlative_id);

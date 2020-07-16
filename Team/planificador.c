@@ -185,11 +185,6 @@ void cargarEntrenadores(void) {
 		tcb_nuevo->estim_restante = 0;
 		tcb_nuevo->real_actual = 0;
 
-		if (posiciones_entrenadores[i + 1] == NULL)	{ // Si es el ultimo entrenador en cargarse, activo que se pueda ejecutar el deadlock
-			pthread_mutex_lock(&mutex_entrenadores_cargando);
-			entrenadores_cargando = 0;
-			pthread_mutex_unlock(&mutex_entrenadores_cargando);
-		}
 
 		if (entrenadorAlMaximoDeCapacidad(tcb_nuevo->entrenador)) {
 			agregarACola(tcb_nuevo, entrenadores_blocked_full); // Si ya viene lleno desde el config, lo mando a full
@@ -199,6 +194,11 @@ void cargarEntrenadores(void) {
 
 		pthread_create(&thread, NULL, entrenadorMain, tcb_nuevo);
 		pthread_detach(thread);
+		if (posiciones_entrenadores[i + 1] == NULL)	{ // Si es el ultimo entrenador en cargarse, activo que se pueda ejecutar el deadlock
+			pthread_mutex_lock(&mutex_entrenadores_cargando);
+			entrenadores_cargando = 0;
+			pthread_mutex_unlock(&mutex_entrenadores_cargando);
+		}
 		i++;
 	}
 
@@ -750,16 +750,15 @@ void buscarPokemonAuxiliarYPasarAlMapa(char* pokemon_name) {
 int teamAlMaximoDeCapacidad(void) {
 
 	pthread_mutex_lock(&mutex_actuales_global);
-	t_list* actuales = actuales_global;
-	int cant_actuales = cantidadDePokemonesEnInventario(actuales);
+	int cant_actuales = cantidadDePokemonesEnInventario(actuales_global);
 	pthread_mutex_unlock(&mutex_actuales_global);
 
 	pthread_mutex_lock(&mutex_objetivo_global);
-	t_list* objetivos = objetivo_global;
-	int cant_objetivo = cantidadDePokemonesEnInventario(objetivos);
+	int cant_objetivo = cantidadDePokemonesEnInventario(objetivo_global);
 	pthread_mutex_unlock(&mutex_objetivo_global);
 
-	return cant_actuales >= cant_objetivo;
+	// le resto los catch pendientes ya que realmente no los tiene todavia
+	return cant_actuales - catchPendientes() >= cant_objetivo;
 }
 
 void* verificarSiTeamTerminoDeCapturar(void* _) {
@@ -772,7 +771,6 @@ void* verificarSiTeamTerminoDeCapturar(void* _) {
 		return NULL;
 
 	if (teamAlMaximoDeCapacidad()) {
-
 		deteccionYCorreccionDeadlock();	// Sigo verificando hasta terminar todos los dea
 	}
 	return NULL;

@@ -8,6 +8,7 @@
 #include "deadlock.h"
 
 pthread_mutex_t mutex_deadlock;
+int hubo_deadlock;	// Se pone en 1 si no se produce deadlock entre los que están en la lista
 
 void inicializarDeadlock(void) {
 	pthread_mutex_init(&mutex_deadlock, NULL);
@@ -19,8 +20,8 @@ void deteccionYCorreccionDeadlock(void) {
 	pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 	int cant_blocked_full = list_size(entrenadores_blocked_full->lista);
 	pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
-
-	while (cant_blocked_full >= 2) {
+	hubo_deadlock = 0;
+	while (cant_blocked_full >= 2 || hubo_deadlock == 1) {
 		corregirUnDeadlock();
 		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 		cant_blocked_full = list_size(entrenadores_blocked_full->lista);
@@ -35,7 +36,7 @@ void deteccionYCorreccionDeadlock(void) {
 void corregirUnDeadlock(void) {
 	// Buscar un entrenador que necesite un pokemon que otro entrenador no necesite
 	pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
-	int cantidad_enrenadores_full = list_size(entrenadores_blocked_full->lista);
+	int cantidad_entrenadores_full = list_size(entrenadores_blocked_full->lista);
 	pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 
 	log_debug(logger, "Se lanza algoritmo de detección de deadlock");
@@ -48,12 +49,14 @@ void corregirUnDeadlock(void) {
 	t_intercambio* intercambio = malloc(sizeof(t_intercambio));
 	t_list* pokemones_no_necesarios = NULL;
 
-	for (int pos_necesitado = 0; pos_necesitado < cantidad_enrenadores_full; pos_necesitado++) {
+	hubo_deadlock = 0;
+
+	for (int pos_necesitado = 0; pos_necesitado < cantidad_entrenadores_full; pos_necesitado++) {
 		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 		necesitado = list_get(entrenadores_blocked_full->lista, pos_necesitado);
 		pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 
-		for (int pos_buscado = 0; pos_buscado < cantidad_enrenadores_full; pos_buscado++) {
+		for (int pos_buscado = 0; pos_buscado < cantidad_entrenadores_full; pos_buscado++) {
 
 			if (pos_necesitado == pos_buscado)	// Si son el mismo salteo
 				continue;
@@ -65,6 +68,8 @@ void corregirUnDeadlock(void) {
 			pokemon_necesitado = pokemonQueNoNecesiteYelOtroSi(buscado->entrenador, necesitado->entrenador);
 
 			if (pokemon_necesitado != NULL) {
+				hubo_deadlock = 1;
+
 				log_debug(logger, "El entrenador %d necesita un %s y se lo va a dar el entrenador %d", necesitado->entrenador->id_entrenador, pokemon_necesitado, buscado->entrenador->id_entrenador);
 
 				intercambio->tcb = buscado;
@@ -88,7 +93,10 @@ void corregirUnDeadlock(void) {
 				cambiarDeCola(buscado, entrenadores_blocked_full, entrenadores_blocked_waiting_trade);
 				cambiarDeCola(necesitado, entrenadores_blocked_full, entrenadores_ready);
 				return;
+			} else {
+				free(pokemon_necesitado);
 			}
 		}
 	}
+	free(intercambio);
 }
