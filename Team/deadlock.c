@@ -22,7 +22,6 @@ void deteccionYCorreccionDeadlock(void) {
 
 	while (cant_blocked_full >= 2) {
 		corregirUnDeadlock();
-
 		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 		cant_blocked_full = list_size(entrenadores_blocked_full->lista);
 		pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));

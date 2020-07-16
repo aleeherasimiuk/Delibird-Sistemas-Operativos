@@ -56,13 +56,15 @@ void planificarSegunFifo(void);
 void planificarSegunRR(void);
 void vaciarQuantum(void);
 	// SJF
+void planificarSegunSJFCD(void);
 void planificarSegunSJFSD(void);
 t_tcb* entrenadorConMenorEstimacion(void);
+double estimacionDe(t_tcb* tcb);
 void calcularEstimacion(t_tcb* tcb);
 void actualizarValoresSJF(t_tcb* tcb);
 
 //		EJECUCION
-void realizarCicloDeCPU(void);
+void realizarCicloDeCPU(t_tcb* tcb);
 
 
 // 		OBJETIVOS + MAPA

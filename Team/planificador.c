@@ -30,7 +30,7 @@ sem_t counter_entrenadores_disponibles; // para ver si hay entrenadores disponib
 sem_t counter_entrenadores_ready;
 sem_t counter_entrenadores_terminados;
 
-
+pthread_cond_t cond_entrenador_exec;
 pthread_mutex_t mutex_entrenador_exec;
 pthread_mutex_t mutex_entrenadores_cargando;
 pthread_mutex_t mutex_actuales_global;
@@ -51,9 +51,11 @@ int quantum_actual;
 pthread_mutex_t mutex_quantum;
 pthread_cond_t cond_quantum;
 
-int estimacion_inicial;
+double estimacion_inicial;
 double alpha;
-
+pthread_mutex_t mutex_desalojo_sjf;
+pthread_cond_t cond_desalojo_sjf;
+int chequear_desalojo_sjf;
 
 //////////////////////////////////////
 //				STRUCTS				//
@@ -106,7 +108,10 @@ void iniciarPlanificador(void) {
 	pthread_cond_init(&cond_quantum, NULL);
 
 	alpha = config_get_double_value(config, "ALPHA");
-	estimacion_inicial = config_get_int_value(config, "ESTIMACION_INICIAL");
+	estimacion_inicial = config_get_double_value(config, "ESTIMACION_INICIAL");
+	pthread_mutex_init(&mutex_desalojo_sjf, NULL);
+	pthread_cond_init(&cond_desalojo_sjf, NULL);
+	chequear_desalojo_sjf = 0;
 
 	sem_init(&sem_cpu_libre, 0, 1);
 
@@ -114,6 +119,7 @@ void iniciarPlanificador(void) {
 	sem_init(&counter_entrenadores_ready, 0, 0);
 	sem_init(&counter_entrenadores_terminados, 0, 0);
 
+	pthread_cond_init(&cond_entrenador_exec, NULL);
 	pthread_mutex_init(&mutex_entrenador_exec					, NULL);
 	pthread_mutex_init(&mutex_entrenadores_cargando				, NULL);
 	pthread_mutex_init(&mutex_actuales_global					, NULL);
@@ -170,14 +176,15 @@ void cargarEntrenadores(void) {
 		tcb_nuevo->entrenador->pokes_objetivos = crearListaDeInventario(objetivos_entrenadores[i], objetivo_global);
 		pthread_mutex_unlock(&mutex_objetivo_global);
 
-		pthread_mutex_init(&(tcb_nuevo->exec_mutex), NULL);	// TODO: Hacer destroys
-		pthread_cond_init(&(tcb_nuevo->exec_cond), NULL);	// TODO: Hacer destroys
+		pthread_mutex_init(&(tcb_nuevo->exec_mutex), NULL);
+		pthread_cond_init(&(tcb_nuevo->exec_cond), NULL);
 		tcb_nuevo->ejecucion = 0;
 
 		tcb_nuevo->intercambio = NULL;
 		tcb_nuevo->finalizado = 0;
 
-		tcb_nuevo->estim_actual = estimacion_inicial;
+		tcb_nuevo->estim_actual = estimacion_inicial - i * 2; // TODO: SACAR EL - i
+		tcb_nuevo->estim_restante = 0;
 		tcb_nuevo->real_actual = 0;
 
 		if (posiciones_entrenadores[i + 1] == NULL)	{ // Si es el ultimo entrenador en cargarse, activo que se pueda ejecutar el deadlock
@@ -300,6 +307,7 @@ void cambiarColaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* cola_actual) {
 void ponerAEjecutarEntrenador(t_tcb* tcb) {
 	pthread_mutex_lock(&mutex_entrenador_exec);
 	entrenador_exec = tcb;
+	pthread_cond_signal(&cond_entrenador_exec);
 	pthread_mutex_unlock(&mutex_entrenador_exec);
 
 	pthread_mutex_lock(&(tcb->exec_mutex));
@@ -312,7 +320,6 @@ void ponerAEjecutarEntrenador(t_tcb* tcb) {
 t_tcb* terminarDeEjecutar(void) {
 	t_tcb* entrenador;
 
-	pthread_mutex_lock(&mutex_entrenador_exec);
 
 	pthread_mutex_lock(&(entrenador_exec->exec_mutex));
 	entrenador_exec->ejecucion = 0;
@@ -323,7 +330,6 @@ t_tcb* terminarDeEjecutar(void) {
 
 	entrenador = entrenador_exec;
 	entrenador_exec = NULL;
-	pthread_mutex_unlock(&mutex_entrenador_exec);
 
 	// RR
 	vaciarQuantum();
@@ -499,16 +505,15 @@ void *planificadorCortoPlazo(void* _) {
 		log_debug(logger, "Planificador de corto plazo esperando a que haya entrenadores en ready");
 		sem_wait(&counter_entrenadores_ready);	// Espero a que haya algun entrenador para planificar
 
+
 		if (strcmp(algoritmo_planificacion, "FIFO") == 0)
 			planificarSegunFifo();
 
 		if (strcmp(algoritmo_planificacion, "RR") == 0)
 			planificarSegunRR();
-		/*
 
 		if (strcmp(algoritmo_planificacion, "SJF-CD") == 0)
-			//planificarSegunSJFCD();
-		*/
+			planificarSegunSJFCD();
 
 		if (strcmp(algoritmo_planificacion, "SJF-SD") == 0)
 			planificarSegunSJFSD();
@@ -520,15 +525,11 @@ void esperarCpuLibre(void) {
 }
 
 void desalojarCPU(void) {
-	pthread_mutex_lock(&mutex_entrenador_exec);
 	if (entrenador_exec != NULL) {
-		pthread_mutex_unlock(&mutex_entrenador_exec); // terminarDeEjecutar tambien lockea al entrenador exec
 		t_tcb* entrenador_desalojado = terminarDeEjecutar();	// Lo saco de ejecucion y lo mando a ready
 		log_debug(logger, "Se desaloja al entrenador %d", entrenador_desalojado->entrenador->id_entrenador);
-		pthread_mutex_lock(&mutex_entrenador_exec);
 		agregarACola(entrenador_desalojado, entrenadores_ready);
 	}
-	pthread_mutex_unlock(&mutex_entrenador_exec);
 }
 
 	//////////////////////////////////////////
@@ -565,22 +566,54 @@ void planificarSegunRR(void) {
 
 	log_debug(logger, "Planificador RR se vació el quantum");
 
+	pthread_mutex_lock(&mutex_entrenador_exec);
 	desalojarCPU();
+	pthread_mutex_unlock(&mutex_entrenador_exec);
 }
 
 // Tambien libera el RR si se termina de ejecutar
 void vaciarQuantum(void) {
 	pthread_mutex_lock(&mutex_quantum);
-	pthread_mutex_lock(&mutex_entrenador_exec);
 	if (--quantum_actual == 0 || entrenador_exec == NULL)
 		pthread_cond_signal(&cond_quantum);
-	pthread_mutex_unlock(&mutex_entrenador_exec);
 	pthread_mutex_unlock(&mutex_quantum);
 }
 
 	//////////////////////////////////////////
 	//				 	 SJF				//
 	//////////////////////////////////////////
+
+void planificarSegunSJFCD(void) {
+	planificarSegunSJFSD();
+}
+
+void desalojarCPUSegunSJF(void) {
+	// Ver si tengo que desalojar al actual, por el nuevo que entra (el ultimo, por como funciona el list add)
+	pthread_mutex_lock(&mutex_desalojo_sjf);
+	while(!chequear_desalojo_sjf) pthread_cond_wait(&cond_desalojo_sjf, &mutex_desalojo_sjf);
+	pthread_mutex_unlock(&mutex_desalojo_sjf);
+
+	pthread_mutex_lock(&mutex_entrenador_exec);
+	if (entrenador_exec != NULL) {
+		log_debug(logger, "Se entra a verificar si se tiene que desalojar el proceso en ejecución");
+		pthread_mutex_lock(&(entrenadores_ready->mutex));
+		t_tcb* entrenador_a_verificar = list_get(entrenadores_ready->lista, list_size(entrenadores_ready->lista) - 1);
+		pthread_mutex_unlock(&(entrenadores_ready->mutex));
+
+		// Se verifica la estimacion del nuevo entrenador contra lo RESTANTE del que está en ejecución
+		calcularEstimacion(entrenador_a_verificar);
+
+		double estimacion_restante = maximoDouble(entrenador_exec->estim_actual - entrenador_exec->real_actual, 0.0) ;
+		if (estimacionDe(entrenador_a_verificar) < estimacion_restante) {
+			// guardo la estimacion restante, que es con lo que se debería comparar al volver a ingresar el entrenador desalojado
+			entrenador_exec->estim_restante = estimacion_restante;
+			desalojarCPU();
+			pthread_mutex_unlock(&mutex_entrenador_exec);
+			ponerAEjecutarEntrenador(entrenador_a_verificar);
+		}
+	}
+	pthread_mutex_unlock(&mutex_entrenador_exec);
+}
 
 void planificarSegunSJFSD(void) {
 	log_debug(logger, "Planificador %s esperando a que la cpu libere", algoritmo_planificacion);
@@ -602,13 +635,13 @@ t_tcb* entrenadorConMenorEstimacion(void) {
 	int pos = 0;
 	t_tcb* entrenador_menor_estimacion = list_get(entrenadores_ready->lista, index);
 	calcularEstimacion(entrenador_menor_estimacion);
-	log_debug(logger, "El entrenador %d tiene una estimación de %d", entrenador_menor_estimacion->entrenador->id_entrenador, entrenador_menor_estimacion->estim_actual);
+	log_debug(logger, "El entrenador %d tiene una estimación de %f", entrenador_menor_estimacion->entrenador->id_entrenador, entrenador_menor_estimacion->estim_actual);
 
 	for (index = 1; index < list_size(entrenadores_ready->lista); index++) {
 		entrenador_temp = list_get(entrenadores_ready->lista, index);
 		calcularEstimacion(entrenador_temp);
-		log_debug(logger, "El entrenador %d tiene una estimación de %d", entrenador_temp->entrenador->id_entrenador, entrenador_temp->estim_actual);
-		if (entrenador_temp->estim_actual < entrenador_menor_estimacion->estim_actual) {
+		log_debug(logger, "El entrenador %d tiene una estimación de %f", entrenador_temp->entrenador->id_entrenador, entrenador_temp->estim_actual);
+		if (estimacionDe(entrenador_temp) < estimacionDe(entrenador_menor_estimacion)) {
 			entrenador_menor_estimacion = entrenador_temp;
 			pos = index;
 		}
@@ -617,11 +650,15 @@ t_tcb* entrenadorConMenorEstimacion(void) {
 	return list_remove(entrenadores_ready->lista, pos);
 }
 
+double estimacionDe(t_tcb* tcb) {
+	return tcb->estim_restante > 0 ? tcb->estim_restante : tcb->estim_actual;
+}
+
 void calcularEstimacion(t_tcb* tcb) {
 	if (tcb->estim_actual != 0) // Es 0 si todavia no se calculó
 		return;
 	// est = alpha * real_ant + (1 - alpha) * est_ant
-	int estimacion = alpha * tcb->real_ant + (1 - alpha) * tcb->estim_ant;
+	double estimacion = alpha * tcb->real_ant + (1 - alpha) * tcb->estim_ant;
 	tcb->estim_actual = estimacion;
 }
 
@@ -631,6 +668,7 @@ void actualizarValoresSJF(t_tcb* tcb) {
 
 	tcb->estim_ant = tcb->estim_actual;
 	tcb->real_ant = tcb->real_actual;
+	tcb->estim_restante = 0;
 	tcb->estim_actual = 0;
 	tcb->real_actual = 0;
 }
@@ -639,10 +677,10 @@ void actualizarValoresSJF(t_tcb* tcb) {
 //				EJECUCION			//
 //////////////////////////////////////
 
-void realizarCicloDeCPU(void) {
+void realizarCicloDeCPU(t_tcb* tcb) {
 	pthread_mutex_lock(&mutex_entrenador_exec);
+	while (entrenador_exec != tcb) pthread_cond_wait(&cond_entrenador_exec, &mutex_entrenador_exec);
 	verificarSiTieneQueEjecutar(entrenador_exec);
-	pthread_mutex_unlock(&mutex_entrenador_exec);
 
 	log_debug(logger, "Se realizara 1 ciclo de CPU");
 
@@ -654,6 +692,7 @@ void realizarCicloDeCPU(void) {
 	vaciarQuantum();
 
 	sleep(retardo_ciclo_cpu);
+	pthread_mutex_unlock(&mutex_entrenador_exec);
 }
 
 

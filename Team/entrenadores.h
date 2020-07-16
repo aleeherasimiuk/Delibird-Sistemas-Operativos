@@ -62,9 +62,10 @@ typedef struct t_tcb {
 	int ejecucion;
 	int finalizado;
 
-	int estim_ant;
+	double estim_ant;
 	int real_ant;
-	int estim_actual;
+	double estim_actual;
+	double estim_restante;
 	int real_actual;
 	// TODO Agregar info para los distintos algoritmos de planificacion
 } t_tcb;
