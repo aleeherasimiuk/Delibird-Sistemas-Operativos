@@ -273,7 +273,7 @@ int fueEnviado(t_paquete* paquete, t_client* client){
 }
 
 int existe_id_correlativo(int id_correlativo){
-	return obtenerMensajeIDCorrelativo(id_correlativo) != NULL;
+	return id_correlativo != 0 && obtenerMensajeIDCorrelativo(id_correlativo) != NULL;
 }
 
 clientes_por_mensaje_t* agregarMensaje(t_paquete* paquete){

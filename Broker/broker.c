@@ -31,7 +31,7 @@ int main(void) {
 //	logfile = "/home/utnso/log_broker.txt";
 
 	logger = iniciar_logger(logfile, "BROKER");
-	logger_extra = iniciar_logger(log_extra, "SERVER");
+	logger_extra = iniciar_logger(log_extra, "SERVER - EXTRALOG");
 	iniciarSignals();
 	iniciarMemoria();
 	iniciarSubscribers();

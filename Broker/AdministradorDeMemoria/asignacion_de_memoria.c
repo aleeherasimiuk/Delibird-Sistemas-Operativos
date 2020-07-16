@@ -44,6 +44,15 @@ void* guardarEnMemoria(){
 
 		compact = freq_compact; /*https://bit.ly/2BEfVk2*/
 		t_paquete* data = queue_pop(datos_para_guardar);
+
+		if(data -> buffer -> stream_size > bytes){
+			log_error(logger_extra, "El tamaño del stream es superior al tamaño de la caché. No se almacenará en memoria");
+			actualizarMensaje(NULL, data -> id);
+			liberarPaquete(data);
+			pthread_mutex_unlock(&mx_mem);
+			continue;
+		}
+
 		memory_block_t* particion = asignarUnaParticion(data -> buffer -> stream_size);
 		copiarDatos(particion, data);
 		relacionarBloqueConMensaje(particion, data);
@@ -88,6 +97,11 @@ memory_block_t* asignarUnaParticion(uint32_t size){
 	if(bloque == NULL){
 		log_debug(logger, "Tengo que acomodar la memoria");
 		return acomodarMemoria(size);
+	}
+
+	if(bloque -> data -> size == tamano_particion){
+		bloque -> data -> fragmentacion = 0;
+		return bloque;
 	}
 
 	memory_block_t* block = NULL;
@@ -151,6 +165,7 @@ void* acomodarMemoria(uint32_t size){
 
 	if(memoria != BUDDY_SYSTEM && compact == 0){
 		compactar();
+		compact = freq_compact;
 	} else {
 		librerarUnBloque();
 		compact--;

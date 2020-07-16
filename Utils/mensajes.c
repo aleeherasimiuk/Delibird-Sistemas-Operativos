@@ -560,7 +560,8 @@ void* crear_paquete(message_type cod_op, void* serialized_message, uint32_t mess
 void* crear_paquete_con_id_correlativo(message_type cod_op, void* serialized_message, uint32_t message_bytes, uint32_t id_correlativo, uint32_t* paquete_size) {
 	t_buffer* buffer = malloc(sizeof(t_buffer));
 	buffer -> stream_size = message_bytes;
-	buffer -> stream = serialized_message;
+	buffer -> stream = malloc(message_bytes);
+	memcpy(buffer -> stream, serialized_message, message_bytes);
 
 	t_paquete* paquete = crearPaquete();
 	paquete -> type = cod_op;
@@ -656,7 +657,7 @@ t_coords** coords_array(uint32_t cant_coords, ...){
 	// cargo los argumentos en args
 	va_start(args, cant_coords);
 
-	t_coords** array = malloc(cant_coords * sizeof(t_coords));
+	t_coords** array = malloc(cant_coords * sizeof(t_coords*));
 
 	for(int i = 0; i < cant_coords; i++){
 		array[i] = va_arg(args, t_coords*);
