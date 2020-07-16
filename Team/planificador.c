@@ -23,7 +23,9 @@ t_queue* pokemones_en_el_mapa; // Lista de t_pokemon_en_mapa*
 t_list*	pokemones_auxiliares_en_el_mapa; // Lista para guardar los pokemones que tengo por si no se llega a atrapar uno,
 
 
-sem_t sem_cpu_libre;
+pthread_mutex_t mutex_cpu_libre;
+pthread_cond_t cond_cpu_libre;
+int cpu_libre = 1;
 
 sem_t counter_pokemones_libres; // para ver si hay pokemones que no están siendo buscados por algún entrenador
 sem_t counter_entrenadores_disponibles; // para ver si hay entrenadores disponibles (new/blocked_idle)
@@ -53,9 +55,7 @@ pthread_cond_t cond_quantum;
 
 double estimacion_inicial;
 double alpha;
-pthread_mutex_t mutex_desalojo_sjf;
-pthread_cond_t cond_desalojo_sjf;
-int chequear_desalojo_sjf;
+t_tcb* ultimo_desalojado = NULL;
 
 //////////////////////////////////////
 //				STRUCTS				//
@@ -109,11 +109,9 @@ void iniciarPlanificador(void) {
 
 	alpha = config_get_double_value(config, "ALPHA");
 	estimacion_inicial = config_get_double_value(config, "ESTIMACION_INICIAL");
-	pthread_mutex_init(&mutex_desalojo_sjf, NULL);
-	pthread_cond_init(&cond_desalojo_sjf, NULL);
-	chequear_desalojo_sjf = 0;
 
-	sem_init(&sem_cpu_libre, 0, 1);
+	pthread_mutex_init(&mutex_cpu_libre, NULL);
+	pthread_cond_init(&cond_cpu_libre, NULL);
 
 	sem_init(&counter_pokemones_libres, 0, 0);	// inicio el semaforo en 0 ya que todavia no tengo pokemones.
 	sem_init(&counter_entrenadores_ready, 0, 0);
@@ -183,7 +181,7 @@ void cargarEntrenadores(void) {
 		tcb_nuevo->intercambio = NULL;
 		tcb_nuevo->finalizado = 0;
 
-		tcb_nuevo->estim_actual = estimacion_inicial - i * 2; // TODO: SACAR EL - i
+		tcb_nuevo->estim_actual = estimacion_inicial;
 		tcb_nuevo->estim_restante = 0;
 		tcb_nuevo->real_actual = 0;
 
@@ -236,22 +234,20 @@ void esperarAQueFinalicenLosEntrenadores() {
 
 int indexOf(t_tcb* tcb, t_cola_planificacion* cola) {
 	int index;
-	pthread_mutex_lock(&(cola->mutex));
 	for (index = 0; index < list_size(cola->lista); index++) {
 		if (tcb == (t_tcb*)list_get(cola->lista, index)) {
 			pthread_mutex_unlock(&(cola->mutex));
 			return index;
 		}
 	}
-	pthread_mutex_unlock(&(cola->mutex));
 	return -1;
 }
 
 void sacarDeCola(t_tcb* tcb, t_cola_planificacion* cola) {
+	pthread_mutex_lock(&(cola->mutex));
 
 	int index = indexOf(tcb, cola); // Busco el indice donde se encuentra el elemento
 
-	pthread_mutex_lock(&(cola->mutex));
 	list_remove(cola->lista, index);
 	pthread_mutex_unlock(&(cola->mutex));
 }
@@ -308,6 +304,7 @@ void ponerAEjecutarEntrenador(t_tcb* tcb) {
 	pthread_mutex_lock(&(tcb->exec_mutex));
 	entrenador_exec = tcb;
 	tcb->ejecucion = 1;
+	ocuparCPU();
 	pthread_cond_broadcast(&(tcb->exec_cond));	// Desbloqueo a los cond de este tcb
 	pthread_mutex_unlock(&(tcb->exec_mutex));
 }
@@ -319,12 +316,26 @@ t_tcb* terminarDeEjecutar(void) {
 	entrenador = entrenador_exec;
 	// SJF
 	actualizarValoresSJF(entrenador_exec);
-	
 	entrenador_exec = NULL;
+	
 	vaciarQuantum();
-	sem_post(&sem_cpu_libre);
+
+	liberarCPU();
 
 	return entrenador;
+}
+
+void liberarCPU(void) {
+	pthread_mutex_lock(&mutex_cpu_libre);
+	cpu_libre = 1;
+	pthread_cond_signal(&cond_cpu_libre);
+	pthread_mutex_unlock(&mutex_cpu_libre);
+}
+
+void ocuparCPU(void) {
+	pthread_mutex_lock(&mutex_cpu_libre);
+	cpu_libre = 0;
+	pthread_mutex_unlock(&mutex_cpu_libre);
 }
 
 // Bloquear por idle
@@ -509,7 +520,9 @@ void *planificadorCortoPlazo(void* _) {
 }
 
 void esperarCpuLibre(void) {
-	sem_wait(&sem_cpu_libre);
+	pthread_mutex_lock(&mutex_cpu_libre);
+	while(cpu_libre == 0) pthread_cond_wait(&cond_cpu_libre, &mutex_cpu_libre);
+	pthread_mutex_unlock(&mutex_cpu_libre);
 }
 
 void desalojarCPU(void) {
@@ -571,35 +584,36 @@ void vaciarQuantum(void) {
 	//////////////////////////////////////////
 
 void planificarSegunSJFCD(void) {
-	planificarSegunSJFSD();
-}
-
-void desalojarCPUSegunSJF(void) {
 	// Ver si tengo que desalojar al actual, por el nuevo que entra (el ultimo, por como funciona el list add)
-	pthread_mutex_lock(&mutex_desalojo_sjf);
-	while(!chequear_desalojo_sjf) pthread_cond_wait(&cond_desalojo_sjf, &mutex_desalojo_sjf);
-	pthread_mutex_unlock(&mutex_desalojo_sjf);
-
-	pthread_mutex_lock(&mutex_entrenador_exec);
 	if (entrenador_exec != NULL) {
+		pthread_mutex_lock(&(entrenador_exec->exec_mutex));
 		log_debug(logger, "Se entra a verificar si se tiene que desalojar el proceso en ejecución");
 		pthread_mutex_lock(&(entrenadores_ready->mutex));
 		t_tcb* entrenador_a_verificar = list_get(entrenadores_ready->lista, list_size(entrenadores_ready->lista) - 1);
 		pthread_mutex_unlock(&(entrenadores_ready->mutex));
 
-		// Se verifica la estimacion del nuevo entrenador contra lo RESTANTE del que está en ejecución
-		calcularEstimacion(entrenador_a_verificar);
+		// Ignoro la validacion si el que entró es el último en ser desalojado (ya que por algo fue desalojado), mancha con mancha no engancha
+		if (entrenador_a_verificar != ultimo_desalojado) {
+			// Se verifica la estimacion del nuevo entrenador contra lo RESTANTE del que está en ejecución
+			calcularEstimacion(entrenador_a_verificar);
 
-		double estimacion_restante = maximoDouble(entrenador_exec->estim_actual - entrenador_exec->real_actual, 0.0) ;
-		if (estimacionDe(entrenador_a_verificar) < estimacion_restante) {
-			// guardo la estimacion restante, que es con lo que se debería comparar al volver a ingresar el entrenador desalojado
-			entrenador_exec->estim_restante = estimacion_restante;
-			desalojarCPU();
-			pthread_mutex_unlock(&mutex_entrenador_exec);
-			ponerAEjecutarEntrenador(entrenador_a_verificar);
+			double estimacion_restante = maximoDouble(entrenador_exec->estim_actual - entrenador_exec->real_actual, 0.0) ;
+			if (estimacionDe(entrenador_a_verificar) < estimacion_restante) {
+				// guardo la estimacion restante, que es con lo que se debería comparar al volver a ingresar el entrenador desalojado
+				entrenador_exec->estim_restante = estimacion_restante;
+				ultimo_desalojado = entrenador_exec;
+				desalojarCPU();
+				pthread_mutex_unlock(&(ultimo_desalojado->exec_mutex));
+
+				sacarDeCola(entrenador_a_verificar, entrenadores_ready);
+				ponerAEjecutarEntrenador(entrenador_a_verificar);
+				return;
+			}
 		}
+		pthread_mutex_unlock(&(entrenador_exec->exec_mutex));
 	}
-	pthread_mutex_unlock(&mutex_entrenador_exec);
+
+	planificarSegunSJFSD();
 }
 
 void planificarSegunSJFSD(void) {
@@ -622,12 +636,12 @@ t_tcb* entrenadorConMenorEstimacion(void) {
 	int pos = 0;
 	t_tcb* entrenador_menor_estimacion = list_get(entrenadores_ready->lista, index);
 	calcularEstimacion(entrenador_menor_estimacion);
-	log_debug(logger, "El entrenador %d tiene una estimación de %f", entrenador_menor_estimacion->entrenador->id_entrenador, entrenador_menor_estimacion->estim_actual);
+	log_debug(logger, "El entrenador %d tiene una estimación de %f", entrenador_menor_estimacion->entrenador->id_entrenador, estimacionDe(entrenador_menor_estimacion));
 
 	for (index = 1; index < list_size(entrenadores_ready->lista); index++) {
 		entrenador_temp = list_get(entrenadores_ready->lista, index);
 		calcularEstimacion(entrenador_temp);
-		log_debug(logger, "El entrenador %d tiene una estimación de %f", entrenador_temp->entrenador->id_entrenador, entrenador_temp->estim_actual);
+		log_debug(logger, "El entrenador %d tiene una estimación de %f", entrenador_temp->entrenador->id_entrenador, estimacionDe(entrenador_temp));
 		if (estimacionDe(entrenador_temp) < estimacionDe(entrenador_menor_estimacion)) {
 			entrenador_menor_estimacion = entrenador_temp;
 			pos = index;
@@ -642,7 +656,7 @@ double estimacionDe(t_tcb* tcb) {
 }
 
 void calcularEstimacion(t_tcb* tcb) {
-	if (tcb->estim_actual != 0) // Es 0 si todavia no se calculó
+	if (estimacionDe(tcb) != 0) // Es 0 si todavia no se calculó
 		return;
 	// est = alpha * real_ant + (1 - alpha) * est_ant
 	double estimacion = alpha * tcb->real_ant + (1 - alpha) * tcb->estim_ant;
@@ -650,7 +664,7 @@ void calcularEstimacion(t_tcb* tcb) {
 }
 
 void actualizarValoresSJF(t_tcb* tcb) {
-	if (tcb->estim_actual == 0)
+	if (tcb->estim_actual == 0 || tcb->estim_restante != 0)
 		return;
 
 	tcb->estim_ant = tcb->estim_actual;

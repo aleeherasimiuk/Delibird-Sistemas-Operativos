@@ -38,6 +38,8 @@ void cambiarColaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* lista_actual);
 
 void ponerAEjecutarEntrenador(t_tcb* tcb);
 t_tcb* terminarDeEjecutar(void);
+void liberarCPU(void);
+void ocuparCPU(void);
 
 void bloquearPorIdle(t_tcb* tcb);
 void bloquearPorEsperarCaught(t_tcb* tcb);
