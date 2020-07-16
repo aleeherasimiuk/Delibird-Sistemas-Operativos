@@ -59,7 +59,7 @@ void vaciarQuantum(void);
 void planificarSegunSJFSD(void);
 
 //		EJECUCION
-void realizarCicloDeCPU(void);
+void realizarCicloDeCPU(t_tcb*);
 
 
 // 		OBJETIVOS + MAPA
