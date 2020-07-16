@@ -127,6 +127,13 @@ t_tcb* traerTcbDelCatchConID(uint32_t id) {
 	return catch->tcb;
 }
 
+int catchPendientes(void) {
+	sem_wait(&mutex_catch_enviados);
+	int cant = list_size(catch_enviados);
+	sem_post(&mutex_catch_enviados);
+	return cant;
+}
+
 void eliminarGetEnviado(uint32_t id) {
 	int index;
 	uint32_t* id_get;

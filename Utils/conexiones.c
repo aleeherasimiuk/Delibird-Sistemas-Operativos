@@ -52,7 +52,7 @@ void crear_servidor_cuando_se_pueda(char* ip, char* puerto, void* serve_client, 
         break;
     }
 
-    log_info(logger, "Broker inicializado. Escuchando en: %s:%s", ip, puerto);
+    log_info(logger, "Servidor inicializado. Escuchando en: %s:%s", ip, puerto);
 
     //int t = 1;
     //setsockopt(*socket_servidor, SOL_SOCKET, SO_REUSEADDR, &t, sizeof(t));

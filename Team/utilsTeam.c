@@ -36,3 +36,15 @@ void liberarInventario(t_inventario* inventario) {
 	free(inventario->pokemon);
 	free(inventario);
 }
+
+//////////////////////////////////////////
+//					MATH				//
+//////////////////////////////////////////
+
+double maximoDouble(double x, double y) {
+	if (x > y) {
+		return x;
+	} else {
+		return y;
+	}
+}

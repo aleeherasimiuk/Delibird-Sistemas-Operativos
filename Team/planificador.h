@@ -23,22 +23,23 @@
 t_pokemon_en_mapa* crearPokemonEnMapa(t_pokemon* pokemon, t_coords* posicion);
 
 //      INICIALIZACION
+void iniciarPlanificador(void);
 void cargarEntrenadores(void);
 void enviarGetsAlBroker(void);
-void iniciarPlanificador(void);
 
 // Estados
 void esperarAQueFinalicenLosEntrenadores(void);
 int indexOf(t_tcb* tcb, t_cola_planificacion* lista);
-void sacarDeLista(t_tcb* tcb, t_cola_planificacion* lista);
-void agregarALista(t_tcb* tcb, t_cola_planificacion* lista);
-int sonListasIguales(t_cola_planificacion* primero, t_cola_planificacion* segundo);
-void cambiarDeLista(t_tcb* tcb, t_cola_planificacion* lista_actual, t_cola_planificacion* lista_destino);
-void cambiarListaSegunCapacidad(t_tcb* tcb);
-void cambiarListaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* lista_actual);
+void sacarDeCola(t_tcb* tcb, t_cola_planificacion* lista);
+void agregarACola(t_tcb* tcb, t_cola_planificacion* lista);
+void cambiarDeCola(t_tcb* tcb, t_cola_planificacion* lista_actual, t_cola_planificacion* lista_destino);
+void cambiarColaSegunCapacidad(t_tcb* tcb);
+void cambiarColaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* lista_actual);
 
 void ponerAEjecutarEntrenador(t_tcb* tcb);
-void terminarDeEjecutar(void);
+t_tcb* terminarDeEjecutar(t_tcb* tcb);
+void liberarCPU(void);
+void ocuparCPU(void);
 
 void bloquearPorIdle(t_tcb* tcb);
 void bloquearPorEsperarCaught(t_tcb* tcb);
@@ -49,15 +50,24 @@ void *mandarABuscarPokemones(void*);
 
 // Planificacion corto plazo
 void *planificadorCortoPlazo(void* _);
-
-void planificarSegunFifo(void);
-
 void esperarCpuLibre(void);
+void desalojarCPU(int ultimo_ciclo);
 
+	// FIFO
+void planificarSegunFifo(void);
+	// RR
+void planificarSegunRR(void);
+void vaciarQuantum(int ultimo_ciclo);
+	// SJF
+void planificarSegunSJFCD(void);
+void planificarSegunSJFSD(void);
+t_tcb* entrenadorConMenorEstimacion(void);
+double estimacionDe(t_tcb* tcb);
+void calcularEstimacion(t_tcb* tcb);
+void actualizarValoresSJF(t_tcb* tcb);
 
 //		EJECUCION
-void realizarCicloDeCPU(void);
-void realizarXCiclosDeCPU(int cant_ciclos);
+void realizarCicloDeCPU(t_tcb* tcb, int ultimo_ciclo);
 
 
 // 		OBJETIVOS + MAPA

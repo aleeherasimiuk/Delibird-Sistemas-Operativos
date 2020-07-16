@@ -22,10 +22,15 @@
 #include "var_globales_gamecard.h"
 #include "procesamiento_mensajes.h"
 
+typedef struct {
+	int socket;
+	message_type cola;
+} t_escucha_socket;
+
 
 void suscribirGameCardAlBroker(void);
 void *escucharAlSocket(void*);
-int abrirUnaConexionGameCard(t_config*);
+int abrirUnaConexionGameCard(void);
 void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id);
 
 void escucharAlGameboy();

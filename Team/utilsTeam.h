@@ -21,4 +21,7 @@ void liberarListaDePunteros(char** list);
 void liberarListaDeInventario(t_list* lista);
 void liberarInventario(t_inventario* inventario);
 
+// MATH
+double maximoDouble(double x, double y);
+
 #endif /* UTILSTEAM_H_ */

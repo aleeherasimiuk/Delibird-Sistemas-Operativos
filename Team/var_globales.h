@@ -8,16 +8,15 @@
 #ifndef VAR_GLOBALES_H_
 #define VAR_GLOBALES_H_
 
-#include <semaphore.h>
+#include <pthread.h>
 #include <commons/config.h>
 #include <commons/log.h>
 #include <commons/collections/list.h>
 #include <stdint.h>
-#include <semaphore.h>
 
 typedef struct {
 	t_list* lista;
-	sem_t mutex;
+	pthread_mutex_t mutex;
 } t_cola_planificacion;
 
 extern t_config* config;
@@ -36,7 +35,7 @@ extern t_list* actuales_global;
 
 // mutexs
 
-extern sem_t mutex_entrenadores_blocked_full;	// SACAR
-extern sem_t mutex_actuales_global;
+extern pthread_mutex_t mutex_entrenadores_blocked_full;	// SACAR
+extern pthread_mutex_t mutex_actuales_global;
 
 #endif /* VAR_GLOBALES_H_ */
