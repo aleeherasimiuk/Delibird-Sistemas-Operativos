@@ -305,12 +305,8 @@ void cambiarColaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* cola_actual) {
 }
 
 void ponerAEjecutarEntrenador(t_tcb* tcb) {
-	pthread_mutex_lock(&mutex_entrenador_exec);
-	entrenador_exec = tcb;
-	pthread_cond_signal(&cond_entrenador_exec);
-	pthread_mutex_unlock(&mutex_entrenador_exec);
-
 	pthread_mutex_lock(&(tcb->exec_mutex));
+	entrenador_exec = tcb;
 	tcb->ejecucion = 1;
 	pthread_cond_broadcast(&(tcb->exec_cond));	// Desbloqueo a los cond de este tcb
 	pthread_mutex_unlock(&(tcb->exec_mutex));
@@ -319,21 +315,13 @@ void ponerAEjecutarEntrenador(t_tcb* tcb) {
 //Solo lo saca de ejecucion, otro metodo tiene que cambiarlo de lista
 t_tcb* terminarDeEjecutar(void) {
 	t_tcb* entrenador;
-
-
-	pthread_mutex_lock(&(entrenador_exec->exec_mutex));
 	entrenador_exec->ejecucion = 0;
+	entrenador = entrenador_exec;
 	// SJF
 	actualizarValoresSJF(entrenador_exec);
-
-	pthread_mutex_unlock(&(entrenador_exec->exec_mutex));
-
-	entrenador = entrenador_exec;
+	
 	entrenador_exec = NULL;
-
-	// RR
 	vaciarQuantum();
-
 	sem_post(&sem_cpu_libre);
 
 	return entrenador;
@@ -562,20 +550,19 @@ void planificarSegunRR(void) {
 	// Esperar a que se termine el quantum, o que el proceso libere la cpu;
 	pthread_mutex_lock(&mutex_quantum);
 	while(quantum_actual > 0 && entrenador_exec != NULL) pthread_cond_wait(&cond_quantum, &mutex_quantum);
-	pthread_mutex_unlock(&mutex_quantum);
-
 	log_debug(logger, "Planificador RR se vació el quantum");
-
-	pthread_mutex_lock(&mutex_entrenador_exec);
-	desalojarCPU();
-	pthread_mutex_unlock(&mutex_entrenador_exec);
+	pthread_mutex_unlock(&mutex_quantum);
 }
 
 // Tambien libera el RR si se termina de ejecutar
 void vaciarQuantum(void) {
 	pthread_mutex_lock(&mutex_quantum);
-	if (--quantum_actual == 0 || entrenador_exec == NULL)
-		pthread_cond_signal(&cond_quantum);
+	if (--quantum_actual == 0) {
+		pthread_mutex_unlock(&mutex_quantum);
+		desalojarCPU();
+		pthread_mutex_lock(&mutex_quantum);
+	}
+	pthread_cond_broadcast(&cond_quantum);
 	pthread_mutex_unlock(&mutex_quantum);
 }
 
@@ -678,21 +665,15 @@ void actualizarValoresSJF(t_tcb* tcb) {
 //////////////////////////////////////
 
 void realizarCicloDeCPU(t_tcb* tcb) {
-	pthread_mutex_lock(&mutex_entrenador_exec);
-	while (entrenador_exec != tcb) pthread_cond_wait(&cond_entrenador_exec, &mutex_entrenador_exec);
-	verificarSiTieneQueEjecutar(entrenador_exec);
-
-	log_debug(logger, "Se realizara 1 ciclo de CPU");
-
-	// TODO: no realizar funciones de otros algoritmos
+	pthread_mutex_lock(&(tcb->exec_mutex));
+	verificarSiTieneQueEjecutar(tcb);
+	log_debug(logger, "El entrenador %d ejecuta un ciclo de CPU", tcb->entrenador->id_entrenador);
 	// SJF
 	entrenador_exec->real_actual++;
-
 	// RR
 	vaciarQuantum();
-
 	sleep(retardo_ciclo_cpu);
-	pthread_mutex_unlock(&mutex_entrenador_exec);
+	pthread_mutex_unlock(&(tcb->exec_mutex));
 }
 
 

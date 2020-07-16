@@ -229,7 +229,7 @@ void moverseAlobjetivo(t_tcb* tcb, t_coords* posicion_destino, uint32_t id_entre
 	for (int x = posicion_actual->posX + direccion; posicion_actual->posX != posicion_destino->posX; x += direccion) {
 		realizarCicloDeCPU(tcb);
 		posicion_actual->posX = x;
-		log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
+		//log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
 	}
 
 	direccion = signo(posicion_destino->posY - posicion_actual->posY);
@@ -237,7 +237,7 @@ void moverseAlobjetivo(t_tcb* tcb, t_coords* posicion_destino, uint32_t id_entre
 	for (int y = posicion_actual->posY + direccion; posicion_actual->posY != posicion_destino->posY; y += direccion) {
 		realizarCicloDeCPU(tcb);
 		posicion_actual->posY = y;
-		log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
+		//log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
 	}
 }
 
@@ -251,7 +251,9 @@ void intentarAtraparPokemon(t_tcb* tcb) {
 	realizarCicloDeCPU(tcb);
 	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
 	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
+	pthread_mutex_lock(&(tcb->exec_mutex));
 	terminarDeEjecutar();
+	pthread_mutex_unlock(&(tcb->exec_mutex));
 	bloquearPorEsperarCaught(tcb);
 }
 
@@ -293,7 +295,10 @@ void *entrenadorMain(void* arg) {
 
 	while(!tcb->finalizado) {
 		log_debug(logger, "Entrenador %d esperando para ejecutarse", entrenador->id_entrenador);
+
+		pthread_mutex_lock(&(tcb->exec_mutex));
 		verificarSiTieneQueEjecutar(tcb);
+		pthread_mutex_unlock(&(tcb->exec_mutex));
 		log_debug(logger, "Entrenador %d empieza a ejecutarse", entrenador->id_entrenador);
 
 
@@ -313,7 +318,9 @@ void *entrenadorMain(void* arg) {
 
 			realizarIntercambio(tcb);
 
+			pthread_mutex_lock(&(tcb->exec_mutex));
 			terminarDeEjecutar();
+			pthread_mutex_unlock(&(tcb->exec_mutex));
 		}
 	}
 
@@ -323,7 +330,5 @@ void *entrenadorMain(void* arg) {
 }
 
 void verificarSiTieneQueEjecutar(t_tcb* tcb) {
-	pthread_mutex_lock(&(tcb->exec_mutex));
-	while (!tcb->ejecucion) pthread_cond_wait(&(tcb->exec_cond), &(tcb->exec_mutex));
-	pthread_mutex_unlock(&(tcb->exec_mutex));
+	while (tcb->ejecucion == 0) pthread_cond_wait(&(tcb->exec_cond), &(tcb->exec_mutex));
 }
