@@ -306,8 +306,6 @@ void ponerAEjecutarEntrenador(t_tcb* tcb) {
 	tcb->ejecucion = 1;
 	pthread_cond_broadcast(&(tcb->exec_cond));	// Desbloqueo a los cond de este tcb
 	pthread_mutex_unlock(&(tcb->exec_mutex));
-
-	sacarDeCola(tcb, entrenadores_ready);
 }
 
 //Solo lo saca de ejecucion, otro metodo tiene que cambiarlo de lista
@@ -601,6 +599,7 @@ t_tcb* entrenadorConMenorEstimacion(void) {
 	int index = 0;
 	t_tcb* entrenador_temp = NULL;
 
+	int pos = 0;
 	t_tcb* entrenador_menor_estimacion = list_get(entrenadores_ready->lista, index);
 	calcularEstimacion(entrenador_menor_estimacion);
 	log_debug(logger, "El entrenador %d tiene una estimación de %d", entrenador_menor_estimacion->entrenador->id_entrenador, entrenador_menor_estimacion->estim_actual);
@@ -611,10 +610,11 @@ t_tcb* entrenadorConMenorEstimacion(void) {
 		log_debug(logger, "El entrenador %d tiene una estimación de %d", entrenador_temp->entrenador->id_entrenador, entrenador_temp->estim_actual);
 		if (entrenador_temp->estim_actual < entrenador_menor_estimacion->estim_actual) {
 			entrenador_menor_estimacion = entrenador_temp;
+			pos = index;
 		}
 	}
 
-	return entrenador_menor_estimacion;
+	return list_remove(entrenadores_ready->lista, pos);
 }
 
 void calcularEstimacion(t_tcb* tcb) {
