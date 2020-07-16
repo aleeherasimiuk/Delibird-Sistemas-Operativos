@@ -9,41 +9,63 @@
 
 uint32_t process_id;
 
+t_log* logger_extra = NULL;
+
 void suscribirGameCardAlBroker(void){
 		int conexiones[3];
 
-		conexiones[0] = abrirUnaConexionGameCard(config);
+		conexiones[0] = abrirUnaConexionGameCard();
 		suscribirAUnaCola(conexiones[0], NEW_POKEMON, process_id);
 
-		conexiones[1] = abrirUnaConexionGameCard(config);
+		conexiones[1] = abrirUnaConexionGameCard();
 		suscribirAUnaCola(conexiones[1], CATCH_POKEMON, process_id);
 
-		conexiones[2] = abrirUnaConexionGameCard(config);
+		conexiones[2] = abrirUnaConexionGameCard();
 		suscribirAUnaCola(conexiones[2], GET_POKEMON, process_id);
 
+		t_escucha_socket* s1, *s2, *s3;
+
+		s1 = malloc(sizeof(t_escucha_socket));
+		s2 = malloc(sizeof(t_escucha_socket));
+		s3 = malloc(sizeof(t_escucha_socket));
+
+		s1->socket = conexiones[0];
+		s2->socket = conexiones[1];
+		s3->socket = conexiones[2];
+
+		s1->cola = NEW_POKEMON;
+		s2->cola = CATCH_POKEMON;
+		s3->cola = GET_POKEMON;
 
 		pthread_t thread1, thread2, thread3;
-		pthread_create(&thread1, NULL, escucharAlSocket, &conexiones[0]);
-		pthread_create(&thread2, NULL, escucharAlSocket, &conexiones[1]);
-		pthread_create(&thread3, NULL, escucharAlSocket, &conexiones[2]);
+		pthread_create(&thread1, NULL, escucharAlSocket, (void*)s1);
+		pthread_create(&thread2, NULL, escucharAlSocket, (void*)s2);
+		pthread_create(&thread3, NULL, escucharAlSocket, (void*)s3);
 
 		pthread_join(thread1, NULL);
 		pthread_join(thread2, NULL);
 		pthread_join(thread3, NULL);
 
+
 		return;
 }
 
-int abrirUnaConexionGameCard(t_config* config) {
+int abrirUnaConexionGameCard(void) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
+	if(conexion == CANT_CONNECT) {
+		log_debug(logger, "Intentando nueva conexión en %d segundos", tiempo_reconexion);
+		sleep(tiempo_reconexion);
+		return abrirUnaConexionGameCard();
+	}
 	return conexion;
 }
 
-void *escucharAlSocket(void* socket) {
+void *escucharAlSocket(void* data) {
 	int i = 1;
-	log_debug(logger, "Escuchando en el socket: %d", *((int*)socket));
+	t_escucha_socket* escucha_socket = (t_escucha_socket*) data;
+	log_debug(logger, "Escuchando en el socket: %d", escucha_socket->socket);
 	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
-		t_paquete* paquete = recibirPaquete(*((int*)socket));
+		t_paquete* paquete = recibirPaquete(escucha_socket->socket);
 
 		if(paquete != NULL){ //TODO Revisar Memory Leak
 			enviarACK(paquete -> id);
@@ -71,9 +93,11 @@ void *escucharAlSocket(void* socket) {
 					break;
 			}
 		}else {
-			// Políticas de reconexión
-			close(*((int*)socket));
-			i = 0;
+			close(escucha_socket->socket);
+
+			escucha_socket->socket = abrirUnaConexionGameCard();
+
+			suscribirAUnaCola(escucha_socket->socket, escucha_socket->cola, process_id);
 		}
 	}
 	// TODO DESTRUIR EL HILO?
@@ -108,8 +132,11 @@ void* abrirSocketParaGameboy(){
 
 	char* ip = config_get_string_value(config, "IP");
 	char* puerto = config_get_string_value(config, "PUERTO");
+	char* ruta_logger = config_get_string_value(config, "LOG_FILE_EXTRA");
+	logger_extra = iniciar_logger(ruta_logger);
+
 	log_debug(logger, "Estoy escuchando al gameboy en %s:%s", ip, puerto);
-	crear_servidor(ip, puerto, serve_client);
+	crear_servidor_cuando_se_pueda(ip, puerto, serve_client, logger_extra);
 
 }
 
@@ -149,7 +176,7 @@ void process_request(message_type type, int socket){
 
 void enviarACK(uint32_t id){
 
-	int conexion = abrirUnaConexionGameCard(config);
+	int conexion = abrirUnaConexionGameCard();
 
 	log_debug(logger,"Enviaré un ACK por el id: %d",id);
 	t_ack* _ack = ack(process_id, id);

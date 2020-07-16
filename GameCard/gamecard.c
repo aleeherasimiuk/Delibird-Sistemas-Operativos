@@ -11,44 +11,29 @@ t_log* logger = NULL;
 t_config* config = NULL;
 t_bitarray* bitarray = NULL;
 char* ruta_punto_montaje = NULL;
+uint32_t tiempo_reconexion = 0;
 
 int main() {
 
 	char* logfile;
 
-	uint32_t tiempoReconexion;
+	int init = 0;
 
 	config = leer_config();
 
 	logfile = config_get_string_value(config, "LOG_FILE");
 	ruta_punto_montaje = config_get_string_value(config, "PUNTO_MONTAJE_TALLGRASS");
-	tiempoReconexion = config_get_int_value(config, "TIEMPO_DE_REINTENTO_CONEXION");
+	tiempo_reconexion = config_get_int_value(config, "TIEMPO_DE_REINTENTO_CONEXION");
 	process_id = config_get_int_value(config, "PROCESS_ID");
 
 	logger = iniciar_logger(logfile);
 
 	bitarray = iniciar_bitarray();
 
-	while(1) {
-		if(abrirUnaConexionGameCard(config) == CANT_CONNECT)
-			intentarReconexionConBroker(logfile, tiempoReconexion,  config);
-		else {
-			inicializar_gamecard();
-			break;
-		}
-	}
-	return 1;
-}
-
-
-void intentarReconexionConBroker(char* logfile, uint32_t tiempo, t_config* config){
-	log_debug(logger, "Intentando nueva conexión en %d segundos", tiempo);
-	sleep(tiempo);
-}
-
-void inicializar_gamecard(void) {
 	escucharAlGameboy();
 	suscribirGameCardAlBroker();
+
+	return 1;
 }
 
 t_log* iniciar_logger(char* logfile) {

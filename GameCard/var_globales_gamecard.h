@@ -17,6 +17,7 @@ extern t_bitarray* bitarray;
 extern t_log* logger;
 extern uint32_t process_id;
 extern char* ruta_punto_montaje;
+extern uint32_t tiempo_reconexion;
 
 /*extern typedef struct {
 	extern t_coords coordenadas;
