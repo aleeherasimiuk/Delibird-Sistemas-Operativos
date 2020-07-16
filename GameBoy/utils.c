@@ -38,6 +38,9 @@ int enviar_mensaje(int argc, char* argv[]){
 
 	if(compare_string(proceso, "SUSCRIPTOR"))
 		escuchar_broker(conexion, (convert_to_int(argv[2])));
+	else
+		esperarID(conexion);
+
 
 	terminar_programa(conexion, logger, config);
 	return 0;
@@ -168,6 +171,24 @@ void* preparar_mensaje(char* process, int argc, char* argv[], uint32_t* paquete_
 
 }
 
+void esperarID(uint32_t conexion){
+
+	while(1){
+		t_paquete* paquete = recibirPaquete(conexion);
+
+		if(paquete == NULL)
+			break;
+
+		if(paquete -> type == ID){
+			t_id* id = (paquete -> buffer -> stream);
+			log_info(logger, "ID del mensaje enviado: #%d", *id);
+			break;
+
+		}
+
+	}
+}
+
 
 
 void escuchar_broker(uint32_t conexion, uint32_t seconds){
@@ -190,7 +211,8 @@ void escuchar_broker(uint32_t conexion, uint32_t seconds){
 			break;
 		}
 
-		enviarACK(paquete -> id);
+		if(paquete -> type != ID)
+			enviarACK(paquete -> id);
 
 		switch(paquete->type) {
 			case ID:
