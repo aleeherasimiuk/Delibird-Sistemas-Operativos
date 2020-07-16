@@ -36,9 +36,6 @@ void suscribirseAlBroker(void) {
 
 	esperarAQueFinalicenLosEntrenadores();
 	log_debug(logger, "Ya finalizaron todos los entrenadores");
-	//pthread_kill(thread1, SIGTERM);
-	//pthread_kill(thread2, SIGTERM);
-	//pthread_kill(thread3, SIGTERM);
 
 	return;
 }
@@ -289,6 +286,8 @@ void* enviarGetPokemon(void* data) {
 
 void* procesarLocalized(void* data) {
 	t_paquete* paquete = (t_paquete*) data;
+	void* ptrStream = paquete->buffer->stream; // lo guardo porque mientras se desserializa se mueve el puntero del stream
+
 	t_localized_pokemon* pok = deserializarLocalizedPokemon(paquete -> buffer);
 	t_pokemon* pokemon_aux = NULL;
 
@@ -328,6 +327,10 @@ void* procesarLocalized(void* data) {
 	if (pokemon_aux != NULL)
 		free(pokemon_aux);
 
+	free(ptrStream);
+	free(paquete->buffer);
+	free(paquete);
+
 	return NULL;
 }
 
@@ -338,6 +341,8 @@ void* procesarLocalized(void* data) {
 
 void* procesarAppeared(void* data) {
 	t_paquete* paquete = (t_paquete*) data;
+	void* ptrStream = paquete->buffer->stream; // lo guardo porque mientras se desserializa se mueve el puntero del stream
+
 	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
 
 	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
@@ -353,6 +358,9 @@ void* procesarAppeared(void* data) {
 		free(pok->coords);
 	}
 	free(pok);
+	free(ptrStream);
+	free(paquete->buffer);
+	free(paquete);
 
 	return NULL;
 }
@@ -413,6 +421,7 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 
 void* procesarCaughtPokemon(void* data) {
 	t_paquete* paquete = (t_paquete*) data;
+	void* ptrStream = paquete->buffer->stream; // lo guardo porque mientras se desserializa se mueve el puntero del stream
 
 	t_tcb* tcb = traerTcbDelCatchConID(paquete->correlative_id);
 
@@ -430,10 +439,9 @@ void* procesarCaughtPokemon(void* data) {
 	} else if(*cau_pok == NO){
 		log_debug(logger, "Ufa! No pude atraparlo :(");
 		
-		sem_wait(&mutex_actuales_global);
-		t_list* actuales = actuales_global;
-		sacarPokemonEnListaDeInventario(actuales, tcb->entrenador->objetivo->pokemon->name);
-		sem_post(&mutex_actuales_global);
+		pthread_mutex_lock(&mutex_actuales_global);
+		sacarPokemonEnListaDeInventario(actuales_global, tcb->entrenador->objetivo->pokemon->name);
+		pthread_mutex_unlock(&mutex_actuales_global);
 		buscarPokemonAuxiliarYPasarAlMapa(tcb->entrenador->objetivo->pokemon->name);
 	} else {
 		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
@@ -443,14 +451,18 @@ void* procesarCaughtPokemon(void* data) {
 	//free(tcb->entrenador->objetivo->pokemon->name); // El nombre está
 	free(tcb->entrenador->objetivo->pokemon);
 	free(tcb->entrenador->objetivo->posicion);
+	free(tcb->entrenador->objetivo);
 	tcb->entrenador->objetivo = NULL;
 
 	eliminarCatchEnviado(paquete->correlative_id);
 
-	// TODO chequear si finaliza tanto el entrenador como el proceso
-
 	// como lo cambio de lista despues de liberar al auxiliar, si hay otro entrenador, va a ir a buscarlo el otro.
-	cambiarListaSegunCapacidad(tcb);
+	cambiarColaSegunCapacidad(tcb);
+
+	free(ptrStream);
+	free(paquete->buffer);
+	free(paquete);
+
 
 	return NULL;
 }

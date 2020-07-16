@@ -57,9 +57,16 @@ typedef struct t_intercambio {
 typedef struct t_tcb {
 	t_intercambio* intercambio;
 	t_entrenador* entrenador;
+	pthread_cond_t exec_cond;
+	pthread_mutex_t exec_mutex;
+	int ejecucion;
 	int finalizado;
-	sem_t sem_ejecucion; // Solo se activa cuando pasa a exec
 
+	double estim_ant;
+	int real_ant;
+	double estim_actual;
+	double estim_restante;
+	int real_actual;
 	// TODO Agregar info para los distintos algoritmos de planificacion
 } t_tcb;
 
@@ -101,11 +108,11 @@ int tienePokemonYNoLoNecesita(t_entrenador* entrenador, char* pokemon_name);
 // Movimiento
 int distanciaA(t_coords*, t_coords*);
 int signo(int n);
-void moverseAlobjetivo(t_coords** pos_actual, t_coords* posicion_destino, uint32_t id_entrenador);
+void moverseAlobjetivo(t_tcb* pos_actual, t_coords* posicion_destino, uint32_t id_entrenador);
 
 // Ejecución
 void intentarAtraparPokemon(t_tcb* tcb);
 void realizarIntercambio(t_tcb* tcb);
 void *entrenadorMain(void*);
-
+void verificarSiTieneQueEjecutar(t_tcb* tcb);
 #endif /* ENTRENADORES_H_ */

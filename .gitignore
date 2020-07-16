@@ -62,6 +62,7 @@ Broker/broker
 GameBoy/gameboy
 Tests/tests
 GameCard/gamecard
+*/core
 
 
 /.cproject
