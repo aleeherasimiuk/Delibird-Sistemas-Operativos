@@ -37,7 +37,7 @@ void cambiarColaSegunCapacidad(t_tcb* tcb);
 void cambiarColaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* lista_actual);
 
 void ponerAEjecutarEntrenador(t_tcb* tcb);
-t_tcb* terminarDeEjecutar(void);
+t_tcb* terminarDeEjecutar(t_tcb* tcb);
 void liberarCPU(void);
 void ocuparCPU(void);
 
@@ -51,12 +51,13 @@ void *mandarABuscarPokemones(void*);
 // Planificacion corto plazo
 void *planificadorCortoPlazo(void* _);
 void esperarCpuLibre(void);
+void desalojarCPU(int ultimo_ciclo);
 
 	// FIFO
 void planificarSegunFifo(void);
 	// RR
 void planificarSegunRR(void);
-void vaciarQuantum(void);
+void vaciarQuantum(int ultimo_ciclo);
 	// SJF
 void planificarSegunSJFCD(void);
 void planificarSegunSJFSD(void);
@@ -66,7 +67,7 @@ void calcularEstimacion(t_tcb* tcb);
 void actualizarValoresSJF(t_tcb* tcb);
 
 //		EJECUCION
-void realizarCicloDeCPU(t_tcb* tcb);
+void realizarCicloDeCPU(t_tcb* tcb, int ultimo_ciclo);
 
 
 // 		OBJETIVOS + MAPA

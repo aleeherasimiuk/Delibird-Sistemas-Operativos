@@ -227,16 +227,20 @@ void moverseAlobjetivo(t_tcb* tcb, t_coords* posicion_destino, uint32_t id_entre
 	t_coords* posicion_actual = tcb->entrenador->posicion;
 	int direccion = signo(posicion_destino->posX - posicion_actual->posX);
 	for (int x = posicion_actual->posX + direccion; posicion_actual->posX != posicion_destino->posX; x += direccion) {
-		realizarCicloDeCPU(tcb);
+		pthread_mutex_lock(&(tcb->exec_mutex));
+		realizarCicloDeCPU(tcb, 0);
 		posicion_actual->posX = x;
+		pthread_mutex_unlock(&(tcb->exec_mutex));
 		//log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
 	}
 
 	direccion = signo(posicion_destino->posY - posicion_actual->posY);
 
 	for (int y = posicion_actual->posY + direccion; posicion_actual->posY != posicion_destino->posY; y += direccion) {
-		realizarCicloDeCPU(tcb);
+		pthread_mutex_lock(&(tcb->exec_mutex));
+		realizarCicloDeCPU(tcb, 0);
 		posicion_actual->posY = y;
+		pthread_mutex_unlock(&(tcb->exec_mutex));
 		//log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
 	}
 }
@@ -247,14 +251,16 @@ void moverseAlobjetivo(t_tcb* tcb, t_coords* posicion_destino, uint32_t id_entre
 //////////////////////////////////////
 
 void intentarAtraparPokemon(t_tcb* tcb) {
-	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
-	realizarCicloDeCPU(tcb);
-	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
-	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
+
 	pthread_mutex_lock(&(tcb->exec_mutex));
-	terminarDeEjecutar();
-	pthread_mutex_unlock(&(tcb->exec_mutex));
+	realizarCicloDeCPU(tcb , 1);
+	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
+	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
 	bloquearPorEsperarCaught(tcb);
+	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
+	terminarDeEjecutar(tcb);	// Se sigue manteniendo por si no corta por quantum
+	pthread_mutex_unlock(&(tcb->exec_mutex));
+
 }
 
 void realizarIntercambio(t_tcb* tcb) {
@@ -262,26 +268,33 @@ void realizarIntercambio(t_tcb* tcb) {
 
 	log_debug(logger, "Se va a hacer el intercambio entre el entrenador %d y el entrenador %d", tcb->entrenador->id_entrenador, tcb_intercambio->entrenador->id_entrenador);
 
-	realizarCicloDeCPU(tcb);
-
+	pthread_mutex_lock(&(tcb->exec_mutex));
+	realizarCicloDeCPU(tcb, 0);
 	sacarPokemonEnListaDeInventario(tcb_intercambio->entrenador->pokes_actuales, tcb->intercambio->su_pokemon);
+	pthread_mutex_unlock(&(tcb->exec_mutex));
 
-	realizarCicloDeCPU(tcb);
-
+	pthread_mutex_lock(&(tcb->exec_mutex));
+	realizarCicloDeCPU(tcb, 0);
 	cargarPokemonEnListaDeInventario(tcb->entrenador->pokes_actuales, tcb->intercambio->su_pokemon);
+	pthread_mutex_unlock(&(tcb->exec_mutex));
 
-	realizarCicloDeCPU(tcb);
-
+	pthread_mutex_lock(&(tcb->exec_mutex));
+	realizarCicloDeCPU(tcb, 0);
 	sacarPokemonEnListaDeInventario(tcb->entrenador->pokes_actuales, tcb->intercambio->mi_pokemon);
+	pthread_mutex_unlock(&(tcb->exec_mutex));
 
-	realizarCicloDeCPU(tcb);
-
+	pthread_mutex_lock(&(tcb->exec_mutex));
+	realizarCicloDeCPU(tcb, 0);
 	cargarPokemonEnListaDeInventario(tcb_intercambio->entrenador->pokes_actuales, tcb->intercambio->mi_pokemon);
+	pthread_mutex_unlock(&(tcb->exec_mutex));
 
-	realizarCicloDeCPU(tcb);
-
+	pthread_mutex_lock(&(tcb->exec_mutex));
+	realizarCicloDeCPU(tcb, 1);
 	cambiarColaSegunObjetivo(tcb_intercambio, entrenadores_blocked_waiting_trade);
 	cambiarColaSegunObjetivo(tcb, NULL);
+	terminarDeEjecutar(tcb);
+	pthread_mutex_unlock(&(tcb->exec_mutex));
+
 
 	free(tcb->intercambio->mi_pokemon);
 	free(tcb->intercambio->su_pokemon);
@@ -317,10 +330,6 @@ void *entrenadorMain(void* arg) {
 			moverseAlobjetivo(tcb, tcb->intercambio->tcb->entrenador->posicion, entrenador->id_entrenador);
 
 			realizarIntercambio(tcb);
-
-			pthread_mutex_lock(&(tcb->exec_mutex));
-			terminarDeEjecutar();
-			pthread_mutex_unlock(&(tcb->exec_mutex));
 		}
 	}
 

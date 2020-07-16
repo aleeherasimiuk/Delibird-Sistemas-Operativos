@@ -253,11 +253,11 @@ void sacarDeCola(t_tcb* tcb, t_cola_planificacion* cola) {
 }
 
 void agregarACola(t_tcb* tcb, t_cola_planificacion* cola) {
-	pthread_mutex_lock(&(cola->mutex));
-	list_add(cola->lista, tcb);
-	pthread_mutex_unlock(&(cola->mutex));
-
 	if (tcb != NULL) {
+		pthread_mutex_lock(&(cola->mutex));
+		list_add(cola->lista, tcb);
+		pthread_mutex_unlock(&(cola->mutex));
+
 		// no se puede hacer switch en punteros
 		if (cola == entrenadores_new || cola == entrenadores_blocked_idle) {
 			sem_post(&counter_entrenadores_disponibles);
@@ -310,17 +310,22 @@ void ponerAEjecutarEntrenador(t_tcb* tcb) {
 }
 
 //Solo lo saca de ejecucion, otro metodo tiene que cambiarlo de lista
-t_tcb* terminarDeEjecutar(void) {
-	t_tcb* entrenador;
-	entrenador_exec->ejecucion = 0;
-	entrenador = entrenador_exec;
-	// SJF
-	actualizarValoresSJF(entrenador_exec);
-	entrenador_exec = NULL;
-	
-	vaciarQuantum();
+t_tcb* terminarDeEjecutar(t_tcb* tcb) {
+	t_tcb* entrenador = NULL;
+	if (entrenador_exec != NULL && tcb->ejecucion) {
+		tcb->ejecucion = 0;
+		entrenador = tcb;
+		// SJF
+		actualizarValoresSJF(entrenador_exec);
+		entrenador_exec = NULL;
 
-	liberarCPU();
+		liberarCPU();
+
+		pthread_mutex_unlock(&mutex_quantum);
+		quantum_actual = 0;
+		pthread_cond_broadcast(&cond_quantum);
+		pthread_mutex_unlock(&mutex_quantum);
+	}
 
 	return entrenador;
 }
@@ -525,11 +530,12 @@ void esperarCpuLibre(void) {
 	pthread_mutex_unlock(&mutex_cpu_libre);
 }
 
-void desalojarCPU(void) {
+void desalojarCPU(int ultimo_ciclo) {
 	if (entrenador_exec != NULL) {
-		t_tcb* entrenador_desalojado = terminarDeEjecutar();	// Lo saco de ejecucion y lo mando a ready
-		log_debug(logger, "Se desaloja al entrenador %d", entrenador_desalojado->entrenador->id_entrenador);
-		agregarACola(entrenador_desalojado, entrenadores_ready);
+		log_debug(logger, "Se va a desalojar al entrenador %d", entrenador_exec->entrenador->id_entrenador);
+		t_tcb* entrenador_desalojado = terminarDeEjecutar(entrenador_exec);	// Lo saco de ejecucion y lo mando a ready
+		if (!ultimo_ciclo)	// Si en realidad iba a terminar, no lo mando a ready
+			agregarACola(entrenador_desalojado, entrenadores_ready);
 	}
 }
 
@@ -562,18 +568,16 @@ void planificarSegunRR(void) {
 
 	// Esperar a que se termine el quantum, o que el proceso libere la cpu;
 	pthread_mutex_lock(&mutex_quantum);
-	while(quantum_actual > 0 && entrenador_exec != NULL) pthread_cond_wait(&cond_quantum, &mutex_quantum);
+	while(quantum_actual > 0) pthread_cond_wait(&cond_quantum, &mutex_quantum);
 	log_debug(logger, "Planificador RR se vació el quantum");
 	pthread_mutex_unlock(&mutex_quantum);
 }
 
 // Tambien libera el RR si se termina de ejecutar
-void vaciarQuantum(void) {
+void vaciarQuantum(int ultimo_ciclo) {
 	pthread_mutex_lock(&mutex_quantum);
 	if (--quantum_actual == 0) {
-		pthread_mutex_unlock(&mutex_quantum);
-		desalojarCPU();
-		pthread_mutex_lock(&mutex_quantum);
+		desalojarCPU(ultimo_ciclo);
 	}
 	pthread_cond_broadcast(&cond_quantum);
 	pthread_mutex_unlock(&mutex_quantum);
@@ -602,7 +606,7 @@ void planificarSegunSJFCD(void) {
 				// guardo la estimacion restante, que es con lo que se debería comparar al volver a ingresar el entrenador desalojado
 				entrenador_exec->estim_restante = estimacion_restante;
 				ultimo_desalojado = entrenador_exec;
-				desalojarCPU();
+				desalojarCPU(0);
 				pthread_mutex_unlock(&(ultimo_desalojado->exec_mutex));
 
 				sacarDeCola(entrenador_a_verificar, entrenadores_ready);
@@ -678,16 +682,14 @@ void actualizarValoresSJF(t_tcb* tcb) {
 //				EJECUCION			//
 //////////////////////////////////////
 
-void realizarCicloDeCPU(t_tcb* tcb) {
-	pthread_mutex_lock(&(tcb->exec_mutex));
+void realizarCicloDeCPU(t_tcb* tcb, int ultimo_ciclo) {
 	verificarSiTieneQueEjecutar(tcb);
+	sleep(retardo_ciclo_cpu);
 	log_debug(logger, "El entrenador %d ejecuta un ciclo de CPU", tcb->entrenador->id_entrenador);
 	// SJF
-	entrenador_exec->real_actual++;
+	tcb->real_actual++;
 	// RR
-	vaciarQuantum();
-	sleep(retardo_ciclo_cpu);
-	pthread_mutex_unlock(&(tcb->exec_mutex));
+	vaciarQuantum(ultimo_ciclo);
 }
 
 
