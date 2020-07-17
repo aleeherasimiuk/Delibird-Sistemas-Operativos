@@ -52,8 +52,9 @@ void suscribirGameCardAlBroker(void){
 
 int abrirUnaConexionGameCard(void) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
+	log_debug(logger, "el valor de conexion es: %d", conexion);
 	if(conexion == CANT_CONNECT) {
-		log_debug(logger, "Intentando nueva conexión en %d segundos", tiempo_reconexion);
+		log_debug(logger, "No se puede conectar con el broker, intentando nueva conexión en %d segundos", tiempo_reconexion);
 		sleep(tiempo_reconexion);
 		return abrirUnaConexionGameCard();
 	}
@@ -69,29 +70,8 @@ void *escucharAlSocket(void* data) {
 
 		if(paquete != NULL){ //TODO Revisar Memory Leak
 			enviarACK(paquete -> id, escucha_socket -> socket);
-			pthread_t thread;
+			process_management(paquete);
 
-			switch(paquete->type) {
-				case ID:
-					pthread_create(&thread, NULL, procesarID, paquete);
-					pthread_detach(&thread);
-					break;
-				case NEW_POKEMON:
-					pthread_create(&thread, NULL, procesarNew, paquete);
-					pthread_detach(thread);
-					break;
-				case CATCH_POKEMON:
-					pthread_create(&thread, NULL, procesarCatch, paquete);
-					pthread_detach(thread);
-					break;
-				case GET_POKEMON:
-					pthread_create(&thread, NULL, procesarGet, paquete);
-					pthread_detach(thread);
-					break;
-				default:
-					log_debug(logger, "No entiendo el mensaje, debe ser NEW_POKEMON, CATCH_POKEMON o GET_POKEMON");
-					break;
-			}
 		}else {
 			close(escucha_socket->socket);
 
@@ -117,8 +97,11 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 
 	//TODO: Handlear error
 	send(conexion, paquete_serializado, paquete_size, 0);
-	//free(subscripcion);
 	log_debug(logger, "Me suscribí a %d", cola);
+
+	free(serialized_subscribe);
+	free(subscripcion);
+	free(paquete_serializado);
 }
 
 void escucharAlGameboy(){
@@ -157,28 +140,7 @@ void process_request(message_type type, int socket){
 	if(paquete != NULL){
 
 		enviarACK(paquete -> id, socket);
-
-		switch(type){
-
-			case NEW_POKEMON:
-				procesarNew(paquete);
-				break;
-
-			case CATCH_POKEMON:
-				procesarCatch(paquete);
-				break;
-
-			case GET_POKEMON:
-				procesarGet(paquete);
-				break;
-
-			default:
-				log_error(logger, "Código de operación inválido");
-
-	}
-
-
-
+		process_management(paquete);
 	}
 }
 
@@ -203,6 +165,32 @@ void enviarACK(uint32_t id, uint32_t conexion){
 	close(conexion);
 
 
+}
+
+void process_management(t_paquete* paquete) {
+
+	pthread_t thread;
+	switch(paquete->type) {
+		case ID:
+			pthread_create(&thread, NULL, procesarID, paquete);
+			pthread_detach(&thread);
+			break;
+		case NEW_POKEMON:
+			pthread_create(&thread, NULL, procesarNew, paquete);
+			pthread_detach(thread);
+			break;
+		case CATCH_POKEMON:
+			pthread_create(&thread, NULL, procesarCatch, paquete);
+			pthread_detach(thread);
+			break;
+		case GET_POKEMON:
+			pthread_create(&thread, NULL, procesarGet, paquete);
+			pthread_detach(thread);
+			break;
+			default:
+				log_debug(logger, "No entiendo el mensaje, debe ser NEW_POKEMON, CATCH_POKEMON o GET_POKEMON");
+			break;
+	}
 }
 
 

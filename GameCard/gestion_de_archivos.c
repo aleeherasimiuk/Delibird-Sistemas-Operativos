@@ -106,7 +106,8 @@ char* path_para_clave(char* clave, char* path_pokemon, int mode) {
 	while(bloques[i] != NULL) {
 
 		ruta = string_new();
-		string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
+		string_append(&ruta, ruta_punto_montaje);
+		string_append(&ruta, "/Blocks/");
 		string_append(&ruta, bloques[i]);
 		string_append(&ruta, ".bin");
 
@@ -135,13 +136,13 @@ char* path_para_clave(char* clave, char* path_pokemon, int mode) {
 	ruta = string_new();
 	bloque_ruta = string_itoa(bloque_disponible);
 
-	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
+	string_append(&ruta, ruta_punto_montaje);
+	string_append(&ruta, "/Blocks/");
 	string_append(&ruta, bloque_ruta);
 	string_append(&ruta, ".bin");
 
 
-	free(bloques);
-
+	liberarListaDePunteros(bloques);
 	return ruta;
 
 }
@@ -188,7 +189,6 @@ void agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 		fclose(file);
 
 		data = config_create(path);
-
 
 	}
 
@@ -243,8 +243,6 @@ void disminuir_cantidad(t_coords* coordenadas, char* path) {
 	}
 
 	else {
-
-		log_debug(logger, "%d", cantidad_act);
 
 		sprintf(cantidad_nueva, "%d", cantidad_act);
 
@@ -332,7 +330,7 @@ void cerrar_archivo(char* path) {
 int chequear_lleno(char* path, size_t size) {
 
 	const int tamanio_pos = 5;
-	int cantidad_claves;
+	int cantidad_claves = 0;
 	int tamanio_total;
 
 	struct stat statbuf;
@@ -350,6 +348,8 @@ int chequear_lleno(char* path, size_t size) {
 	else {
 		log_error(logger, "hay un error en el bloque %s", path);
 	}
+
+	free(path);
 	return -1;
 }
 
@@ -387,11 +387,6 @@ char** obtener_bloques(char* path) {
 
 	t_config* metadata = leer_metadata(ruta);
 
-	/*if(!strcmp(config_get_string_value(metadata, "BLOCKS"), "[]")) {
-		bloques[0] = "-1";
-		return bloques;
-	}*/
-
 	bloques = config_get_array_value(metadata, "BLOCKS");
 
 	destruir_metadata(metadata);
@@ -408,7 +403,8 @@ int chequear_bloque_disponible(int bloque) {
 	sprintf(bloque_string, "%d", bloque);
 
 	char* ruta = string_new();
-	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
+	string_append(&ruta, ruta_punto_montaje);
+	string_append(&ruta, "/Blocks/");
 	string_append(&ruta, bloque_string);
 	string_append(&ruta, ".bin");
 
@@ -505,7 +501,6 @@ void quitar_bloque(char* path ,int bloque) {
 	int tamanio_bloques = 0;
 	//TODO: arreglar repeticion logica
 
-	log_debug(logger, "el bloque es %s", bloque_string);
 
 	char* metadataPath = "/Metadata.bin";
 
@@ -596,8 +591,8 @@ int chequear_ocupado(int bloque) {
 	sprintf(bloque_string, "%d", bloque);
 
 	char* ruta = string_new();
-	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
-	string_append(&ruta, bloque_string);
+	string_append(&ruta, ruta_punto_montaje);
+			string_append(&ruta, "/Blocks/");
 	string_append(&ruta, ".bin");
 
 	return chequear_lleno(ruta, 1);
@@ -633,7 +628,7 @@ void actualizar_bitmap_pokemon(char* path) {
 		posicion_array++;
 	}
 
-	free(bloques);
+	liberarListaDePunteros(bloques);
 }
 
 t_list* leer_bloques_pokemon(char* path) {
@@ -667,6 +662,15 @@ void agregar_coordenadas(char* key, void* value){
 	coords_con_cant -> coordenadas = coords;
 	coords_con_cant -> cantidad = value;
 	list_add(lista_coordenadas, coords_con_cant);
+}
+
+void liberarListaDePunteros(char** list) {
+	int i = 0;
+	while(list[i] != NULL) {
+		free(list[i]);
+		i++;
+	}
+	free(list);
 }
 
 

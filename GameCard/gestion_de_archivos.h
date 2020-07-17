@@ -62,6 +62,8 @@ char* arreglar_string(char*, char*);
 int chequear_ocupado(int);
 void actualizar_bitmap_pokemon(char*);
 t_list* leer_bloques_pokemon(char*);
+void agregar_coordenadas(char*, void*);
+void liberarListaDePunteros(char**);
 
 typedef struct {
 	t_coords* coordenadas;
