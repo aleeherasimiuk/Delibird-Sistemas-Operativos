@@ -186,12 +186,7 @@ void cargarEntrenadores(void) {
 		tcb_nuevo->real_actual = 0;
 
 
-		if (entrenadorAlMaximoDeCapacidad(tcb_nuevo->entrenador)) {
-			cambiarColaSegunObjetivo(tcb_nuevo, NULL); // Si ya viene lleno desde el config, lo mando a full
-		} else {
-			log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a NEW porque todavía le falta conseguir pokemones para cumplir su objetivo, y recién se cargó", tcb_nuevo->entrenador->id_entrenador);
-			agregarACola(tcb_nuevo, entrenadores_new);
-		}
+
 
 		pthread_create(&thread, NULL, entrenadorMain, tcb_nuevo);
 		pthread_detach(thread);
@@ -199,6 +194,13 @@ void cargarEntrenadores(void) {
 			pthread_mutex_lock(&mutex_entrenadores_cargando);
 			entrenadores_cargando = 0;
 			pthread_mutex_unlock(&mutex_entrenadores_cargando);
+		}
+
+		if (entrenadorAlMaximoDeCapacidad(tcb_nuevo->entrenador)) {
+			cambiarColaSegunObjetivo(tcb_nuevo, NULL); // Si ya viene lleno desde el config, lo mando a full
+		} else {
+			log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a NEW porque todavía le falta conseguir pokemones para cumplir su objetivo, y recién se cargó", tcb_nuevo->entrenador->id_entrenador);
+			agregarACola(tcb_nuevo, entrenadores_new);
 		}
 		i++;
 	}
@@ -264,9 +266,8 @@ void agregarACola(t_tcb* tcb, t_cola_planificacion* cola) {
 			sem_post(&counter_entrenadores_disponibles);
 		} else if (cola == entrenadores_ready) {
 			sem_post(&counter_entrenadores_ready);
-		} else if (cola == entrenadores_blocked_full) {
+		} else if (cola == entrenadores_blocked_full || cola == entrenadores_exit) {
 			// Verifico si el team ya está lleno, en cuyo caso lanzo algoritmo de deteccion de deadlock
-			log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_FULL porque tiene capacidad máxima, pero no cumple su objetivo", tcb->entrenador->id_entrenador);
 			pthread_t thread;	// Lo ejecuto en un hilo, porque sino nunca se completaria el agregarLista
 			pthread_create(&thread, NULL, verificarSiTeamTerminoDeCapturar, NULL);
 			pthread_detach(thread);
@@ -300,6 +301,7 @@ void cambiarColaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* cola_actual) {
 
 		sem_post(&counter_entrenadores_terminados);
 	} else {
+		log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_FULL porque tiene capacidad máxima, pero no cumple su objetivo", tcb->entrenador->id_entrenador);
 		cambiarDeCola(tcb, cola_actual, entrenadores_blocked_full);
 	}
 }
