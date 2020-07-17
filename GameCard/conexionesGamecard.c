@@ -53,7 +53,7 @@ void suscribirGameCardAlBroker(void){
 int abrirUnaConexionGameCard(void) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 	if(conexion == CANT_CONNECT) {
-		log_debug(logger, "Intentando nueva conexión en %d segundos", tiempo_reconexion);
+		log_debug(logger, "No se puede conectar con el broker, intentando nueva conexión en %d segundos", tiempo_reconexion);
 		sleep(tiempo_reconexion);
 		return abrirUnaConexionGameCard();
 	}

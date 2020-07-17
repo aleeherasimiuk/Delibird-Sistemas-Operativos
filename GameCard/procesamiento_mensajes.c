@@ -20,9 +20,8 @@ void procesarNew(t_paquete* paquete){
 	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
 	int i;
 
-	//FILE* archivo = ruta_del_archivo;
-
 	t_new_pokemon* pok = deserializarNewPokemon(paquete -> buffer);
+	log_debug(logger, "despues de deserializar al pokemon");
 
 	char* nombre_pokemon = pok -> pokemon -> name;
 	t_coords* coords = pok -> coords;

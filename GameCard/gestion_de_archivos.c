@@ -106,7 +106,8 @@ char* path_para_clave(char* clave, char* path_pokemon, int mode) {
 	while(bloques[i] != NULL) {
 
 		ruta = string_new();
-		string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
+		string_append(&ruta, ruta_punto_montaje);
+		string_append(&ruta, "/Blocks/");
 		string_append(&ruta, bloques[i]);
 		string_append(&ruta, ".bin");
 
@@ -135,7 +136,8 @@ char* path_para_clave(char* clave, char* path_pokemon, int mode) {
 	ruta = string_new();
 	bloque_ruta = string_itoa(bloque_disponible);
 
-	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
+	string_append(&ruta, ruta_punto_montaje);
+	string_append(&ruta, "/Blocks/");
 	string_append(&ruta, bloque_ruta);
 	string_append(&ruta, ".bin");
 
@@ -243,8 +245,6 @@ void disminuir_cantidad(t_coords* coordenadas, char* path) {
 	}
 
 	else {
-
-		log_debug(logger, "%d", cantidad_act);
 
 		sprintf(cantidad_nueva, "%d", cantidad_act);
 
@@ -408,7 +408,8 @@ int chequear_bloque_disponible(int bloque) {
 	sprintf(bloque_string, "%d", bloque);
 
 	char* ruta = string_new();
-	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
+	string_append(&ruta, ruta_punto_montaje);
+	string_append(&ruta, "/Blocks/");
 	string_append(&ruta, bloque_string);
 	string_append(&ruta, ".bin");
 
@@ -505,7 +506,6 @@ void quitar_bloque(char* path ,int bloque) {
 	int tamanio_bloques = 0;
 	//TODO: arreglar repeticion logica
 
-	log_debug(logger, "el bloque es %s", bloque_string);
 
 	char* metadataPath = "/Metadata.bin";
 
@@ -596,8 +596,8 @@ int chequear_ocupado(int bloque) {
 	sprintf(bloque_string, "%d", bloque);
 
 	char* ruta = string_new();
-	string_append(&ruta, "/home/utnso/Escritorio/tall-grass/Blocks/");
-	string_append(&ruta, bloque_string);
+	string_append(&ruta, ruta_punto_montaje);
+			string_append(&ruta, "/Blocks/");
 	string_append(&ruta, ".bin");
 
 	return chequear_lleno(ruta, 1);
