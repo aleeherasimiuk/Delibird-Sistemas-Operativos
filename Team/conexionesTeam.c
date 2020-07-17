@@ -70,12 +70,13 @@ void suscribirAUnaCola(int conexion, message_type cola){
 	uint32_t paquete_size;
 	void* paquete_serializado = crear_paquete(SUBSCRIBE, serialized_subscribe, subscripcion_size, &paquete_size);
 
-	//TODO: Handlear error
 	send(conexion, paquete_serializado, paquete_size, 0);
 
 	free(subscripcion);
 	free(serialized_subscribe);
 	free(paquete_serializado);
+
+	//TODO: esperarId
 
 	log_debug(logger, "Me suscribí a %d", cola);
 }

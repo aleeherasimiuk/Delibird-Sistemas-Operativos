@@ -9,7 +9,7 @@
 
 pthread_mutex_t mutex_deadlock;
 int hubo_deadlock;	// Se pone en 1 si no se produce deadlock entre los que están en la lista
-
+int hay_deadlock;
 void inicializarDeadlock(void) {
 	pthread_mutex_init(&mutex_deadlock, NULL);
 }
@@ -21,11 +21,18 @@ void deteccionYCorreccionDeadlock(void) {
 	int cant_blocked_full = list_size(entrenadores_blocked_full->lista);
 	pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 	hubo_deadlock = 0;
-	while (cant_blocked_full >= 2 || hubo_deadlock == 1) {
+	hay_deadlock = 1;
+	log_info(logger, "INICIO DE ALGORITMO DE DETECCIÓN DE DEADLOCK");
+	while (cant_blocked_full >= 2 && hay_deadlock == 1) {
 		corregirUnDeadlock();
 		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 		cant_blocked_full = list_size(entrenadores_blocked_full->lista);
 		pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
+	}
+	if (hubo_deadlock) {
+		log_info(logger, "RESULTADO DE ALGORITMO DE DETECCIÓN DE DEADLOCK: HAY DEADLOCK");
+	} else {
+		log_info(logger, "RESULTADO DE ALGORITMO DE DETECCIÓN DE DEADLOCK: NO HAY DEADLOCK");
 	}
 	pthread_mutex_unlock(&mutex_deadlock);
 	/*
@@ -49,7 +56,7 @@ void corregirUnDeadlock(void) {
 	t_intercambio* intercambio = malloc(sizeof(t_intercambio));
 	t_list* pokemones_no_necesarios = NULL;
 
-	hubo_deadlock = 0;
+	hay_deadlock = 0;
 
 	for (int pos_necesitado = 0; pos_necesitado < cantidad_entrenadores_full; pos_necesitado++) {
 		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
@@ -68,7 +75,9 @@ void corregirUnDeadlock(void) {
 			pokemon_necesitado = pokemonQueNoNecesiteYelOtroSi(buscado->entrenador, necesitado->entrenador);
 
 			if (pokemon_necesitado != NULL) {
+
 				hubo_deadlock = 1;
+				hay_deadlock = 1;
 
 				log_debug(logger, "El entrenador %d necesita un %s y se lo va a dar el entrenador %d", necesitado->entrenador->id_entrenador, pokemon_necesitado, buscado->entrenador->id_entrenador);
 
