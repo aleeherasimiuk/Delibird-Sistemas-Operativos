@@ -37,6 +37,7 @@ void inicializar_team(void) {
 
 t_log* iniciar_logger_obligatorio(char* logfile)
 {
+	// TODO: sacar que muestre por consola
 	return log_create(logfile, "Team", true, LOG_LEVEL_INFO);
 }
 

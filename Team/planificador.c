@@ -349,7 +349,7 @@ void ocuparCPU(void) {
 
 // Bloquear por caught
 void bloquearPorEsperarCaught(t_tcb* tcb) {
-	log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_CAUGHT porque envió un catch recientemente", tcb->entrenador->id_entrenador);
+	log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_WAITING_CAUGHT porque envió un catch recientemente", tcb->entrenador->id_entrenador);
 	agregarACola(tcb, entrenadores_blocked_waiting_caught);
 }
 

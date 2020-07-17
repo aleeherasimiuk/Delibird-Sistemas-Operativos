@@ -230,6 +230,7 @@ void moverseAlobjetivo(t_tcb* tcb, t_coords* posicion_destino, uint32_t id_entre
 		pthread_mutex_lock(&(tcb->exec_mutex));
 		realizarCicloDeCPU(tcb, 0);
 		posicion_actual->posX = x;
+		log_info(logger, "MOVIMIENTO ENTRENADOR: el entrenador %d se movió a la posición x:%d y:%d", tcb->entrenador->id_entrenador, posicion_actual->posX, posicion_actual->posY);
 		pthread_mutex_unlock(&(tcb->exec_mutex));
 		//log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
 	}
@@ -240,6 +241,7 @@ void moverseAlobjetivo(t_tcb* tcb, t_coords* posicion_destino, uint32_t id_entre
 		pthread_mutex_lock(&(tcb->exec_mutex));
 		realizarCicloDeCPU(tcb, 0);
 		posicion_actual->posY = y;
+		log_info(logger, "MOVIMIENTO ENTRENADOR: el entrenador %d se movió a la posición x:%d y:%d", tcb->entrenador->id_entrenador, posicion_actual->posX, posicion_actual->posY);
 		pthread_mutex_unlock(&(tcb->exec_mutex));
 		//log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
 	}
