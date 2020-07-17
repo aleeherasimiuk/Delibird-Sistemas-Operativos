@@ -19,7 +19,7 @@
 
 
 void inicializar_team(void);
-t_log* iniciar_logger(char*);
+t_log* iniciar_logger_obligatorio(char*);
 t_config* leer_config(void);
 void terminar_programa(t_log*, t_config*);
 

@@ -74,7 +74,7 @@ void suscribirAUnaCola(int conexion, message_type cola){
 	send(conexion, paquete_serializado, paquete_size, 0);
 
 	free(subscripcion);
-	//free(serialized_subscribe);
+	free(serialized_subscribe);
 	free(paquete_serializado);
 
 	log_debug(logger, "Me suscribí a %d", cola);
@@ -106,7 +106,6 @@ void *escucharAlSocket(void* data) {
 				case LOCALIZED_POKEMON:
 					pthread_create(&thread, NULL, procesarLocalized, (void*) paquete);
 					pthread_detach(thread);
-					// log_debug(logger, "Que Google Maps ni Google Maps!. Localized Pokemon PAPÁ");
 					break;
 				case CAUGHT_POKEMON:
 					pthread_create(&thread, NULL, procesarCaughtPokemon, (void*) paquete);
@@ -114,6 +113,7 @@ void *escucharAlSocket(void* data) {
 					break;
 				default:
 					log_debug(logger, "What is this SHIT?.");
+					liberar_paquete(paquete);
 					break;
 			}
 
@@ -139,14 +139,16 @@ uint32_t esperarID (int socket) {
 	t_paquete* paquete = recibirPaquete(socket);
 	uint32_t id = 0;
 
-	switch(paquete->type) {
-		case ID:
-			id = procesarID(paquete);
-			break;
-		default:
-			log_error(logger, "No se recibio un ID como corresponde");
+	if (paquete != NULL) {
+		switch(paquete->type) {
+			case ID:
+				id = procesarID(paquete);
+				break;
+			default:
+				log_error(logger, "No se recibio un ID como corresponde");
+		}
+		liberar_paquete(paquete);
 	}
-	liberar_paquete(paquete);
 	return id;
 }
 
@@ -221,7 +223,7 @@ void enviarACK(uint32_t id){
 	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
 
 	free(_ack);
-	//free(serialized_ack);
+	free(serialized_ack);
 	free(a_enviar);
 
 	close(conexion);
@@ -275,6 +277,7 @@ void* enviarGetPokemon(void* data) {
 		liberar_conexion(conexion);
 
 		free(paquete_serializado);
+		free(serialized_get_pokemon);
 	}
 
 	return NULL;
@@ -410,6 +413,7 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 
 		liberar_conexion(conexion);
 
+		free(serialized_catch_pokemon);
 		free(paquete_serializado);
 	}
 	return;
@@ -427,6 +431,7 @@ void* procesarCaughtPokemon(void* data) {
 
 	if (tcb == NULL) {	// Si ese id no corresponde a un catch enviado por este team, ignorar
 		log_debug(logger, "Este proceso no envió un catch con id %d", paquete->correlative_id);
+		liberar_paquete(paquete);
 		return NULL;
 	}
 

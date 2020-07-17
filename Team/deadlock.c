@@ -90,7 +90,10 @@ void corregirUnDeadlock(void) {
 				if (pokemones_no_necesarios != NULL)
 					liberarListaDeInventario(pokemones_no_necesarios);
 
+				log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_WAITING_TRADE porque está esperando a que llegue el entrenador %d para hacer un intercambio", buscado->entrenador->id_entrenador, necesitado->entrenador->id_entrenador);
 				cambiarDeCola(buscado, entrenadores_blocked_full, entrenadores_blocked_waiting_trade);
+				
+				log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a READY porque va a ir a la posición del entrenador %d para realizar un intercambio", necesitado->entrenador->id_entrenador, buscado->entrenador->id_entrenador);
 				cambiarDeCola(necesitado, entrenadores_blocked_full, entrenadores_ready);
 				return;
 			} else {

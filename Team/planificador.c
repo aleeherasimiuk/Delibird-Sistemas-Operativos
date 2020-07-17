@@ -187,8 +187,9 @@ void cargarEntrenadores(void) {
 
 
 		if (entrenadorAlMaximoDeCapacidad(tcb_nuevo->entrenador)) {
-			agregarACola(tcb_nuevo, entrenadores_blocked_full); // Si ya viene lleno desde el config, lo mando a full
+			cambiarColaSegunObjetivo(tcb_nuevo, NULL); // Si ya viene lleno desde el config, lo mando a full
 		} else {
+			log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a NEW porque todavía le falta conseguir pokemones para cumplir su objetivo, y recién se cargó", tcb_nuevo->entrenador->id_entrenador);
 			agregarACola(tcb_nuevo, entrenadores_new);
 		}
 
@@ -265,6 +266,7 @@ void agregarACola(t_tcb* tcb, t_cola_planificacion* cola) {
 			sem_post(&counter_entrenadores_ready);
 		} else if (cola == entrenadores_blocked_full) {
 			// Verifico si el team ya está lleno, en cuyo caso lanzo algoritmo de deteccion de deadlock
+			log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_FULL porque tiene capacidad máxima, pero no cumple su objetivo", tcb->entrenador->id_entrenador);
 			pthread_t thread;	// Lo ejecuto en un hilo, porque sino nunca se completaria el agregarLista
 			pthread_create(&thread, NULL, verificarSiTeamTerminoDeCapturar, NULL);
 			pthread_detach(thread);
@@ -282,8 +284,9 @@ void cambiarDeCola(t_tcb* tcb, t_cola_planificacion* cola_actual, t_cola_planifi
 
 void cambiarColaSegunCapacidad(t_tcb* tcb) {
 	if (entrenadorAlMaximoDeCapacidad(tcb->entrenador)) {
-		cambiarDeCola(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_full);
+		cambiarColaSegunObjetivo(tcb, entrenadores_blocked_waiting_caught);
 	} else {
+		log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_IDLE porque todavía tiene espacio para más pokemones", tcb->entrenador->id_entrenador);
 		cambiarDeCola(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_idle);
 	}
 }
@@ -291,6 +294,7 @@ void cambiarColaSegunCapacidad(t_tcb* tcb) {
 void cambiarColaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* cola_actual) {
 	if (entrenadorCumpleObjetivo(tcb->entrenador)) {
 		log_debug(logger, "Felicidades! El entrenador %d cumplió su objetivo", tcb->entrenador->id_entrenador);
+		log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a EXIT porque cumplió su objetivo", tcb->entrenador->id_entrenador);
 		tcb->finalizado = 1;
 		cambiarDeCola(tcb, cola_actual, entrenadores_exit);
 
@@ -343,13 +347,9 @@ void ocuparCPU(void) {
 	pthread_mutex_unlock(&mutex_cpu_libre);
 }
 
-// Bloquear por idle
-void bloquearPorIdle(t_tcb* tcb) {
-	agregarACola(tcb, entrenadores_blocked_idle);
-}
-
 // Bloquear por caught
 void bloquearPorEsperarCaught(t_tcb* tcb) {
+	log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_CAUGHT porque envió un catch recientemente", tcb->entrenador->id_entrenador);
 	agregarACola(tcb, entrenadores_blocked_waiting_caught);
 }
 
@@ -493,6 +493,7 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 
 			log_debug(logger, "cantidad de lista actual = %d", cola_actual->lista->elements_count);
 
+			log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d, que está en x: %d y: %d, pasa a READY porque es el más cercano al pokemon %s en x:%d y:%d", tcb_entrenador->entrenador->id_entrenador, tcb_entrenador->entrenador->posicion->posX, tcb_entrenador->entrenador->posicion->posY, pokemon->pokemon->name, pokemon->posicion->posX, pokemon->posicion->posY);
 			cambiarDeCola(tcb_entrenador, cola_actual, entrenadores_ready);
 		}
 	}
@@ -534,8 +535,13 @@ void desalojarCPU(int ultimo_ciclo) {
 	if (entrenador_exec != NULL) {
 		log_debug(logger, "Se va a desalojar al entrenador %d", entrenador_exec->entrenador->id_entrenador);
 		t_tcb* entrenador_desalojado = terminarDeEjecutar(entrenador_exec);	// Lo saco de ejecucion y lo mando a ready
-		if (!ultimo_ciclo)	// Si en realidad iba a terminar, no lo mando a ready
+		if (!ultimo_ciclo) {
+			// Si en realidad iba a terminar, no lo mando a ready
+
+			// Puede ser que primero se muestre que se ejecutó otro entrenador antes de "desalojar" a éste, ya que se termina de ejecutar antes, lo que libera el semaforo de cpu libre y el planificador envía otro a ejecutar
+			log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a READY por que fué desalojado según el algoritmo %s", entrenador_desalojado->entrenador->id_entrenador, algoritmo_planificacion);
 			agregarACola(entrenador_desalojado, entrenadores_ready);
+		}
 	}
 }
 
@@ -554,6 +560,8 @@ void planificarSegunFifo(void) {
 	pthread_mutex_unlock(&(entrenadores_ready->mutex));
 
 	log_debug(logger, "Planificador %s pone a ejecutar al entrenador %d", algoritmo_planificacion, entrenador_a_ejecutar->entrenador->id_entrenador);
+
+	log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a EXEC por ser el primero de la cola READY", entrenador_a_ejecutar->entrenador->id_entrenador);
 	ponerAEjecutarEntrenador(entrenador_a_ejecutar);
 }
 
@@ -571,6 +579,8 @@ void planificarSegunRR(void) {
 	while(quantum_actual > 0) pthread_cond_wait(&cond_quantum, &mutex_quantum);
 	log_debug(logger, "Planificador RR se vació el quantum");
 	pthread_mutex_unlock(&mutex_quantum);
+
+	// cambio de contexto
 }
 
 // Tambien libera el RR si se termina de ejecutar
@@ -610,6 +620,7 @@ void planificarSegunSJFCD(void) {
 				pthread_mutex_unlock(&(ultimo_desalojado->exec_mutex));
 
 				sacarDeCola(entrenador_a_verificar, entrenadores_ready);
+				log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a EXEC por tener menor estimación que la restante del entrenador actual (%f vs %f)", entrenador_a_verificar->entrenador->id_entrenador, estimacionDe(entrenador_a_verificar), estimacion_restante);
 				ponerAEjecutarEntrenador(entrenador_a_verificar);
 				return;
 			}
@@ -629,6 +640,7 @@ void planificarSegunSJFSD(void) {
 	pthread_mutex_unlock(&(entrenadores_ready->mutex));
 
 	log_debug(logger, "Planificador %s pone a ejecutar al entrenador %d", algoritmo_planificacion, entrenador_a_ejecutar->entrenador->id_entrenador);
+	log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a EXEC por tener la menor estimación (%f)", entrenador_a_ejecutar->entrenador->id_entrenador, estimacionDe(entrenador_a_ejecutar));
 	ponerAEjecutarEntrenador(entrenador_a_ejecutar);
 }
 

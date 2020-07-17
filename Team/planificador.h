@@ -41,7 +41,6 @@ t_tcb* terminarDeEjecutar(t_tcb* tcb);
 void liberarCPU(void);
 void ocuparCPU(void);
 
-void bloquearPorIdle(t_tcb* tcb);
 void bloquearPorEsperarCaught(t_tcb* tcb);
 
 // Planificacion largo plazo

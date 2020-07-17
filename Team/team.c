@@ -11,7 +11,7 @@ int main() {
 	logfile = config_get_string_value(config, "LOG_FILE");
 	process_id = config_get_int_value(config, "PROCESS_ID");
 
-	logger = iniciar_logger(logfile);
+	logger = iniciar_logger_obligatorio(logfile);
 
 	inicializar_team();
 
@@ -35,9 +35,9 @@ void inicializar_team(void) {
 	suscribirseAlBroker();	// Tiene que estar a lo ultimo ya que tiene los wait ara que los entrenadores finalicen
 }
 
-t_log* iniciar_logger(char* logfile)
+t_log* iniciar_logger_obligatorio(char* logfile)
 {
-	return log_create(logfile, "Team", true, LOG_LEVEL_DEBUG);
+	return log_create(logfile, "Team", true, LOG_LEVEL_INFO);
 }
 
 t_config* leer_config(void) {
@@ -51,5 +51,4 @@ void terminar_programa(t_log* logger, t_config* config) {
 	if(config != NULL){
 		config_destroy(config);
 	}
-	exit(1);
 }
