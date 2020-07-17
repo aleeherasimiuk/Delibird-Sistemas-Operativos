@@ -235,11 +235,10 @@ void esperarAQueFinalicenLosEntrenadores() {
 	}
 }
 
-int indexOf(t_tcb* tcb, t_cola_planificacion* cola) {
+int indexOf(t_tcb* tcb, t_list* lista) {
 	int index;
-	for (index = 0; index < list_size(cola->lista); index++) {
-		if (tcb == (t_tcb*)list_get(cola->lista, index)) {
-			pthread_mutex_unlock(&(cola->mutex));
+	for (index = 0; index < list_size(lista); index++) {
+		if (tcb == (t_tcb*)list_get(lista, index)) {
 			return index;
 		}
 	}
@@ -249,7 +248,7 @@ int indexOf(t_tcb* tcb, t_cola_planificacion* cola) {
 void sacarDeCola(t_tcb* tcb, t_cola_planificacion* cola) {
 	pthread_mutex_lock(&(cola->mutex));
 
-	int index = indexOf(tcb, cola); // Busco el indice donde se encuentra el elemento
+	int index = indexOf(tcb, cola->lista); // Busco el indice donde se encuentra el elemento
 
 	list_remove(cola->lista, index);
 	pthread_mutex_unlock(&(cola->mutex));

@@ -24,6 +24,7 @@ void deteccionYCorreccionDeadlock(void) {
 	hay_deadlock = 1;
 	log_info(logger, "INICIO DE ALGORITMO DE DETECCIÓN DE DEADLOCK");
 	while (cant_blocked_full >= 2 && hay_deadlock == 1) {
+		deteccionDeadlock();
 		corregirUnDeadlock();
 		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 		cant_blocked_full = list_size(entrenadores_blocked_full->lista);
@@ -39,6 +40,63 @@ void deteccionYCorreccionDeadlock(void) {
 	 * Si queda 1 solo entrenador, significa que se capturó un pokemon que no tendría que haberse capturado
 	 */
 }
+
+void deteccionDeadlock(void) {
+	t_list* entrenadores_en_deadlock = list_create();
+	t_tcb* tcb = NULL;
+	char* log_msg;
+
+	int cant_blocked_full = list_size(entrenadores_blocked_full->lista);
+
+	for (int index = 0; index < cant_blocked_full; index++) {
+		tcb = (t_tcb*) list_get(entrenadores_blocked_full->lista, index);
+		list_add(entrenadores_en_deadlock, tcb);
+		agregarEntrenadorQueTengaElQueNecesita(entrenadores_en_deadlock, tcb);
+		if (list_size(entrenadores_en_deadlock) > 1){
+			log_msg = string_from_format("DEADLOCK entre los entrenadores:");
+			for (int i = 0; i < list_size(entrenadores_en_deadlock); i++) {
+				tcb = (t_tcb*) list_get(entrenadores_en_deadlock, i);
+				string_append_with_format(&log_msg, " %d", tcb->entrenador->id_entrenador);
+			}
+			log_info(logger, log_msg);
+			free(log_msg);
+		}
+		list_clean(entrenadores_en_deadlock);
+	}
+	list_destroy(entrenadores_en_deadlock);
+}
+
+void agregarEntrenadorQueTengaElQueNecesita(t_list* entrenadores_en_deadlock, t_tcb* tcb_necesitado) {
+	int cant_blocked_full = list_size(entrenadores_blocked_full->lista);
+	t_tcb* tcb;
+	t_tcb* primer_elemento = (t_tcb*) list_get(entrenadores_en_deadlock, 0);
+
+	char* pokemon_name = NULL;
+	for (int index = 0; index < cant_blocked_full; index++) {
+		tcb = list_get(entrenadores_blocked_full->lista, index);
+
+		// ignora si ya está en la lista, excepto que sea el primero, ya que eso sería un deadlock propio del tcb_necesitado actual
+		if (tcb == tcb_necesitado || (tcb->entrenador->id_entrenador != primer_elemento->entrenador->id_entrenador && indexOf(tcb, entrenadores_en_deadlock) != -1)){
+			continue;
+		}
+
+		pokemon_name = pokemonQueNoNecesiteYelOtroSi(tcb->entrenador, tcb_necesitado->entrenador);
+
+		if (pokemon_name != NULL) {
+			free(pokemon_name);
+
+			// Si se cierra el ciclo, hago return, sino sigo buscando
+			if (tcb->entrenador->id_entrenador == primer_elemento->entrenador->id_entrenador) {
+				return;
+			} else {
+				list_add(entrenadores_en_deadlock, tcb);
+				agregarEntrenadorQueTengaElQueNecesita(entrenadores_en_deadlock, tcb);
+			}
+		}
+	}
+}
+
+
 
 void corregirUnDeadlock(void) {
 	// Buscar un entrenador que necesite un pokemon que otro entrenador no necesite

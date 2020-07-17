@@ -16,6 +16,8 @@
 
 void inicializarDeadlock(void);
 void deteccionYCorreccionDeadlock(void);
+void deteccionDeadlock(void);
+void agregarEntrenadorQueTengaElQueNecesita(t_list* entrenadores_en_deadlock, t_tcb* tcb_necesitado);
 void corregirUnDeadlock(void);
 
 #endif /* DEADLOCK_H_ */
