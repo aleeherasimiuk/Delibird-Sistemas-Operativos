@@ -66,7 +66,7 @@ void deteccionDeadlock(void) {
 	list_destroy(entrenadores_en_deadlock);
 }
 
-void agregarEntrenadorQueTengaElQueNecesita(t_list* entrenadores_en_deadlock, t_tcb* tcb_necesitado) {
+int agregarEntrenadorQueTengaElQueNecesita(t_list* entrenadores_en_deadlock, t_tcb* tcb_necesitado) {
 	int cant_blocked_full = list_size(entrenadores_blocked_full->lista);
 	t_tcb* tcb;
 	t_tcb* primer_elemento = (t_tcb*) list_get(entrenadores_en_deadlock, 0);
@@ -76,7 +76,7 @@ void agregarEntrenadorQueTengaElQueNecesita(t_list* entrenadores_en_deadlock, t_
 		tcb = list_get(entrenadores_blocked_full->lista, index);
 
 		// ignora si ya está en la lista, excepto que sea el primero, ya que eso sería un deadlock propio del tcb_necesitado actual
-		if (tcb == tcb_necesitado || (tcb->entrenador->id_entrenador != primer_elemento->entrenador->id_entrenador && indexOf(tcb, entrenadores_en_deadlock) != -1)){
+		if (tcb == tcb_necesitado){
 			continue;
 		}
 
@@ -87,13 +87,22 @@ void agregarEntrenadorQueTengaElQueNecesita(t_list* entrenadores_en_deadlock, t_
 
 			// Si se cierra el ciclo, hago return, sino sigo buscando
 			if (tcb->entrenador->id_entrenador == primer_elemento->entrenador->id_entrenador) {
-				return;
+				return 1;
 			} else {
+				// Si ya estaba en la lista devuelvo por error
+				if (indexOf(tcb, entrenadores_en_deadlock) != -1)
+					return 0;
+
 				list_add(entrenadores_en_deadlock, tcb);
-				agregarEntrenadorQueTengaElQueNecesita(entrenadores_en_deadlock, tcb);
+				if (agregarEntrenadorQueTengaElQueNecesita(entrenadores_en_deadlock, tcb)) {
+					return 1;
+				} else {
+					list_remove(entrenadores_en_deadlock, list_size(entrenadores_en_deadlock) - 1);
+				}
 			}
 		}
 	}
+	return 0;
 }
 
 
