@@ -76,8 +76,6 @@ void procesarNew(t_paquete* paquete){
 		free(a_enviar);
 	}
 
-
-
 	free(pok -> pokemon);
 	free(pok -> coords);
 	free(pok);

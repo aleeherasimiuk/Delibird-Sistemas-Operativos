@@ -142,8 +142,7 @@ char* path_para_clave(char* clave, char* path_pokemon, int mode) {
 	string_append(&ruta, ".bin");
 
 
-	free(bloques);
-
+	liberarListaDePunteros(bloques);
 	return ruta;
 
 }
@@ -190,7 +189,6 @@ void agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 		fclose(file);
 
 		data = config_create(path);
-
 
 	}
 
@@ -332,7 +330,7 @@ void cerrar_archivo(char* path) {
 int chequear_lleno(char* path, size_t size) {
 
 	const int tamanio_pos = 5;
-	int cantidad_claves;
+	int cantidad_claves = 0;
 	int tamanio_total;
 
 	struct stat statbuf;
@@ -350,6 +348,8 @@ int chequear_lleno(char* path, size_t size) {
 	else {
 		log_error(logger, "hay un error en el bloque %s", path);
 	}
+
+	free(path);
 	return -1;
 }
 
@@ -386,11 +386,6 @@ char** obtener_bloques(char* path) {
 	string_append(&ruta, metadataPath);
 
 	t_config* metadata = leer_metadata(ruta);
-
-	/*if(!strcmp(config_get_string_value(metadata, "BLOCKS"), "[]")) {
-		bloques[0] = "-1";
-		return bloques;
-	}*/
 
 	bloques = config_get_array_value(metadata, "BLOCKS");
 
@@ -633,7 +628,7 @@ void actualizar_bitmap_pokemon(char* path) {
 		posicion_array++;
 	}
 
-	free(bloques);
+	liberarListaDePunteros(bloques);
 }
 
 t_list* leer_bloques_pokemon(char* path) {
@@ -667,6 +662,15 @@ void agregar_coordenadas(char* key, void* value){
 	coords_con_cant -> coordenadas = coords;
 	coords_con_cant -> cantidad = value;
 	list_add(lista_coordenadas, coords_con_cant);
+}
+
+void liberarListaDePunteros(char** list) {
+	int i = 0;
+	while(list[i] != NULL) {
+		free(list[i]);
+		i++;
+	}
+	free(list);
 }
 
 
