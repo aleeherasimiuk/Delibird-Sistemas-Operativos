@@ -129,11 +129,14 @@ void relacionarBloqueConMensaje(memory_block_t* particion, t_paquete* data){
 
 	//pthread_mutex_lock(&msg_mx); obtenerMensaje ya tiene su propio lock.
 	clientes_por_mensaje_t* cxm = obtenerMensaje(data -> id);
-	cxm -> memory_block = particion;
-	actualizarFlag(cxm);
-	particion -> data -> msg_id = cxm -> id_mensaje;
 
-	log_info(logger, "Se guardó el mensaje #%d, en la caché [%6p]. Byte #%d", cxm -> id_mensaje, particion -> data -> base, (particion -> data -> base) - (memory -> data -> base));
+	if(cxm != NULL){
+		cxm -> memory_block = particion;
+		actualizarFlag(cxm);
+		particion -> data -> msg_id = cxm -> id_mensaje;
+		log_info(logger, "Se guardó el mensaje #%d, en la caché [%6p]. Byte #%d", cxm -> id_mensaje, particion -> data -> base, (particion -> data -> base) - (memory -> data -> base));
+	}
+
 }
 
 void actualizarFlag(clientes_por_mensaje_t* cxm){

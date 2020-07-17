@@ -83,12 +83,17 @@ void actualizarMensaje(memory_block_t* new_block, uint32_t id){
 
 	int i = 0;
 	clientes_por_mensaje_t* cli = obtenerMensajeYPosicion(id, &i);
-	if(new_block == NULL){
+	if(new_block == NULL && cli != NULL){
 		list_destroy_and_destroy_elements(cli -> suscriptores, free);
 		pthread_mutex_lock(&msg_mx);
 		list_remove_and_destroy_element(mensajes, i, free);
 		pthread_mutex_unlock(&msg_mx);
+		return;
 
+	}
+
+	if(cli != NULL){
+		cli -> memory_block = new_block;
 	}
 
 }

@@ -470,6 +470,7 @@ int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
 
 		int status = send(client -> socket, a_enviar, bytes, MSG_NOSIGNAL);
 		log_debug(logger, "Envié un mensaje cacheado con status: %d", status);
+		free(stream);
 		free(a_enviar);
 
 		return 1;
