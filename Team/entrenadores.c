@@ -270,7 +270,7 @@ void realizarIntercambio(t_tcb* tcb) {
 	t_tcb* tcb_intercambio = tcb->intercambio->tcb;
 
 	log_debug(logger, "Se va a hacer el intercambio entre el entrenador %d y el entrenador %d", tcb->entrenador->id_entrenador, tcb_intercambio->entrenador->id_entrenador);
-
+	log_info(logger, "INTERCAMBIO: El entrenador %d va a intercambiar un %s, por el %s del entrenador %d", tcb->entrenador->id_entrenador, tcb->intercambio->mi_pokemon, tcb->intercambio->su_pokemon, tcb_intercambio->entrenador->id_entrenador);
 	pthread_mutex_lock(&(tcb->exec_mutex));
 	realizarCicloDeCPU(tcb, 0);
 	sacarPokemonEnListaDeInventario(tcb_intercambio->entrenador->pokes_actuales, tcb->intercambio->su_pokemon);
