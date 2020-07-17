@@ -257,6 +257,7 @@ void intentarAtraparPokemon(t_tcb* tcb) {
 	pthread_mutex_lock(&(tcb->exec_mutex));
 	realizarCicloDeCPU(tcb , 1);
 	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
+	log_info(logger, "ENVÍO DE CATCH: El entrenador %d va a enviar un CATCH_POKEMON '%s' %d %d", tcb->entrenador->id_entrenador, tcb->entrenador->objetivo->pokemon->name, tcb->entrenador->objetivo->posicion->posX, tcb->entrenador->objetivo->posicion->posY);
 	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
 	bloquearPorEsperarCaught(tcb);
 	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
