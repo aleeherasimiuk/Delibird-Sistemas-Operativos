@@ -303,6 +303,17 @@ void* procesarLocalized(void* data) {
 	t_pokemon* pokemon_aux = NULL;
 
 	log_debug(logger, "Se localizaron %d Pokemon: %s!", pok->cant_coords, pok -> pokemon -> name);
+	// LOGUEO
+	char* log_msg = string_from_format("LLEGA UN MESAJE: ID: %d ID_CORR: %d DATA: LOCALIZED_POKEMON %s %d ", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->cant_coords);
+
+	for (int i = 0; i < pok->cant_coords; i++) {
+		string_append_with_format(&log_msg, "%d %d ", pok->coords_array[i]->posX, pok->coords_array[i]->posY);
+	}
+	log_info(logger, log_msg);
+	free(log_msg);
+
+	// FIN LOGUEO
+
 
 	if (getEnviadoConID(paquete->correlative_id, NULL)) {
 		if (pokemonNecesario(pok->pokemon)) {
@@ -357,6 +368,7 @@ void* procesarAppeared(void* data) {
 	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
 
 	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
+	log_info(logger, "LLEGA UN MESAJE: ID: %d ID_CORR: %d DATA: APPEARED_POKEMON %s %d %d", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->coords->posX, pok->coords->posY);
 
 	if (pokemonNecesario(pok->pokemon)) {
 		log_debug(logger, "El pokemon es necesario");
@@ -437,6 +449,12 @@ void* procesarCaughtPokemon(void* data) {
 	t_paquete* paquete = (t_paquete*) data;
 	void* ptrStream = paquete->buffer->stream; // lo guardo porque mientras se desserializa se mueve el puntero del stream
 
+
+
+	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
+
+	log_info(logger, "LLEGA UN MESAJE: ID: %d ID_CORR: %d DATA: CAUGHT_POKEMON %d", paquete->id, paquete->correlative_id, *cau_pok);
+
 	t_tcb* tcb = traerTcbDelCatchConID(paquete->correlative_id);
 
 	if (tcb == NULL) {	// Si ese id no corresponde a un catch enviado por este team, ignorar
@@ -444,8 +462,6 @@ void* procesarCaughtPokemon(void* data) {
 		liberar_paquete(paquete);
 		return NULL;
 	}
-
-	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
 
 	if(*cau_pok == YES){
 		log_debug(logger, "Yey! Atrapé un Pokemon!");
