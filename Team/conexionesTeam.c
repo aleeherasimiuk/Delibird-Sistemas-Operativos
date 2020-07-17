@@ -44,15 +44,20 @@ void suscribirseAlBroker(void) {
 int abrirUnaConexion(t_config* config) {
 	int tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
 	int conexion;
+	int hubo_reconexion = 0;
 
 	while (1) {
 		// Reconexion
 		conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 		if(conexion == CANT_CONNECT){
 			log_debug(logger, "No me pude conectar, espero para reintentar");
+			hubo_reconexion = 1;
+			log_info(logger, "REINTENTO DE COMUNICACIÓN CON EL BROKER");
 			sleep(tiempo_reconexion);
 		} else {
 			log_debug(logger, "Conexión Abierta");
+			if (hubo_reconexion)
+				log_info(logger, "SE CONECTA AL BROKER EN EL SOCKET: %d", conexion);
 			break;
 		}
 	}
@@ -259,9 +264,9 @@ void* enviarGetPokemon(void* data) {
 
 		free(dummy_localized);
 
-		free(serialized_localized_pokemon);
-		free(dummy_paquete->buffer);
-		free(dummy_paquete);
+		//free(serialized_localized_pokemon);
+		//free(dummy_paquete->buffer);
+		//free(dummy_paquete);
 
 	} else {
 		uint32_t get_pokemon_size;
@@ -395,9 +400,9 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 
 		procesarCaughtPokemon(dummy_paquete);
 
-		free(serialized_caught_pokemon);
-		free(dummy_paquete->buffer);
-		free(dummy_paquete);
+		//free(serialized_caught_pokemon);
+		//free(dummy_paquete->buffer);
+		//free(dummy_paquete);
 
 	} else {
 		// Un t_pokemon_en_mapa tiene la misma estructura que un t_catch_pokemon
