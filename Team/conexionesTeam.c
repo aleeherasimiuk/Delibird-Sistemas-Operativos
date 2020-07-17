@@ -246,6 +246,8 @@ void* enviarGetPokemon(void* data) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 
 	if(conexion == CANT_CONNECT) {
+
+		log_info(logger, "ERROR DE COMUNICACIÓN AL BROKER: se ejecuta comportamiento default de GET_POKEMON %s => no existen locaciones", pokemon->name);
 		// Comportamiento default: no existen locaciones de ese pokemon
 		addGetEnviado(0);
 
@@ -383,7 +385,9 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 
 	if(conexion == CANT_CONNECT) {
-		// Comportamiento default: no existen locaciones de ese pokemon
+		log_info(logger, "ERROR DE COMUNICACIÓN AL BROKER: se ejecuta comportamiento default de CATCH_POKEMON %s => se atrapa el pokemon", pokemon_en_mapa->pokemon->name);
+
+		// Comportamiento default: se atrapa el pokemon
 		addCatchEnviado(0, tcb);
 		uint32_t* caught = malloc(sizeof(uint32_t));
 		*caught = YES;
