@@ -17,6 +17,7 @@
 #include "queue_thread_vars.h"
 #include"AdministradorDeMemoria/asignacion_de_memoria.h"
 #include "../Utils/mensajes.h"
+#include "../Utils/conexiones.h"
 
 // Cliente movido a mensajes.h
 

@@ -19,6 +19,7 @@
 #include <commons/log.h>
 
 #define CANT_CONNECT -10
+#define SUBSCRIBED -777
 
 
 int crear_conexion(char* ip, char* puerto);

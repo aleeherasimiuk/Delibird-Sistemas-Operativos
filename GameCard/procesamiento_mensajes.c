@@ -11,7 +11,7 @@
 void procesarID(t_paquete* paquete){
 
  t_id* id = paquete -> buffer -> stream;
- log_debug(logger, "Recibí el ID: %d", id);
+ log_debug(logger, "Recibí el ID: %d", *id);
 }
 
 void procesarNew(t_paquete* paquete){

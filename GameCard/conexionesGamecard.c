@@ -58,6 +58,7 @@ int abrirUnaConexionGameCard(void) {
 		sleep(tiempo_reconexion);
 		return abrirUnaConexionGameCard();
 	}
+
 	return conexion;
 }
 
@@ -69,7 +70,7 @@ void *escucharAlSocket(void* data) {
 		t_paquete* paquete = recibirPaquete(escucha_socket->socket);
 
 		if(paquete != NULL){ //TODO Revisar Memory Leak
-			enviarACK(paquete -> id, escucha_socket -> socket);
+			enviarACKAlBroker(paquete -> id);
 			process_management(paquete);
 
 		}else {
@@ -97,6 +98,30 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 
 	//TODO: Handlear error
 	send(conexion, paquete_serializado, paquete_size, 0);
+
+
+	t_paquete* suscripcion_ok = recibirPaquete(conexion);
+
+
+	if(suscripcion_ok == NULL){
+		close(conexion);
+		log_error(logger, "No se puede conectar con el broker, intentando nueva conexión en %d segundos", tiempo_reconexion);
+		sleep(tiempo_reconexion);
+		suscribirAUnaCola(abrirUnaConexionGameCard(), cola, process_id);
+		return;
+	}
+
+//	if(suscripcion_ok -> buffer -> stream != SUBSCRIBED){
+//		log_error(logger, "No se puede conectar con el broker, intentando nueva conexión en %d segundos", tiempo_reconexion);
+//		sleep(tiempo_reconexion);
+//		suscribirAUnaCola(abrirUnaConexionGameCard(), cola, process_id);
+//		free(suscripcion_ok -> buffer -> stream);
+//		free(suscripcion_ok -> buffer);
+//		free(suscripcion_ok);
+//		return;
+//	}
+
+
 	log_debug(logger, "Me suscribí a %d", cola);
 
 	free(serialized_subscribe);
@@ -139,14 +164,36 @@ void process_request(message_type type, int socket){
 
 	if(paquete != NULL){
 
-		enviarACK(paquete -> id, socket);
+		enviarACKAlGameboy(paquete -> id, socket);
 		process_management(paquete);
 	}
 }
 
-void enviarACK(uint32_t id, uint32_t conexion){
+void enviarACKAlGameboy(uint32_t id, uint32_t conexion){
 
 	//int conexion = abrirUnaConexionGameCard();
+
+	log_debug(logger,"Enviaré un ACK por el id: %d",id);
+	t_ack* _ack = ack(process_id, id);
+
+	uint32_t bytes_ack;
+	void* serialized_ack = serializarACK(_ack, &bytes_ack);
+
+	uint32_t bytes;
+	void* a_enviar = crear_paquete(ACK, serialized_ack, bytes_ack, &bytes);
+
+	int status = send(conexion, a_enviar, bytes, 0);
+	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
+	free(_ack);
+	free(serialized_ack);
+	free(a_enviar);
+
+
+}
+
+void enviarACKAlBroker(uint32_t id){
+
+	int conexion = abrirUnaConexionGameCard();
 
 	log_debug(logger,"Enviaré un ACK por el id: %d",id);
 	t_ack* _ack = ack(process_id, id);

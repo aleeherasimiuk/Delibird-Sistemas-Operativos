@@ -307,7 +307,7 @@ void procesarNewPokemon(t_paquete* paquete){
 
 	log_info(logger, "Se recibió un NEW POKEMON");
 	log_info(logger, "Pokemon: %s", new_pokemon -> pokemon -> name);
-	log_info(logger, "Cantidad: %d", new_pokemon -> pokemon);
+	log_info(logger, "Cantidad: %d", new_pokemon -> cantidad);
 	log_info(logger, "Posición: (%d, %d)\n", new_pokemon -> coords -> posX, new_pokemon -> coords -> posY);
 
 	free(new_pokemon -> pokemon);

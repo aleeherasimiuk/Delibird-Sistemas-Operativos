@@ -68,6 +68,9 @@ int algoritmoMemoria(){
 
 	char* algoritmo_memoria = config_get_string_value(config, MEMORIA);
 
+	if(algoritmo_memoria == NULL)
+		errorConfig(MEMORIA);
+
 	if(compare_string(algoritmo_memoria, "PARTICIONES"))
 		return PARTICIONES;
 
@@ -83,6 +86,9 @@ int algoritmoMemoria(){
 int algoritmoReemplazo(){
 
 	char* algoritmo_reemplazo = config_get_string_value(config, REEMPLAZO);
+
+	if(algoritmo_reemplazo == NULL)
+		errorConfig(REEMPLAZO);
 
 	if(compare_string(algoritmo_reemplazo, "FIFO"))
 		return FIFO;
@@ -100,6 +106,9 @@ int algoritmoParticionLibre(){
 
 	char* algoritmo_particion_libre = config_get_string_value(config, PART_LIBRE);
 
+	if(algoritmo_particion_libre == NULL)
+		errorConfig(PART_LIBRE);
+
 	if(compare_string(algoritmo_particion_libre, "FF"))
 		return FIRST_FIT;
 
@@ -111,6 +120,10 @@ int algoritmoParticionLibre(){
 }
 
 int frecuenciaDeCompactacion(){
+
+	if(!config_has_property(config, FREQ_COMPACT))
+		errorConfig(FREQ_COMPACT);
+
 	int freq_compact = config_get_int_value(config, FREQ_COMPACT);
 
 	if(freq_compact > 0)
@@ -121,6 +134,9 @@ int frecuenciaDeCompactacion(){
 }
 
 int minimaParticion(){
+
+	if(!config_has_property(config, MIN_PART))
+		errorConfig(MIN_PART);
 
 	int min_part = config_get_int_value(config, MIN_PART);
 

@@ -41,6 +41,7 @@ void process_request(message_type type, uint32_t socket_cliente){
 	if(type == SUBSCRIBE){
 		t_paquete* paquete = recibirPaqueteSi(socket_cliente, type);
 		suscribirCliente(paquete -> buffer, socket_cliente);
+		suscripcionOk(socket_cliente);
 		free(paquete -> buffer -> stream);
 		free(paquete -> buffer);
 		free(paquete);

@@ -110,7 +110,11 @@ memory_block_t* asignarUnaParticion(uint32_t size){
 	if(memoria == BUDDY_SYSTEM)
 		block = buddy_system(bloque, tamano_particion);
 
-	block -> data -> fragmentacion = fragmentacion;
+	if(memoria == PARTICIONES)
+		block -> data -> fragmentacion = fragmentacion;
+	if(memoria == BUDDY_SYSTEM)
+		block -> data -> fragmentacion = block -> data -> size - size;
+
 	return block;
 }
 
