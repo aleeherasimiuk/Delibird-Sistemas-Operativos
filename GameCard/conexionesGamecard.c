@@ -68,7 +68,7 @@ void *escucharAlSocket(void* data) {
 		t_paquete* paquete = recibirPaquete(escucha_socket->socket);
 
 		if(paquete != NULL){ //TODO Revisar Memory Leak
-			enviarACK(paquete -> id);
+			enviarACK(paquete -> id, escucha_socket -> socket);
 			pthread_t thread;
 
 			switch(paquete->type) {
@@ -154,29 +154,37 @@ void process_request(message_type type, int socket){
 
 	t_paquete* paquete = recibirPaqueteSi(socket, type);
 
-	switch(type){
+	if(paquete != NULL){
 
-		case NEW_POKEMON:
-			procesarNew(paquete);
-			break;
+		enviarACK(paquete -> id, socket);
 
-		case CATCH_POKEMON:
-			procesarCatch(paquete);
-			break;
+		switch(type){
 
-		case GET_POKEMON:
-			procesarGet(paquete);
-			break;
+			case NEW_POKEMON:
+				procesarNew(paquete);
+				break;
 
-		default:
-			log_error(logger, "Código de operación inválido");
+			case CATCH_POKEMON:
+				procesarCatch(paquete);
+				break;
+
+			case GET_POKEMON:
+				procesarGet(paquete);
+				break;
+
+			default:
+				log_error(logger, "Código de operación inválido");
+
+	}
+
+
 
 	}
 }
 
-void enviarACK(uint32_t id){
+void enviarACK(uint32_t id, uint32_t conexion){
 
-	int conexion = abrirUnaConexionGameCard();
+	//int conexion = abrirUnaConexionGameCard();
 
 	log_debug(logger,"Enviaré un ACK por el id: %d",id);
 	t_ack* _ack = ack(process_id, id);

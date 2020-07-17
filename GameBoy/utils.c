@@ -38,8 +38,12 @@ int enviar_mensaje(int argc, char* argv[]){
 
 	if(compare_string(proceso, "SUSCRIPTOR"))
 		escuchar_broker(conexion, (convert_to_int(argv[2])));
-	else
+
+	if(compare_string(proceso, "BROKER"))
 		esperarID(conexion);
+
+	if(compare_string(proceso, "TEAM"), compare_string(proceso, "GAMECARD"))
+		esperarACK(conexion);
 
 
 	terminar_programa(conexion, logger, config);
@@ -59,7 +63,13 @@ void* prepararNewPokemon(char* process, uint32_t argc, char* argv[], uint32_t* p
 
 	uint32_t message_bytes;
 	void* serialized_message = serializarNewPokemon(_new_pokemon, &message_bytes);
-	return crear_paquete(NEW_POKEMON, serialized_message, message_bytes, paquete_size);
+
+	if(compare_string(process, "BROKER"))
+		return crear_paquete(NEW_POKEMON, serialized_message, message_bytes, paquete_size);
+
+
+	uint32_t id = convert_to_int(argv[5]);
+	return crear_paquete_con_id(NEW_POKEMON, serialized_message, message_bytes, id, paquete_size);
 }
 
 void* prepararAppearedPokemon(char* process, uint32_t argc, char* argv[], uint32_t* paquete_size){
@@ -73,6 +83,10 @@ void* prepararAppearedPokemon(char* process, uint32_t argc, char* argv[], uint32
 
 	uint32_t message_bytes;
 	void* serialized_message = serializarAppearedPokemon(_appeared_pokemon, &message_bytes);
+
+	if(compare_string(process, "TEAM"))
+		return crear_paquete(APPEARED_POKEMON, serialized_message, message_bytes, paquete_size);
+
 	uint32_t id_correlativo = convert_to_int(argv[4]);
 	return crear_paquete_con_id_correlativo(APPEARED_POKEMON, serialized_message, message_bytes, id_correlativo, paquete_size);
 
@@ -91,7 +105,13 @@ void* prepararCatchPokemon(char* process, uint32_t argc, char* argv[], uint32_t*
 
 	uint32_t message_bytes;
 	void* serialized_message = serializarCatchPokemon(_catch_pokemon, &message_bytes);
-	return crear_paquete(CATCH_POKEMON, serialized_message, message_bytes, paquete_size);
+
+	if(compare_string(process, "BROKER"))
+		return crear_paquete(CATCH_POKEMON, serialized_message, message_bytes, paquete_size);
+
+	uint32_t id = convert_to_int(argv[4]);
+	return crear_paquete_con_id(CATCH_POKEMON, serialized_message, message_bytes, id, paquete_size);
+
 
 }
 void* prepararCaughtPokemon(char* process, uint32_t argc, char* argv[], uint32_t* paquete_size){
@@ -125,7 +145,12 @@ void* prepararGetPokemon(char* process, uint32_t argc, char* argv[], uint32_t* p
 	t_get_pokemon* _get_pokemon = get_pokemon(pokemon);
 	int size;
 	void* serialized_message = serializarPokemon(_get_pokemon, &size);
-	return crear_paquete(GET_POKEMON, serialized_message, size, paquete_size);
+
+	if(compare_string(process, "BROKER"))
+		return crear_paquete(GET_POKEMON, serialized_message, size, paquete_size);
+
+	uint32_t id = convert_to_int(argv[2]);
+	return crear_paquete_con_id(GET_POKEMON, serialized_message, size, id, paquete_size);
 }
 
 void* prepararSuscriptor(char* process, uint32_t argc, char* argv[], uint32_t* paquete_size){
@@ -184,6 +209,25 @@ void esperarID(uint32_t conexion){
 			log_info(logger, "ID del mensaje enviado: #%d", *id);
 			break;
 
+		}
+
+	}
+}
+
+void esperarACK(uint32_t conexion){
+
+	while(1){
+		t_paquete* paquete = recibirPaquete(conexion);
+
+		if(paquete == NULL)
+			break;
+
+		if(paquete -> type == ACK){
+			t_ack* ack = deserializarACK(paquete -> buffer);
+			log_info(logger, "El proceso #%d, recibió el mensaje #%d", ack -> process_id, ack -> id);
+			free(paquete);
+			close(conexion);
+			break;
 		}
 
 	}

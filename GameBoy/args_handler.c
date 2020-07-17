@@ -24,26 +24,23 @@ int handleNewPokemon(char* process, int argc, char* args[]){
 		if(argc != 4)
 			return WRONG_PARAMETERS;
 
-		if(string_empty(args[0]) || string_has_numbers(args[0]))
+		if(!validarPokemonYCoordenadas(args[0], args[1], args[2]))
 			return WRONG_PARAMETERS;
-
-		if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
-		    return WRONG_PARAMETERS;
 
 		if(!isValidDigit(args[3]))
 			return WRONG_PARAMETERS;
 
 		return PARAMETERS_OK;
-}
-	else if(compare_string(process, "GAMECARD")) {
+
+	}
+
+	if(compare_string(process, "GAMECARD")) {
+
 		if(argc != 5)
 			return WRONG_PARAMETERS;
 
-	    if(string_empty(args[0]) || string_has_numbers(args[0]))
-	    	return WRONG_PARAMETERS;
-
-	    if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
-	    	return WRONG_PARAMETERS;
+		if(!validarPokemonYCoordenadas(args[0], args[1], args[2]))
+			return WRONG_PARAMETERS;
 
 		if(!isValidDigit(args[3]))
 			return WRONG_PARAMETERS;
@@ -52,67 +49,71 @@ int handleNewPokemon(char* process, int argc, char* args[]){
 			return WRONG_PARAMETERS;
 
 		return PARAMETERS_OK;
+
 	}
-	else
-		return WRONG_PARAMETERS;
+
+	return WRONG_PARAMETERS;
+
 
 }
 
 int handleAppearedPokemon(char* process, int argc, char* args[]){
 
-	 if(argc != 4)
-	  return WRONG_PARAMETERS;
+	if(compare_string(process, "BROKER")) {
 
-	 if(!compare_string(process, "BROKER") && !compare_string(process, "TEAM"))
-	  return WRONG_PARAMETERS;
+		if(argc != 4)
+			return WRONG_PARAMETERS;
 
-	 if(string_has_numbers(args[0]))
-	  return WRONG_PARAMETERS;
+		if(!validarPokemonYCoordenadas(args[0], args[1], args[2]))
+			return WRONG_PARAMETERS;
 
-	 if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
-	  return WRONG_PARAMETERS;
+		if(!isValidDigit(args[3]))
+			return WRONG_PARAMETERS;
 
-	 if(!isValidDigit(args[3]))
-	  return WRONG_PARAMETERS;
+		return PARAMETERS_OK;
+	}
 
+	if(compare_string(process, "TEAM")){
+		if(argc != 3)
+			return WRONG_PARAMETERS;
 
-	 return PARAMETERS_OK;
+		if(!validarPokemonYCoordenadas(args[0], args[1], args[2]))
+			return WRONG_PARAMETERS;
+
+		return PARAMETERS_OK;
+	}
+
+	 return WRONG_PARAMETERS;
 
 }
 
 int handleCatchPokemon(char* process, int argc, char* args[]){
+
 	if(compare_string(process, "BROKER")) {
 		if(argc != 3)
 			return WRONG_PARAMETERS;
 
-
-		if(string_empty(args[0]) || string_has_numbers(args[0]))
+		if(!validarPokemonYCoordenadas(args[0], args[1], args[2]))
 			return WRONG_PARAMETERS;
-
-		if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
-			return WRONG_PARAMETERS;
-
 
 		return PARAMETERS_OK;
 	}
-	else if(compare_string(process, "GAMECARD")) {
+
+	if(compare_string(process, "GAMECARD")) {
 		if(argc != 4)
 			return WRONG_PARAMETERS;
 
-		if(string_empty(args[0]) || string_has_numbers(args[0]))
-			return WRONG_PARAMETERS;
-
-		if(!isValidDigit(args[1]) || !isValidDigit(args[2]))
+		if(!validarPokemonYCoordenadas(args[0], args[1], args[2]))
 			return WRONG_PARAMETERS;
 
 		if(!isValidDigit(args[3]))
 			return WRONG_PARAMETERS;
 
 
-	return PARAMETERS_OK;
+		return PARAMETERS_OK;
 	}
-	else
-		return WRONG_PARAMETERS;
+
+	return WRONG_PARAMETERS;
 }
 
 int handleCaughtPokemon(char* process, int argc, char* args[]){
@@ -126,8 +127,7 @@ int handleCaughtPokemon(char* process, int argc, char* args[]){
 	if(!isValidDigit(args[0]))
 		return WRONG_PARAMETERS;
 
-	if(!compare_string(args[1], "YES") && !compare_string(args[1], "NO")
-			&& !compare_string(args[1], "OK") && !compare_string(args[1], "FAIL"))
+	if(!validarCaughtMessage(args[1]))
 		return WRONG_PARAMETERS;
 
 	return PARAMETERS_OK;
@@ -135,11 +135,12 @@ int handleCaughtPokemon(char* process, int argc, char* args[]){
 }
 
 int handleGetPokemon(char* process, int argc, char* args[]){
+
 	if(compare_string(process, "BROKER")){
 		if(argc != 1)
 			return WRONG_PARAMETERS;
 
-		if(string_empty(args[0]) || string_has_numbers(args[0]))
+		if(!validarPokemon(args[0]))
 			return WRONG_PARAMETERS;
 
 		return PARAMETERS_OK;
@@ -148,7 +149,7 @@ int handleGetPokemon(char* process, int argc, char* args[]){
 		if(argc != 2)
 			return WRONG_PARAMETERS;
 
-		if(string_empty(args[0]) || string_has_numbers(args[0]))
+		if(!validarPokemon(args[0]))
 			return WRONG_PARAMETERS;
 
 		if(!isValidDigit(args[1]))
@@ -156,11 +157,8 @@ int handleGetPokemon(char* process, int argc, char* args[]){
 
 		return PARAMETERS_OK;
 	}
-	else {
-		return WRONG_PARAMETERS;
-	}
 
-
+	return WRONG_PARAMETERS;
 }
 
 int handleSuscriptor(int argc, char* args[]){
@@ -178,9 +176,27 @@ int handleSuscriptor(int argc, char* args[]){
 	return PARAMETERS_OK;
 }
 
-// compara si el mensaje recibido es igual a: BROKER, GAMECARD o TEAM.
+int validarPokemon(char* pokemon_name){
+	return !(string_empty(pokemon_name) || string_has_numbers(pokemon_name));
+}
+
+int validarCoordenadas(char* x, char* y){
+	return isValidDigit(x) && isValidDigit(y);
+}
+
 int compare_string(char* mensaje_recv, char* mensaje) {
 	return !strcmp(mensaje_recv, mensaje);
+}
+
+int validarPokemonYCoordenadas(char* pokemon, char* x, char* y){
+	return validarPokemon(pokemon) && validarCoordenadas(x, y);
+}
+
+int validarCaughtMessage(char* message){
+	return compare_string(message, "YES")
+		|| compare_string(message, "NO")
+		|| compare_string(message, "OK")
+		|| compare_string(message, "FAIL");
 }
 
 // retorna un string donde es la combinación del campo(IP o PUERTO) y el proceso(TEAM, BROKER o GAMECARD)
