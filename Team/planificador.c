@@ -249,7 +249,8 @@ void sacarDeCola(t_tcb* tcb, t_cola_planificacion* cola) {
 
 	int index = indexOf(tcb, cola->lista); // Busco el indice donde se encuentra el elemento
 
-	list_remove(cola->lista, index);
+	if (index != -1)
+		list_remove(cola->lista, index);
 	pthread_mutex_unlock(&(cola->mutex));
 }
 
@@ -322,6 +323,7 @@ t_tcb* terminarDeEjecutar(t_tcb* tcb) {
 		entrenador = tcb;
 		// SJF
 		actualizarValoresSJF(entrenador_exec);
+
 		log_cambios_contexto++;
 		entrenador_exec = NULL;
 
@@ -351,7 +353,6 @@ void ocuparCPU(void) {
 
 // Bloquear por caught
 void bloquearPorEsperarCaught(t_tcb* tcb) {
-	log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_WAITING_CAUGHT porque envió un catch recientemente", tcb->entrenador->id_entrenador);
 	agregarACola(tcb, entrenadores_blocked_waiting_caught);
 }
 
@@ -509,7 +510,7 @@ void *planificadorCortoPlazo(void* _) {
 	algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
 
 	while (1) {
-		log_debug(logger, "Planificador de corto plazo esperando a que haya entrenadores en ready");
+		//log_debug(logger, "Planificador de corto plazo esperando a que haya entrenadores en ready");
 		sem_wait(&counter_entrenadores_ready);	// Espero a que haya algun entrenador para planificar
 
 
@@ -579,7 +580,7 @@ void planificarSegunRR(void) {
 	// Esperar a que se termine el quantum, o que el proceso libere la cpu;
 	pthread_mutex_lock(&mutex_quantum);
 	while(quantum_actual > 0) pthread_cond_wait(&cond_quantum, &mutex_quantum);
-	log_debug(logger, "Planificador RR se vació el quantum");
+	//log_debug(logger, "Planificador RR se vació el quantum");
 	pthread_mutex_unlock(&mutex_quantum);
 
 	// cambio de contexto
@@ -601,11 +602,13 @@ void vaciarQuantum(int ultimo_ciclo) {
 
 void planificarSegunSJFCD(void) {
 	// Ver si tengo que desalojar al actual, por el nuevo que entra (el ultimo, por como funciona el list add)
-	if (entrenador_exec != NULL) {
-		pthread_mutex_lock(&(entrenador_exec->exec_mutex));
+	if (entrenador_exec != NULL && cpu_libre == 0) {
+		pthread_mutex_t* lock = &(entrenador_exec->exec_mutex);
+		pthread_mutex_lock(lock);
 		log_debug(logger, "Se entra a verificar si se tiene que desalojar el proceso en ejecución");
 		pthread_mutex_lock(&(entrenadores_ready->mutex));
 		t_tcb* entrenador_a_verificar = list_get(entrenadores_ready->lista, list_size(entrenadores_ready->lista) - 1);
+
 		pthread_mutex_unlock(&(entrenadores_ready->mutex));
 
 		// Ignoro la validacion si el que entró es el último en ser desalojado (ya que por algo fue desalojado), mancha con mancha no engancha
@@ -613,21 +616,23 @@ void planificarSegunSJFCD(void) {
 			// Se verifica la estimacion del nuevo entrenador contra lo RESTANTE del que está en ejecución
 			calcularEstimacion(entrenador_a_verificar);
 
-			double estimacion_restante = maximoDouble(entrenador_exec->estim_actual - entrenador_exec->real_actual, 0.0) ;
-			if (estimacionDe(entrenador_a_verificar) < estimacion_restante) {
-				// guardo la estimacion restante, que es con lo que se debería comparar al volver a ingresar el entrenador desalojado
-				entrenador_exec->estim_restante = estimacion_restante;
-				ultimo_desalojado = entrenador_exec;
-				desalojarCPU(0);
-				pthread_mutex_unlock(&(ultimo_desalojado->exec_mutex));
+			if (entrenador_exec != NULL) {
+				double estimacion_restante = maximoDouble(entrenador_exec->estim_actual - entrenador_exec->real_actual, 0.0) ;
+				if (estimacionDe(entrenador_a_verificar) < estimacion_restante) {
+					// guardo la estimacion restante, que es con lo que se debería comparar al volver a ingresar el entrenador desalojado
+					entrenador_exec->estim_restante = estimacion_restante;
+					ultimo_desalojado = entrenador_exec;
+					desalojarCPU(0);
+					pthread_mutex_unlock(&(ultimo_desalojado->exec_mutex));
 
-				sacarDeCola(entrenador_a_verificar, entrenadores_ready);
-				log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a EXEC por tener menor estimación que la restante del entrenador actual (%f vs %f)", entrenador_a_verificar->entrenador->id_entrenador, estimacionDe(entrenador_a_verificar), estimacion_restante);
-				ponerAEjecutarEntrenador(entrenador_a_verificar);
-				return;
+					sacarDeCola(entrenador_a_verificar, entrenadores_ready);
+					log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a EXEC por tener menor estimación que la restante del entrenador actual (%f vs %f)", entrenador_a_verificar->entrenador->id_entrenador, estimacionDe(entrenador_a_verificar), estimacion_restante);
+					ponerAEjecutarEntrenador(entrenador_a_verificar);
+					return;
+				}
 			}
 		}
-		pthread_mutex_unlock(&(entrenador_exec->exec_mutex));
+		pthread_mutex_unlock(lock);
 	}
 
 	planificarSegunSJFSD();

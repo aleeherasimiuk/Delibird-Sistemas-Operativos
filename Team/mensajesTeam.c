@@ -41,9 +41,11 @@ void addGetEnviado(uint32_t id) {
 
 void addPokemonRecibido(char* pokemon_name) {
 	log_debug(logger, "Se añade el pokemon %s a la lista de recibidos", pokemon_name);
-	sem_wait(&mutex_pokemones_recibidos);
-	list_add(pokemones_recibidos, pokemon_name);
-	sem_post(&mutex_pokemones_recibidos);
+	if (!pokemonYaRecibido(pokemon_name)) {
+		sem_wait(&mutex_pokemones_recibidos);
+		list_add(pokemones_recibidos, pokemon_name);
+		sem_post(&mutex_pokemones_recibidos);
+	}
 }
 
 void addCatchEnviado(uint32_t id, t_tcb* tcb) {

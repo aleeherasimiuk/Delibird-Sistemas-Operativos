@@ -462,6 +462,7 @@ void defaultCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 	dummy_paquete->buffer->stream_size = bytes;
 	dummy_paquete->buffer->stream = serialized_caught_pokemon;
 
+
 	procesarCaughtPokemon(dummy_paquete);
 
 	//free(serialized_caught_pokemon);
