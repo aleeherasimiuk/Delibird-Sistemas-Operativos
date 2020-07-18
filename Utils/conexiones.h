@@ -29,7 +29,7 @@ void crear_servidor_cuando_se_pueda(char* ip, char* puerto, void* serve_client, 
 void crear_servidor(char*, char*, void*);
 void esperar_cliente(int, void*);
 
-
+void liberarListaDePunteros(char** list);
 
 void liberar_conexion(int socket_cliente);
 

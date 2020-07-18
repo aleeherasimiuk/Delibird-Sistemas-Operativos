@@ -695,6 +695,7 @@ t_list* leer_bloques_pokemon(char* path) {
 	char* path_bloques = "/home/utnso/Escritorio/tall-grass/Blocks/";
 
 	char** bloques = obtener_bloques(path);
+	t_config* bloque;
 
 	lista_coordenadas = list_create();
 
@@ -703,14 +704,14 @@ t_list* leer_bloques_pokemon(char* path) {
 		char* ruta = concat_string(path_bloques, bloques[i]);
 		char* ruta_final = concat_string(ruta, ".bin");
 
-		t_config* bloque = config_create(ruta_final);
+		bloque = config_create(ruta_final);
 		t_dictionary* dict = bloque -> properties;
 		dictionary_iterator(dict, agregar_coordenadas);
 
 		free(ruta);
 		free(ruta_final);
 	}
-
+	config_destroy(bloque);
 	return lista_coordenadas;
 
 }
@@ -724,15 +725,8 @@ void agregar_coordenadas(char* key, void* value){
 	coords_con_cant -> coordenadas = coords;
 	coords_con_cant -> cantidad = value;
 	list_add(lista_coordenadas, coords_con_cant);
-}
 
-void liberarListaDePunteros(char** list) {
-	int i = 0;
-	while(list[i] != NULL) {
-		free(list[i]);
-		i++;
-	}
-	free(list);
+	liberarListaDePunteros(coords_separated);
 }
 
 char* concat_string(char* string, char* otro_string) {

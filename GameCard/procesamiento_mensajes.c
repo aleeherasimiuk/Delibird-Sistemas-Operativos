@@ -70,7 +70,7 @@ void procesarNew(t_paquete* paquete){
 		void* serialized_appeared_pokemon = serializarAppearedPokemon(app_pokemon, &bytes);
 		void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, serialized_appeared_pokemon, bytes, paquete -> id, &bytes_paquete);
 		int status = send(conexion_con_broker, a_enviar , bytes_paquete , 0);
-		log_debug(logger, "envie un mensaje al broker con status: %d", status);
+		log_info(logger, "envie un APPEARED al broker con status: %d", status);
 		close(conexion_con_broker);
 
 		free(app_pokemon -> coords);
@@ -114,7 +114,7 @@ void procesarCatch(t_paquete* paquete){
 	if(ruta_pokemon != NULL) {
 		while(archivo_en_uso(ruta_pokemon)) {
 
-			log_debug(logger, "esperando a que cierren el archivo");
+			log_info(logger, "esperando a que cierren el archivo");
 			sleep(tiempo_reintento);
 		}
 
@@ -126,6 +126,7 @@ void procesarCatch(t_paquete* paquete){
 			disminuir_cantidad(coords, path_clave);
 			free(path_clave);
 		} else {
+			log_error(logger, "No hay un pokemon en esa posicion");
 			cau_pokemon = caught_pokemon(NO);
 		}
 
@@ -138,7 +139,6 @@ void procesarCatch(t_paquete* paquete){
 	} else {
 		cau_pokemon = caught_pokemon(NO);
 		sleep(tiempo_retardo);
-		cerrar_archivo(ruta_pokemon);
 	}
 	int conexion_con_broker = abrirUnaConexionGameCard(config);
 
@@ -148,7 +148,7 @@ void procesarCatch(t_paquete* paquete){
 	void* serialized_caught_pokemon = serializarCaughtPokemon(&cau_pokemon, &bytes);
 	void* a_enviar = crear_paquete_con_id_correlativo(CAUGHT_POKEMON, serialized_caught_pokemon, bytes, paquete -> id, &bytes_paquete);
 	int status = send(conexion_con_broker, a_enviar , bytes_paquete , 0);
-	log_debug(logger, "envie un mensaje al broker con status: %d", status);
+	log_info(logger, "envie un CAUGHT al broker con status: %d", status);
 	close(conexion_con_broker);
 	free(a_enviar);
 
@@ -173,7 +173,7 @@ void procesarGet(t_paquete* paquete){
 
 	if(ruta_pokemon != NULL) {
 		while(archivo_en_uso(ruta_pokemon)) {
-			log_debug(logger, "esperando a que cierren el archivo");
+			log_error(logger, "el archivo está abierto por otro proceso y no se puede abrir, reintentando en %i segundos", tiempo_reintento);
 			sleep(tiempo_reintento);
 		}
 
@@ -186,6 +186,7 @@ void procesarGet(t_paquete* paquete){
 			coordenadas[i] = malloc(sizeof(t_coords));
 			coordenadas[i] = coordenadas_y_cantidad -> coordenadas;
 		}
+
 		loc_pokemon = localized_pokemon(pok, cantidad_de_coordenadas, coordenadas);
 
 		sleep(tiempo_retardo);
@@ -205,15 +206,22 @@ void procesarGet(t_paquete* paquete){
 		void* serialized_localized_pokemon = serializarLocalizedPokemon(loc_pokemon, &bytes);
 		void* a_enviar = crear_paquete_con_id_correlativo(LOCALIZED_POKEMON, serialized_localized_pokemon, bytes, paquete -> id, &bytes_paquete);
 		int status = send(conexion_con_broker, a_enviar , bytes_paquete , 0);
-		log_debug(logger, "envie un mensaje al broker con status: %d", status);
+		log_info(logger, "envie un LOCALIZED al broker con status: %d", status);
 		close(conexion_con_broker);
 
 		if(lista_de_coordenadas != NULL)
-			list_destroy(lista_de_coordenadas);
+			list_destroy_and_destroy_elements(lista_de_coordenadas, destruir_elementos);
 
+		free(ruta_pokemon);
 		free(loc_pokemon);
+		free(serialized_localized_pokemon);
 		free(a_enviar);
 	}
 
+	free(nombre_pokemon);
 	free(pok);
+}
+
+void destruir_elementos(void* elemento){
+	free(elemento);
 }
