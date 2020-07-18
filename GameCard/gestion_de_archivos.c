@@ -187,7 +187,7 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 	ruta_media = concat_string(ruta, bloque_ruta);
 	ruta_final = concat_string(ruta_media, ".bin");
 
-	liberarListaDePunteros(bloques);
+	liberar_lista_de_punteros(bloques);
 
 	free(ruta);
 	free(ruta_media);
@@ -686,7 +686,7 @@ void actualizar_bitmap_pokemon(char* path) {
 		posicion_array++;
 	}
 
-	liberarListaDePunteros(bloques);
+	liberar_lista_de_punteros(bloques);
 
 	free(path_metadata);
 }
@@ -726,7 +726,7 @@ void agregar_coordenadas(char* key, void* value){
 	coords_con_cant -> cantidad = value;
 	list_add(lista_coordenadas, coords_con_cant);
 
-	liberarListaDePunteros(coords_separated);
+	liberar_lista_de_punteros(coords_separated);
 }
 
 char* concat_string(char* string, char* otro_string) {
@@ -749,3 +749,12 @@ void liberarListaDePunteros(char** list) {
 //int cantidad_de_posiciones(char* bloque){
 //	return (sizeof(bloque) / sizeof(t_coords_con_cant));
 //}
+
+void liberar_lista_de_punteros(char** list){
+	int i = 0;
+	while(list[i] != NULL) {
+		free(list[i]);
+		i++;
+	}
+	free(list);
+}
