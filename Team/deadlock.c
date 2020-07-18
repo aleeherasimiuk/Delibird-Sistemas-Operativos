@@ -10,8 +10,11 @@
 pthread_mutex_t mutex_deadlock;
 int hubo_deadlock;	// Se pone en 1 si no se produce deadlock entre los que están en la lista
 int hay_deadlock;
+t_list* lista_de_deadlocks;
+
 void inicializarDeadlock(void) {
 	pthread_mutex_init(&mutex_deadlock, NULL);
+	lista_de_deadlocks = list_create();
 }
 
 void deteccionYCorreccionDeadlock(void) {
@@ -22,8 +25,8 @@ void deteccionYCorreccionDeadlock(void) {
 	pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 	hubo_deadlock = 0;
 	hay_deadlock = 1;
-	log_info(logger, "INICIO DE ALGORITMO DE DETECCIÓN DE DEADLOCK");
 	while (cant_blocked_full >= 2 && hay_deadlock == 1) {
+	log_info(logger, "INICIO DE ALGORITMO DE DETECCIÓN DE DEADLOCK");
 		deteccionDeadlock();
 		corregirUnDeadlock();
 		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
@@ -63,7 +66,25 @@ void deteccionDeadlock(void) {
 		}
 		list_clean(entrenadores_en_deadlock);
 	}
-	list_destroy(entrenadores_en_deadlock);
+
+	t_list* list_temp = NULL;
+
+	for (int index_lista = 0; index_lista < list_size(lista_de_deadlocks); index_lista++) {
+		list_temp = list_get(lista_de_deadlocks, index_lista);
+		if (list_size(list_temp) > 1){
+			log_msg = string_from_format("DEADLOCK ENTRE LOS ENTRENADORES:");
+			for (int i = 0; i < list_size(list_temp); i++) {
+				tcb = (t_tcb*) list_get(list_temp, i);
+				string_append_with_format(&log_msg, " %d", tcb->entrenador->id_entrenador);
+			}
+			log_info(logger, log_msg);
+			free(log_msg);
+		}
+		list_destroy(list_temp);
+	}
+
+	list_clean(lista_de_deadlocks);
+	free(entrenadores_en_deadlock);
 }
 
 int agregarEntrenadorQueTengaElQueNecesita(t_list* entrenadores_en_deadlock, t_tcb* tcb_necesitado) {
@@ -93,12 +114,14 @@ int agregarEntrenadorQueTengaElQueNecesita(t_list* entrenadores_en_deadlock, t_t
 				if (indexOf(tcb, entrenadores_en_deadlock) != -1)
 					return 0;
 
+				// Lo agrego porque tiene que verificar en los otros niveles, y por si termina
 				list_add(entrenadores_en_deadlock, tcb);
+
 				if (agregarEntrenadorQueTengaElQueNecesita(entrenadores_en_deadlock, tcb)) {
-					return 1;
-				} else {
-					list_remove(entrenadores_en_deadlock, list_size(entrenadores_en_deadlock) - 1);
+					list_add(lista_de_deadlocks, list_duplicate(entrenadores_en_deadlock));
 				}
+				list_remove(entrenadores_en_deadlock, list_size(entrenadores_en_deadlock) - 1);
+
 			}
 		}
 	}

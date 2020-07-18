@@ -16,6 +16,7 @@ int main() {
 	inicializar_team();
 
 	log_debug(logger, "El team finaliza satisfactoriamente");
+	log_info(logger, "EL PROCESO FINALIZA");
 	terminar_programa(logger, config);
 	return 1;
 }
