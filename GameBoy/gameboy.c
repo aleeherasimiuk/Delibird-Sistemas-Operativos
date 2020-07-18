@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 }
 
 t_log* iniciar_logger(char* logfile) {
-	return log_create(logfile, "GameBoy", true, LOG_LEVEL_DEBUG);
+	return log_create(logfile, "GameBoy", true, LOG_LEVEL_INFO);
 }
 
 t_config* leer_config(void) {

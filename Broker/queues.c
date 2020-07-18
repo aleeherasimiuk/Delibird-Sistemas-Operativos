@@ -144,13 +144,13 @@ void* queue(void* message_type){
 
 			if(!ya_existe){
 				send_to_subscribers(paquete);
-				guardar(paquete);
 			} else {
 				log_info(logger_extra, "Se ignorará el mensaje por haberse repetido el ID Correlativo: #%d", paquete -> correlative_id);
-				free(paquete -> buffer -> stream);
-				free(paquete -> buffer);
-				free(paquete);
+//				free(paquete -> buffer -> stream);
+//				free(paquete -> buffer);
+//				free(paquete);
 			}
+			guardar(paquete);
 		}
 
 	}
@@ -455,7 +455,7 @@ int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
 		int size = mem_block -> data -> size;
 		int frag = mem_block -> data -> fragmentacion;
 		int tamano_efectivo = size - frag;
-		void* stream = malloc(size);
+		void* stream = malloc(tamano_efectivo);
 		log_debug(logger, "Con ampersand %p, sin ampersand %p", &(mem_block -> data -> base), mem_block -> data -> base);
 		pthread_mutex_lock(&mx_mem);
 		memcpy(stream, (mem_block -> data -> base), tamano_efectivo);
@@ -466,10 +466,13 @@ int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
 		log_debug(logger, "ID: %d, ID_CORRELATIVO: %d, STREAM SIZE: %d, FRAGMENTACION: %d", id, id_c, size, frag);
 
 		int bytes;
-		void* a_enviar = crear_paquete_con_ids(cola, stream, size, id, id_c, &bytes);
+		void* a_enviar = crear_paquete_con_ids(cola, stream, tamano_efectivo, id, id_c, &bytes);
 
 		int status = send(client -> socket, a_enviar, bytes, MSG_NOSIGNAL);
 		log_debug(logger, "Envié un mensaje cacheado con status: %d", status);
+		if(status)
+			log_info(logger, "Se envió el mensaje #%d, al proceso #%d", id, client -> process_id);
+		free(stream);
 		free(a_enviar);
 
 		return 1;
@@ -514,6 +517,18 @@ void destruir_mensajes(){
 
 	list_destroy_and_destroy_elements(mensajes, free);
 
+
+}
+
+void suscripcionOk(uint32_t conexion){
+
+	int* ok = malloc(sizeof(int));
+	*ok = SUBSCRIBED;
+	uint32_t bytes;
+	void* pack_id = crear_paquete_con_id(ID, (void*)ok, sizeof(int), -1, &bytes);
+	int status = send(conexion, pack_id, bytes, MSG_NOSIGNAL);
+	free(pack_id);
+	free(ok);
 
 }
 

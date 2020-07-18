@@ -11,7 +11,7 @@
 void procesarID(t_paquete* paquete){
 
  t_id* id = paquete -> buffer -> stream;
- log_debug(logger, "Recibí el ID: %d", id);
+ log_debug(logger, "Recibí el ID: %d", *id);
 }
 
 void procesarNew(t_paquete* paquete){
@@ -20,9 +20,8 @@ void procesarNew(t_paquete* paquete){
 	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
 	int i;
 
-	//FILE* archivo = ruta_del_archivo;
-
 	t_new_pokemon* pok = deserializarNewPokemon(paquete -> buffer);
+	log_debug(logger, "despues de deserializar al pokemon");
 
 	char* nombre_pokemon = pok -> pokemon -> name;
 	t_coords* coords = pok -> coords;
@@ -43,16 +42,19 @@ void procesarNew(t_paquete* paquete){
 
 
 	char* clave = pos_a_clave(posX, posY);
-	path_clave = path_para_clave(clave, ruta_pokemon, 0);
+	path_clave = path_para_clave(clave, ruta_pokemon, cantidad, MODIFICAR_CLAVE);
 
 	agregar_posicion_y_cantidad(coords, cantidad, path_clave);
-
 
 	actualizar_bitmap_pokemon(ruta_pokemon);
 
 	sleep(tiempo_retardo);
 
 	cerrar_archivo(ruta_pokemon);
+
+	free(ruta_pokemon);
+
+	free(path_clave);
 
 
 	for(i = 0; i < (pok -> cantidad); i++){
@@ -77,8 +79,7 @@ void procesarNew(t_paquete* paquete){
 		free(a_enviar);
 	}
 
-
-
+	free(pok -> pokemon -> name);
 	free(pok -> pokemon);
 	free(pok -> coords);
 	free(pok);
@@ -104,11 +105,13 @@ void procesarCatch(t_paquete* paquete){
 	uint32_t posX = coords -> posX;
 	uint32_t posY = coords -> posY;
 
+	t_caught_pokemon* cau_pokemon;
+
 	char* path_clave;
 
 	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 0);
 
-	if(ruta_pokemon != "NULL") {
+	if(ruta_pokemon != NULL) {
 		while(archivo_en_uso(ruta_pokemon)) {
 
 			log_debug(logger, "esperando a que cierren el archivo");
@@ -116,17 +119,28 @@ void procesarCatch(t_paquete* paquete){
 		}
 
 		char* clave = pos_a_clave(posX, posY);
-		path_clave = path_para_clave(clave, ruta_pokemon, 1);
+		path_clave = path_para_clave(clave, ruta_pokemon, 0, BUSCAR_CLAVE);
 
-		disminuir_cantidad(coords, path_clave);
+		if(path_clave != NULL) {
+			cau_pokemon = caught_pokemon(YES);
+			disminuir_cantidad(coords, path_clave);
+			free(path_clave);
+		} else {
+			cau_pokemon = caught_pokemon(NO);
+		}
+
 		actualizar_bitmap_pokemon(ruta_pokemon);
 		sleep(tiempo_retardo);
 		cerrar_archivo(ruta_pokemon);
 
+		free(ruta_pokemon);
+
+	} else {
+		cau_pokemon = caught_pokemon(NO);
+		sleep(tiempo_retardo);
+		cerrar_archivo(ruta_pokemon);
 	}
 	int conexion_con_broker = abrirUnaConexionGameCard(config);
-
-	t_caught_pokemon* cau_pokemon = caught_pokemon(YES);
 
 	uint32_t bytes;
 	uint32_t bytes_paquete;
@@ -178,9 +192,7 @@ void procesarGet(t_paquete* paquete){
 		cerrar_archivo(ruta_pokemon);
 
 	} else {
-		log_debug(logger, "luis marico");
 		loc_pokemon = localized_pokemon(pok, 0, NULL);
-		log_debug(logger, "luis marico x2");
 	}
 
 	int conexion_con_broker = abrirUnaConexionGameCard(config);

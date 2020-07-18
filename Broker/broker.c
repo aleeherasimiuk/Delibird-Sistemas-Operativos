@@ -21,6 +21,11 @@ int main(void) {
 
 	config = leer_config();
 
+	if(config == NULL){
+		printf("El archivo de configuración es inválido");
+		exit(0);
+	}
+
 	ip        = config_get_string_value(config, "IP");
 	puerto    = config_get_string_value(config, "PUERTO");
 	logfile   = config_get_string_value(config, "LOG_FILE");
@@ -32,6 +37,11 @@ int main(void) {
 
 	logger = iniciar_logger(logfile, "BROKER");
 	logger_extra = iniciar_logger(log_extra, "SERVER - EXTRALOG");
+
+	if(logger == NULL || logger_extra == NULL){
+		printf("El archivo de log es inválido.");
+	}
+
 	iniciarSignals();
 	iniciarMemoria();
 	iniciarSubscribers();

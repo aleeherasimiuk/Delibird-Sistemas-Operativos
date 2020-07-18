@@ -38,7 +38,7 @@ void* abrirSocketParaGameboy();
 void serve_client(int* socket);
 void process_request(message_type, int);
 
-void enviarACK(uint32_t id);
+void enviarACK(uint32_t id, uint32_t);
 
 
 #endif /* GAMECARD_CONEXIONESGAMECARD_H_ */

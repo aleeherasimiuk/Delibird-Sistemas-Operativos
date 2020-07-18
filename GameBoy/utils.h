@@ -29,7 +29,7 @@ void* preparar_mensaje(char* proceso, int argc, char* argv[], uint32_t*);
 void wrong_parameters();
 void* escucharPorTiempoLimitado(void*);
 void enviarACK(uint32_t);
-void escuchar_broker(uint32_t, uint32_t);
+void escuchar_broker(uint32_t, uint32_t, char*);
 
 void* prepararNewPokemon(char*, uint32_t, char* argv[], uint32_t*);
 void* prepararAppearedPokemon(char*, uint32_t, char* argv[], uint32_t*);
@@ -37,6 +37,13 @@ void* prepararCatchPokemon(char*, uint32_t, char* argv[], uint32_t*);
 void* prepararCaughtPokemon(char*, uint32_t, char* argv[], uint32_t*);
 void* prepararGetPokemon(char*, uint32_t, char* argv[], uint32_t*);
 void* prepararSuscriptor(char*, uint32_t, char* argv[], uint32_t*);
+
+void procesarNewPokemon(t_paquete*);
+void procesarAppearedPokemon(t_paquete*);
+void procesarCatchPokemon(t_paquete*);
+void procesarCaughtPokemon(t_paquete*);
+void procesarLocalizedPokemon(t_paquete*);
+void procesarGetPokemon(t_paquete*);
 
 message_type string_to_queue(char*);
 

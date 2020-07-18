@@ -58,7 +58,21 @@ t_bitarray* iniciar_bitarray(void) {
 	stat(bitmap_path, &statbuf);
 	bitmap_size = statbuf.st_size;
 
-	FILE* file = open(bitmap_path, O_RDWR);
+	int file = open(bitmap_path, O_RDWR);
+
+	if(file == -1){
+	    FILE* f = fopen(bitmap_path, "wb");
+
+	    for(int i = 0; i < 100; i++){
+	      int bit = 0;
+	      fwrite(&bit, sizeof(int),1 ,f);
+	    }
+
+	    fflush(f);
+	    fclose(f);
+
+	    file = open(bitmap_path, O_RDWR);
+	 }
 	//fread(buffer, 1, bitmap_size, file);
 	//fclose(file);
 
