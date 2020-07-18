@@ -27,6 +27,7 @@
 #include "entrenadores.h"
 #include "mensajesTeam.h"
 #include "planificador.h"
+#include "team.h"
 
 typedef struct {
 	int socket;
@@ -43,7 +44,7 @@ void  process_request(message_type, int);
 uint32_t esperarID (int socket);
 uint32_t procesarID(t_paquete* paquete);
 void  escucharAlGameboy();
-void  enviarACK(uint32_t);
+void  enviarACK(uint32_t, int);
 
 void*  enviarGetPokemon(void* data);
 void*  procesarLocalized(void* paquete);

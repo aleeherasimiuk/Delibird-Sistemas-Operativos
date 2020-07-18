@@ -60,6 +60,9 @@ void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t *
 
 		void* serialized_appeared_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
+		free(serialized_pokemon);
+		free(serialized_coords);
+
 		return serialized_appeared_pokemon;
 }
 
@@ -118,8 +121,7 @@ void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_
 	}
 
 	free(serialized_pokemon);
-	free(coords_array);
-
+	liberarListaDePunteros(coords_array);
 
 	return serialized_localized_pokemon;
 }
@@ -730,6 +732,15 @@ char* queue_name(message_type queue){
 
 	}
 
+}
+
+void liberarListaDePunteros(char** list) {
+	int i = 0;
+	while(list[i] != NULL) {
+		free(list[i]);
+		i++;
+	}
+	free(list);
 }
 
 

@@ -25,6 +25,9 @@
 #include <sys/stat.h>
 #include <commons/collections/list.h>
 
+#define BUSCAR_CLAVE 1
+#define MODIFICAR_CLAVE 0
+
 typedef struct {
 	char DIRECTORY;
 	char OPEN;
@@ -43,27 +46,28 @@ void agregar_coordenadas(char*, void*);
 void unir_paths(char*, char*, char**);
 int  archivo_en_uso(char*);
 char* verificar_pokemon(char*, char*, int);
-char* path_para_clave(char*, char*, int);
+char* path_para_clave(char*, char*, uint32_t, int);
 void agregar_posicion_y_cantidad(t_coords* ,int , char*);
-void disminuir_cantidad(t_coords*, char* path);
+int disminuir_cantidad(t_coords*, char* path);
 void obtener_posiciones(char*);
 void leer_archivo(FILE* file);
 void crear_metadata_archivo(char*);
 char* pos_a_clave(u_int32_t, u_int32_t);
 void cerrar_archivo(char*);
-int chequear_lleno(char*, size_t);
+int chequear_lleno(char*, size_t, uint32_t);
 int actualizar_bitmap(off_t);
 char** obtener_bloques(char*);
 int chequear_bloque_disponible(int);
 int buscar_bloque_disponible(void);
 int agregar_bloque_disponible(char* path);
 void quitar_bloque(char*, int);
-char* arreglar_string(char*, char*);
+char* remove_char(char*);
 int chequear_ocupado(int);
 void actualizar_bitmap_pokemon(char*);
 t_list* leer_bloques_pokemon(char*);
 void agregar_coordenadas(char*, void*);
-void liberarListaDePunteros(char**);
+
+char* concat_string(char*, char*);
 
 typedef struct {
 	t_coords* coordenadas;

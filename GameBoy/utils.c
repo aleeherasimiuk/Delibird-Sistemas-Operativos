@@ -45,7 +45,7 @@ int enviar_mensaje(int argc, char* argv[]){
 	if(compare_string(proceso, "BROKER"))
 		esperarID(conexion);
 
-	if(compare_string(proceso, "TEAM"), compare_string(proceso, "GAMECARD"))
+	if(compare_string(proceso, "TEAM") || compare_string(proceso, "GAMECARD"))
 		esperarACK(conexion);
 
 

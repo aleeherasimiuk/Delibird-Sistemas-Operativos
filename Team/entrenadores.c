@@ -230,6 +230,7 @@ void moverseAlobjetivo(t_tcb* tcb, t_coords* posicion_destino, uint32_t id_entre
 		pthread_mutex_lock(&(tcb->exec_mutex));
 		realizarCicloDeCPU(tcb, 0);
 		posicion_actual->posX = x;
+		log_info(logger, "MOVIMIENTO ENTRENADOR: el entrenador %d se movió a la posición x:%d y:%d", tcb->entrenador->id_entrenador, posicion_actual->posX, posicion_actual->posY);
 		pthread_mutex_unlock(&(tcb->exec_mutex));
 		//log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
 	}
@@ -240,6 +241,7 @@ void moverseAlobjetivo(t_tcb* tcb, t_coords* posicion_destino, uint32_t id_entre
 		pthread_mutex_lock(&(tcb->exec_mutex));
 		realizarCicloDeCPU(tcb, 0);
 		posicion_actual->posY = y;
+		log_info(logger, "MOVIMIENTO ENTRENADOR: el entrenador %d se movió a la posición x:%d y:%d", tcb->entrenador->id_entrenador, posicion_actual->posX, posicion_actual->posY);
 		pthread_mutex_unlock(&(tcb->exec_mutex));
 		//log_debug(logger, "El entrenador %d está en la posición x: %d y: %d", id_entrenador, posicion_actual->posX, posicion_actual->posY);
 	}
@@ -255,6 +257,7 @@ void intentarAtraparPokemon(t_tcb* tcb) {
 	pthread_mutex_lock(&(tcb->exec_mutex));
 	realizarCicloDeCPU(tcb , 1);
 	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
+	log_info(logger, "ENVÍO DE CATCH: El entrenador %d va a enviar un CATCH_POKEMON '%s' %d %d", tcb->entrenador->id_entrenador, tcb->entrenador->objetivo->pokemon->name, tcb->entrenador->objetivo->posicion->posX, tcb->entrenador->objetivo->posicion->posY);
 	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
 	bloquearPorEsperarCaught(tcb);
 	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
@@ -267,7 +270,7 @@ void realizarIntercambio(t_tcb* tcb) {
 	t_tcb* tcb_intercambio = tcb->intercambio->tcb;
 
 	log_debug(logger, "Se va a hacer el intercambio entre el entrenador %d y el entrenador %d", tcb->entrenador->id_entrenador, tcb_intercambio->entrenador->id_entrenador);
-
+	log_info(logger, "INTERCAMBIO: El entrenador %d va a intercambiar un %s, por el %s del entrenador %d", tcb->entrenador->id_entrenador, tcb->intercambio->mi_pokemon, tcb->intercambio->su_pokemon, tcb_intercambio->entrenador->id_entrenador);
 	pthread_mutex_lock(&(tcb->exec_mutex));
 	realizarCicloDeCPU(tcb, 0);
 	sacarPokemonEnListaDeInventario(tcb_intercambio->entrenador->pokes_actuales, tcb->intercambio->su_pokemon);
@@ -333,7 +336,7 @@ void *entrenadorMain(void* arg) {
 		}
 	}
 
-	log_debug(logger, "El entrenador %d finaliza", entrenador->id_entrenador);
+	//log_debug(logger, "El entrenador %d finaliza", entrenador->id_entrenador);
 
 	return NULL;
 }

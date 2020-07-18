@@ -18,7 +18,7 @@ void suscribirseAlBroker(void) {
 	t_escucha_socket escuchar_appeared = { 0, APPEARED_POKEMON };
 	t_escucha_socket escuchar_localized = { 0, LOCALIZED_POKEMON };
 	t_escucha_socket escuchar_caught = { 0, CAUGHT_POKEMON };
-
+/*
 	escuchar_appeared.socket = abrirUnaConexion(config);
 	suscribirAUnaCola(escuchar_appeared.socket, escuchar_appeared.cola);
 
@@ -27,7 +27,7 @@ void suscribirseAlBroker(void) {
 
 	escuchar_caught.socket = abrirUnaConexion(config);
 	suscribirAUnaCola(escuchar_caught.socket, escuchar_caught.cola);
-
+*/
 
 	pthread_t thread1, thread2, thread3;
 	pthread_create(&thread1, NULL, escucharAlSocket, &escuchar_appeared);
@@ -35,7 +35,7 @@ void suscribirseAlBroker(void) {
 	pthread_create(&thread3, NULL, escucharAlSocket, &escuchar_caught);
 
 	esperarAQueFinalicenLosEntrenadores();
-	log_debug(logger, "Ya finalizaron todos los entrenadores");
+	//log_debug(logger, "Ya finalizaron todos los entrenadores");
 
 	return;
 }
@@ -44,15 +44,20 @@ void suscribirseAlBroker(void) {
 int abrirUnaConexion(t_config* config) {
 	int tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
 	int conexion;
+	int hubo_reconexion = 0;
 
 	while (1) {
 		// Reconexion
 		conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 		if(conexion == CANT_CONNECT){
 			log_debug(logger, "No me pude conectar, espero para reintentar");
+			hubo_reconexion = 1;
+			log_warning(logger, "REINTENTO DE COMUNICACIÓN CON EL BROKER");
 			sleep(tiempo_reconexion);
 		} else {
 			log_debug(logger, "Conexión Abierta");
+			if (hubo_reconexion)
+				log_info(logger, "SE CONECTA AL BROKER EN EL SOCKET: %d", conexion);
 			break;
 		}
 	}
@@ -70,11 +75,10 @@ void suscribirAUnaCola(int conexion, message_type cola){
 	uint32_t paquete_size;
 	void* paquete_serializado = crear_paquete(SUBSCRIBE, serialized_subscribe, subscripcion_size, &paquete_size);
 
-	//TODO: Handlear error
 	send(conexion, paquete_serializado, paquete_size, 0);
 
 	free(subscripcion);
-	//free(serialized_subscribe);
+	free(serialized_subscribe);
 	free(paquete_serializado);
 
 	log_debug(logger, "Me suscribí a %d", cola);
@@ -88,13 +92,15 @@ void *escucharAlSocket(void* data) {
 	pthread_t thread;
 
 	int i = 1;
-	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
+	while(i) {
 		log_debug(logger, "Escuchando en el socket: %d", socket);
 		t_paquete* paquete = recibirPaquete(socket);
 
 
 		if(paquete != NULL){
-			enviarACK(paquete -> id);
+			int con_ack = abrirUnaConexion(config);
+			enviarACK(paquete -> id, con_ack);
+			close(con_ack);
 
 			//void* ptrStream = paquete->buffer->stream; // lo guardo porque mientras se desserializa se mueve el puntero del stream
 
@@ -106,7 +112,6 @@ void *escucharAlSocket(void* data) {
 				case LOCALIZED_POKEMON:
 					pthread_create(&thread, NULL, procesarLocalized, (void*) paquete);
 					pthread_detach(thread);
-					// log_debug(logger, "Que Google Maps ni Google Maps!. Localized Pokemon PAPÁ");
 					break;
 				case CAUGHT_POKEMON:
 					pthread_create(&thread, NULL, procesarCaughtPokemon, (void*) paquete);
@@ -114,6 +119,7 @@ void *escucharAlSocket(void* data) {
 					break;
 				default:
 					log_debug(logger, "What is this SHIT?.");
+					liberar_paquete(paquete);
 					break;
 			}
 
@@ -130,7 +136,6 @@ void *escucharAlSocket(void* data) {
 			suscribirAUnaCola(socket, cola);
 		}
 	}
-	// TODO DESTRUIR EL HILO?
 	return NULL;
 }
 
@@ -139,14 +144,16 @@ uint32_t esperarID (int socket) {
 	t_paquete* paquete = recibirPaquete(socket);
 	uint32_t id = 0;
 
-	switch(paquete->type) {
-		case ID:
-			id = procesarID(paquete);
-			break;
-		default:
-			log_error(logger, "No se recibio un ID como corresponde");
+	if (paquete != NULL) {
+		switch(paquete->type) {
+			case ID:
+				id = procesarID(paquete);
+				break;
+			default:
+				log_error(logger, "No se recibio un ID como corresponde");
+		}
+		liberar_paquete(paquete);
 	}
-	liberar_paquete(paquete);
 	return id;
 }
 
@@ -167,8 +174,9 @@ void* abrirSocketParaGameboy(){
 
 	char* ip = config_get_string_value(config, "IP");
 	char* puerto = config_get_string_value(config, "PUERTO");
-	log_debug(logger, "Estoy escuchando al gameboy en %s:%s", ip, puerto);
-	crear_servidor(ip, puerto, serve_client);
+	char* ruta_logger = config_get_string_value(config, "LOG_FILE_EXTRA");
+	logger_extra = iniciar_logger_obligatorio(ruta_logger, false);
+	crear_servidor_cuando_se_pueda(ip, puerto, serve_client, logger_extra);
 
 	return NULL;
 }
@@ -182,11 +190,14 @@ void serve_client(int* socket){
 	}else {
 		log_debug(logger, "No puedo procesar la solicitud");
 	}
+	free(socket);
 }
 
 void process_request(message_type type, int socket){
 
 	t_paquete* paquete = recibirPaqueteSi(socket, type);
+
+	enviarACK(paquete->id, socket);
 
 	switch(type){
 
@@ -201,12 +212,10 @@ void process_request(message_type type, int socket){
 		default:
 			log_error(logger, "Código de operación inválido");
 	}
-
+	close(socket);
 }
 
-void enviarACK(uint32_t id){
-
-	int conexion = abrirUnaConexion(config);
+void enviarACK(uint32_t id, int conexion){
 
 	log_debug(logger,"Enviaré un ACK por el id: %d",id);
 	t_ack* _ack = ack(process_id, id);
@@ -221,11 +230,8 @@ void enviarACK(uint32_t id){
 	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
 
 	free(_ack);
-	//free(serialized_ack);
+	free(serialized_ack);
 	free(a_enviar);
-
-	close(conexion);
-
 }
 
 
@@ -238,6 +244,8 @@ void* enviarGetPokemon(void* data) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 
 	if(conexion == CANT_CONNECT) {
+
+		log_warning(logger, "ERROR DE COMUNICACIÓN AL BROKER: se ejecuta comportamiento default de GET_POKEMON %s => no existen locaciones", pokemon->name);
 		// Comportamiento default: no existen locaciones de ese pokemon
 		addGetEnviado(0);
 
@@ -256,9 +264,9 @@ void* enviarGetPokemon(void* data) {
 
 		free(dummy_localized);
 
-		free(serialized_localized_pokemon);
-		free(dummy_paquete->buffer);
-		free(dummy_paquete);
+		//free(serialized_localized_pokemon);
+		//free(dummy_paquete->buffer);
+		//free(dummy_paquete);
 
 	} else {
 		uint32_t get_pokemon_size;
@@ -275,6 +283,7 @@ void* enviarGetPokemon(void* data) {
 		liberar_conexion(conexion);
 
 		free(paquete_serializado);
+		free(serialized_get_pokemon);
 	}
 
 	return NULL;
@@ -292,6 +301,17 @@ void* procesarLocalized(void* data) {
 	t_pokemon* pokemon_aux = NULL;
 
 	log_debug(logger, "Se localizaron %d Pokemon: %s!", pok->cant_coords, pok -> pokemon -> name);
+	// LOGUEO
+	char* log_msg = string_from_format("LLEGA UN MESAJE: ID: %d ID_CORR: %d DATA: LOCALIZED_POKEMON %s %d ", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->cant_coords);
+
+	for (int i = 0; i < pok->cant_coords; i++) {
+		string_append_with_format(&log_msg, "%d %d ", pok->coords_array[i]->posX, pok->coords_array[i]->posY);
+	}
+	log_info(logger, log_msg);
+	free(log_msg);
+
+	// FIN LOGUEO
+
 
 	if (getEnviadoConID(paquete->correlative_id, NULL)) {
 		if (pokemonNecesario(pok->pokemon)) {
@@ -346,6 +366,7 @@ void* procesarAppeared(void* data) {
 	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
 
 	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
+	log_info(logger, "LLEGA UN MESAJE: ID: %d ID_CORR: %d DATA: APPEARED_POKEMON %s %d %d", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->coords->posX, pok->coords->posY);
 
 	if (pokemonNecesario(pok->pokemon)) {
 		log_debug(logger, "El pokemon es necesario");
@@ -374,7 +395,9 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 
 	if(conexion == CANT_CONNECT) {
-		// Comportamiento default: no existen locaciones de ese pokemon
+		log_warning(logger, "ERROR DE COMUNICACIÓN AL BROKER: se ejecuta comportamiento default de CATCH_POKEMON %s => se atrapa el pokemon", pokemon_en_mapa->pokemon->name);
+
+		// Comportamiento default: se atrapa el pokemon
 		addCatchEnviado(0, tcb);
 		uint32_t* caught = malloc(sizeof(uint32_t));
 		*caught = YES;
@@ -391,9 +414,9 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 
 		procesarCaughtPokemon(dummy_paquete);
 
-		free(serialized_caught_pokemon);
-		free(dummy_paquete->buffer);
-		free(dummy_paquete);
+		//free(serialized_caught_pokemon);
+		//free(dummy_paquete->buffer);
+		//free(dummy_paquete);
 
 	} else {
 		// Un t_pokemon_en_mapa tiene la misma estructura que un t_catch_pokemon
@@ -410,6 +433,7 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 
 		liberar_conexion(conexion);
 
+		free(serialized_catch_pokemon);
 		free(paquete_serializado);
 	}
 	return;
@@ -423,14 +447,19 @@ void* procesarCaughtPokemon(void* data) {
 	t_paquete* paquete = (t_paquete*) data;
 	void* ptrStream = paquete->buffer->stream; // lo guardo porque mientras se desserializa se mueve el puntero del stream
 
+
+
+	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
+
+	log_info(logger, "LLEGA UN MESAJE: ID: %d ID_CORR: %d DATA: CAUGHT_POKEMON %d", paquete->id, paquete->correlative_id, *cau_pok);
+
 	t_tcb* tcb = traerTcbDelCatchConID(paquete->correlative_id);
 
 	if (tcb == NULL) {	// Si ese id no corresponde a un catch enviado por este team, ignorar
 		log_debug(logger, "Este proceso no envió un catch con id %d", paquete->correlative_id);
+		liberar_paquete(paquete);
 		return NULL;
 	}
-
-	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
 
 	if(*cau_pok == YES){
 		log_debug(logger, "Yey! Atrapé un Pokemon!");
