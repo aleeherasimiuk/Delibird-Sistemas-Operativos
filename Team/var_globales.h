@@ -38,4 +38,9 @@ extern t_list* actuales_global;
 extern pthread_mutex_t mutex_entrenadores_blocked_full;	// SACAR
 extern pthread_mutex_t mutex_actuales_global;
 
+// logs
+extern int log_cpus_totales;
+extern int log_cambios_contexto;
+extern int log_deadlocks_producidos;
+
 #endif /* VAR_GLOBALES_H_ */

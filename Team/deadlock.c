@@ -25,18 +25,15 @@ void deteccionYCorreccionDeadlock(void) {
 	pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 	hubo_deadlock = 0;
 	hay_deadlock = 1;
+
+	if (log_deadlocks_producidos == 0)
+		log_info(logger, "INICIO DE ALGORITMO DE DETECCIÓN DE DEADLOCK");
+	deteccionDeadlock();
 	while (cant_blocked_full >= 2 && hay_deadlock == 1) {
-	log_info(logger, "INICIO DE ALGORITMO DE DETECCIÓN DE DEADLOCK");
-		deteccionDeadlock();
 		corregirUnDeadlock();
 		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 		cant_blocked_full = list_size(entrenadores_blocked_full->lista);
 		pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
-	}
-	if (hubo_deadlock) {
-		log_info(logger, "RESULTADO DE ALGORITMO DE DETECCIÓN DE DEADLOCK: HAY DEADLOCK");
-	} else {
-		log_info(logger, "RESULTADO DE ALGORITMO DE DETECCIÓN DE DEADLOCK: NO HAY DEADLOCK");
 	}
 	pthread_mutex_unlock(&mutex_deadlock);
 	/*
@@ -83,6 +80,10 @@ void deteccionDeadlock(void) {
 		}
 		list_destroy(list_temp);
 	}
+
+	// LOG
+	if (log_deadlocks_producidos == 0)
+		log_deadlocks_producidos = list_size(lista_de_deadlocks);
 
 	list_clean(lista_de_deadlocks);
 	free(entrenadores_en_deadlock);

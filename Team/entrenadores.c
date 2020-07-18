@@ -336,7 +336,7 @@ void *entrenadorMain(void* arg) {
 		}
 	}
 
-	log_debug(logger, "El entrenador %d finaliza", entrenador->id_entrenador);
+	//log_debug(logger, "El entrenador %d finaliza", entrenador->id_entrenador);
 
 	return NULL;
 }

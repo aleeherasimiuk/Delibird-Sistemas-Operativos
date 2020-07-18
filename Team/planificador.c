@@ -185,8 +185,7 @@ void cargarEntrenadores(void) {
 		tcb_nuevo->estim_restante = 0;
 		tcb_nuevo->real_actual = 0;
 
-
-
+		tcb_nuevo->log_cpus_ejecutados = 0;
 
 		pthread_create(&thread, NULL, entrenadorMain, tcb_nuevo);
 		pthread_detach(thread);
@@ -307,6 +306,7 @@ void cambiarColaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* cola_actual) {
 
 void ponerAEjecutarEntrenador(t_tcb* tcb) {
 	pthread_mutex_lock(&(tcb->exec_mutex));
+	log_cambios_contexto++;
 	entrenador_exec = tcb;
 	tcb->ejecucion = 1;
 	ocuparCPU();
@@ -322,6 +322,7 @@ t_tcb* terminarDeEjecutar(t_tcb* tcb) {
 		entrenador = tcb;
 		// SJF
 		actualizarValoresSJF(entrenador_exec);
+		log_cambios_contexto++;
 		entrenador_exec = NULL;
 
 		liberarCPU();
@@ -448,7 +449,7 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 	t_pokemon_en_mapa* pokemon;
 	t_cola_planificacion* cola_actual = NULL; // Lista en la que se encuentra el entrenador mas cercano
 
-	while(1)  { // TODO no esté en exit el team
+	while(1)  {
 		log_debug(logger, "Voy a esperar a que haya pokemones libres");
 
 		sem_wait(&counter_pokemones_libres);
@@ -507,7 +508,7 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 void *planificadorCortoPlazo(void* _) {
 	algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
 
-	while (1) {	// TODO proceso no en exit
+	while (1) {
 		log_debug(logger, "Planificador de corto plazo esperando a que haya entrenadores en ready");
 		sem_wait(&counter_entrenadores_ready);	// Espero a que haya algun entrenador para planificar
 
@@ -703,6 +704,9 @@ void realizarCicloDeCPU(t_tcb* tcb, int ultimo_ciclo) {
 	tcb->real_actual++;
 	// RR
 	vaciarQuantum(ultimo_ciclo);
+
+	log_cpus_totales++;
+	tcb->log_cpus_ejecutados++;
 }
 
 
@@ -781,7 +785,7 @@ void* verificarSiTeamTerminoDeCapturar(void* _) {
 	int cargando = entrenadores_cargando;
 	pthread_mutex_unlock(&mutex_entrenadores_cargando);
 
-	log_debug(logger, "Entrenadores cargando = %d", cargando);
+	// log_debug(logger, "Entrenadores cargando = %d", cargando);
 	if (cargando)
 		return NULL;
 

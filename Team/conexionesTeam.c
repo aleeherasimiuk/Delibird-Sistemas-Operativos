@@ -81,8 +81,6 @@ void suscribirAUnaCola(int conexion, message_type cola){
 	free(serialized_subscribe);
 	free(paquete_serializado);
 
-	//TODO: esperarId
-
 	log_debug(logger, "Me suscribí a %d", cola);
 }
 
@@ -94,7 +92,7 @@ void *escucharAlSocket(void* data) {
 	pthread_t thread;
 
 	int i = 1;
-	while(i) {	// TODO: PONER QUE EL WHILE SEA MIENTRAS NO ESTA EN EXIT
+	while(i) {
 		log_debug(logger, "Escuchando en el socket: %d", socket);
 		t_paquete* paquete = recibirPaquete(socket);
 
@@ -136,7 +134,6 @@ void *escucharAlSocket(void* data) {
 			suscribirAUnaCola(socket, cola);
 		}
 	}
-	// TODO DESTRUIR EL HILO?
 	return NULL;
 }
 
