@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include "mensajes.h"
 #include <commons/log.h>
+#include <pthread.h>
 
 #define CANT_CONNECT -10
 #define SUBSCRIBED -777
@@ -30,5 +31,7 @@ void crear_servidor(char*, char*, void*);
 void esperar_cliente(int, void*);
 
 void liberar_conexion(int socket_cliente);
+
+int send_msg(int, void*, int);
 
 #endif /* UTILS_CONEXIONES_H_ */

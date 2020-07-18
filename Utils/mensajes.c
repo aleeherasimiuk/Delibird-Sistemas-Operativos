@@ -121,6 +121,7 @@ void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_
 	}
 
 	free(serialized_pokemon);
+	free_coords_array(coords_array);
 
 	return serialized_localized_pokemon;
 }
@@ -733,13 +734,16 @@ char* queue_name(message_type queue){
 
 }
 
-void liberar_lista_punteros_coordenadas(t_coords** list){
+void free_coords_array(t_coords** coords) {
+	if (coords == NULL)
+		return;
+
 	int i = 0;
-	while(list[i] != NULL) {
-		free(list[i]);
+	while(coords[i] != NULL) {
+		free(coords[i]);
 		i++;
 	}
-	free(list);
+	free(coords);
 }
 
 

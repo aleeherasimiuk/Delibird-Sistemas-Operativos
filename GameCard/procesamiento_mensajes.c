@@ -69,7 +69,7 @@ void procesarNew(t_paquete* paquete){
 
 		void* serialized_appeared_pokemon = serializarAppearedPokemon(app_pokemon, &bytes);
 		void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, serialized_appeared_pokemon, bytes, paquete -> id, &bytes_paquete);
-		int status = send(conexion_con_broker, a_enviar , bytes_paquete , 0);
+		int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
 		log_info(logger, "envie un APPEARED al broker con status: %d", status);
 		close(conexion_con_broker);
 
@@ -147,7 +147,7 @@ void procesarCatch(t_paquete* paquete){
 
 	void* serialized_caught_pokemon = serializarCaughtPokemon(&cau_pokemon, &bytes);
 	void* a_enviar = crear_paquete_con_id_correlativo(CAUGHT_POKEMON, serialized_caught_pokemon, bytes, paquete -> id, &bytes_paquete);
-	int status = send(conexion_con_broker, a_enviar , bytes_paquete , 0);
+	int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
 	log_info(logger, "envie un CAUGHT al broker con status: %d", status);
 	close(conexion_con_broker);
 	free(a_enviar);
@@ -206,7 +206,7 @@ void procesarGet(t_paquete* paquete){
 
 		void* serialized_localized_pokemon = serializarLocalizedPokemon(loc_pokemon, &bytes);
 		void* a_enviar = crear_paquete_con_id_correlativo(LOCALIZED_POKEMON, serialized_localized_pokemon, bytes, paquete -> id, &bytes_paquete);
-		int status = send(conexion_con_broker, a_enviar , bytes_paquete , 0);
+		int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
 		log_info(logger, "envie un LOCALIZED al broker con status: %d", status);
 		close(conexion_con_broker);
 

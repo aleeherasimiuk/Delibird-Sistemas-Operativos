@@ -737,6 +737,15 @@ char* concat_string(char* string, char* otro_string) {
 	return str;
 }
 
+void liberarListaDePunteros(char** list) {
+	int i = 0;
+	while(list[i] != NULL) {
+		free(list[i]);
+		i++;
+	}
+	free(list);
+}
+
 //int cantidad_de_posiciones(char* bloque){
 //	return (sizeof(bloque) / sizeof(t_coords_con_cant));
 //}

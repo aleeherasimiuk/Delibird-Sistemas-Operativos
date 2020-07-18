@@ -96,8 +96,9 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 	uint32_t paquete_size;
 	void* paquete_serializado = crear_paquete(SUBSCRIBE, serialized_subscribe, subscripcion_size, &paquete_size);
 
-	//TODO: Handlear error
-	send(conexion, paquete_serializado, paquete_size, 0);
+//	//TODO: Handlear error
+//	send(conexion, paquete_serializado, paquete_size, 0);
+	send_msg(conexion, paquete_serializado, paquete_size);
 
 
 	t_paquete* suscripcion_ok = recibirPaquete(conexion);
@@ -182,7 +183,7 @@ void enviarACKAlGameboy(uint32_t id, uint32_t conexion){
 	uint32_t bytes;
 	void* a_enviar = crear_paquete(ACK, serialized_ack, bytes_ack, &bytes);
 
-	int status = send(conexion, a_enviar, bytes, 0);
+	int status = send_msg(conexion, a_enviar, bytes);
 	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
 	free(_ack);
 	free(serialized_ack);
@@ -204,7 +205,7 @@ void enviarACKAlBroker(uint32_t id){
 	uint32_t bytes;
 	void* a_enviar = crear_paquete(ACK, serialized_ack, bytes_ack, &bytes);
 
-	int status = send(conexion, a_enviar, bytes, 0);
+	int status = send_msg(conexion, a_enviar, bytes);
 	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
 	free(_ack);
 	free(serialized_ack);
