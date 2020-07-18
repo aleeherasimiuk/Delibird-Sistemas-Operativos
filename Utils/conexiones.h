@@ -28,7 +28,7 @@ void liberar_paquete(t_paquete* paquete);
 void crear_servidor(char*, char*, void*);
 void esperar_cliente(int, void*);
 
-
+void liberarListaDePunteros(char** list);
 
 void liberar_conexion(int socket_cliente);
 

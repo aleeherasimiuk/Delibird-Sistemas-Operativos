@@ -186,6 +186,7 @@ void procesarGet(t_paquete* paquete){
 			coordenadas[i] = malloc(sizeof(t_coords));
 			coordenadas[i] = coordenadas_y_cantidad -> coordenadas;
 		}
+
 		loc_pokemon = localized_pokemon(pok, cantidad_de_coordenadas, coordenadas);
 
 		sleep(tiempo_retardo);
@@ -205,15 +206,22 @@ void procesarGet(t_paquete* paquete){
 		void* serialized_localized_pokemon = serializarLocalizedPokemon(loc_pokemon, &bytes);
 		void* a_enviar = crear_paquete_con_id_correlativo(LOCALIZED_POKEMON, serialized_localized_pokemon, bytes, paquete -> id, &bytes_paquete);
 		int status = send(conexion_con_broker, a_enviar , bytes_paquete , 0);
-		log_debug(logger, "envie un mensaje al broker con status: %d", status);
+		log_info(logger, "envie un LOCALIZED al broker con status: %d", status);
 		close(conexion_con_broker);
 
 		if(lista_de_coordenadas != NULL)
-			list_destroy(lista_de_coordenadas);
+			list_destroy_and_destroy_elements(lista_de_coordenadas, destruir_elementos);
 
+		free(ruta_pokemon);
 		free(loc_pokemon);
+		free(serialized_localized_pokemon);
 		free(a_enviar);
 	}
 
+	free(nombre_pokemon);
 	free(pok);
+}
+
+void destruir_elementos(void* elemento){
+	free(elemento);
 }

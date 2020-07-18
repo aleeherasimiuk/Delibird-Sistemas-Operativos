@@ -27,4 +27,6 @@ void procesarNew(t_paquete*);
 void procesarCatch(t_paquete*);
 void procesarGet(t_paquete*);
 
+void destruir_elementos(void*);
+
 #endif /* GAMECARD_PROCESAMIENTO_MENSAJES_H_ */
