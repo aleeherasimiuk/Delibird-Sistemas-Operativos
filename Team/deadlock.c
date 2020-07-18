@@ -68,6 +68,7 @@ void deteccionDeadlock(void) {
 	}
 
 	t_list* list_temp = NULL;
+	sacarDeadlocksRepetidos(lista_de_deadlocks);
 
 	for (int index_lista = 0; index_lista < list_size(lista_de_deadlocks); index_lista++) {
 		list_temp = list_get(lista_de_deadlocks, index_lista);
@@ -128,6 +129,46 @@ int agregarEntrenadorQueTengaElQueNecesita(t_list* entrenadores_en_deadlock, t_t
 	return 0;
 }
 
+
+void sacarDeadlocksRepetidos(t_list* lista_deadlock) {
+	t_list* deadlock_temp = NULL;
+	for (int i = 0; i < list_size(lista_deadlock); i++) {
+		deadlock_temp = list_get(lista_deadlock, i);
+
+		if (deadlockRepetidoEn(lista_deadlock, deadlock_temp, i)) {
+			list_remove(lista_deadlock, i);
+			i--;
+			list_destroy(deadlock_temp);
+		}
+	}
+}
+
+int deadlockRepetidoEn(t_list* lista_deadlock, t_list* deadlock, int index_max) {
+	t_list* deadlock_temp = NULL;
+	for (int i = 0; i < index_max; i++) {
+		deadlock_temp = list_get(lista_deadlock, i);
+
+		if (deadlock_temp == deadlock)
+				continue;
+
+		if (tieneMismosTcbsPeroNoSonIguales(deadlock_temp, deadlock))
+			return 1;
+	}
+	return 0;
+}
+
+// Tienen los mismos tcbs
+int tieneMismosTcbsPeroNoSonIguales(t_list* deadlock1, t_list* deadlock2) {
+	t_tcb* tcb_temp = NULL;
+	for (int i = 0; i < list_size(deadlock1); i++) {
+		tcb_temp = list_get(deadlock1, i);
+
+		if (indexOf(tcb_temp, deadlock2) == -1)
+			return 0;
+
+	}
+	return 1;
+}
 
 
 void corregirUnDeadlock(void) {
