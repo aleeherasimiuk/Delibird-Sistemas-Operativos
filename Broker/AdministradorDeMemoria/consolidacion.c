@@ -49,13 +49,13 @@ void consolidarParticiones(memory_block_t* bloque_eliminado){
 
 		} else if(bloque_siguiente != NULL && bloque_siguiente -> data -> status == LIBRE){
 			merge(bloque_eliminado, bloque_siguiente);
-			log_info(logger_extra, "Se consolidarán particiones con el siguiente");
+
 		}
 
 
 	} else if(bloque_siguiente != NULL && bloque_siguiente -> data -> status == LIBRE){
 		merge(bloque_eliminado, bloque_siguiente);
-		log_info(logger_extra, "Se consolidarán particiones con el siguiente");
+
 	}
 
 

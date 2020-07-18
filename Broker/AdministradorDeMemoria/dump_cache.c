@@ -15,8 +15,8 @@ void dump_cache(int n){
 	char* hora = obtener_hora();
 	char* hora_string = string_from_format("Dump: %s\n", hora);
 	char* separacion = guiones(115);
-	printf(separacion);
-	printf(hora_string);
+	//printf(separacion);
+	//printf(hora_string);
 	txt_write_in_file(file, separacion);
 	txt_write_in_file(file, hora_string);
 
@@ -32,14 +32,14 @@ void dump_cache(int n){
 		char libre = mem_block -> data -> status == LIBRE? 'L' : 'X';
 		char* string = string_from_format("Particion %d: %06p - %06p \t[%c] \tSize: %db	%s\n ", i++, base, fin, libre ,size, status);
 		txt_write_in_file(file, string);
-		printf(string);
+		//printf(string);
 		free(status);
 		free(string);
 
 		mem_block = mem_block -> next;
 	}
 
-	printf(separacion);
+	//printf(separacion);
 	txt_write_in_file(file, separacion);
 	free(hora);
 	free(hora_string);
