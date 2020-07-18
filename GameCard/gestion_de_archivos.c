@@ -59,7 +59,7 @@ int archivo_en_uso(char* path){
 	}
 
 	else {
-		log_error(logger, "hay un error en la variable OPEN del metadata");
+		log_error(logger, "Hay un error en la variable OPEN del metadata");
 		config_destroy(metadata);
 		free(ruta);
 		return -1;
@@ -270,7 +270,7 @@ int disminuir_cantidad(t_coords* coordenadas, char* path) {
 
 	if(!config_has_property(datos, clave)){
 
-		log_error(logger, "no hay pokemones en esta posicion");
+		log_error(logger, "No se han encontrado pokemones en esta posicion");
 		config_destroy(datos);
 
 		return 0;
@@ -397,7 +397,7 @@ int chequear_lleno(char* path, size_t size, uint32_t cantidad_caracteres_a_sumar
 		return 1;
 	}
 
-	log_error(logger, "hay un error en el bloque %s", path);
+	log_error(logger, "Hay un error en el bloque %s", path);
 	return -1;
 }
 

@@ -70,7 +70,7 @@ void procesarNew(t_paquete* paquete){
 		void* serialized_appeared_pokemon = serializarAppearedPokemon(app_pokemon, &bytes);
 		void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, serialized_appeared_pokemon, bytes, paquete -> id, &bytes_paquete);
 		int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
-		log_info(logger, "envie un APPEARED al broker con status: %d", status);
+		log_info(logger, "Se enviará un APPEARED_POKEMON por: %s", app_pokemon -> pokemon -> name);
 		close(conexion_con_broker);
 
 		free(app_pokemon -> coords);
@@ -114,7 +114,7 @@ void procesarCatch(t_paquete* paquete){
 	if(ruta_pokemon != NULL) {
 		while(archivo_en_uso(ruta_pokemon)) {
 
-			log_info(logger, "esperando a que cierren el archivo");
+			log_info(logger, "Esperando a que cierren el archivo");
 			sleep(tiempo_reintento);
 		}
 
@@ -148,7 +148,7 @@ void procesarCatch(t_paquete* paquete){
 	void* serialized_caught_pokemon = serializarCaughtPokemon(&cau_pokemon, &bytes);
 	void* a_enviar = crear_paquete_con_id_correlativo(CAUGHT_POKEMON, serialized_caught_pokemon, bytes, paquete -> id, &bytes_paquete);
 	int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
-	log_info(logger, "envie un CAUGHT al broker con status: %d", status);
+	log_info(logger, "Se envió un CAUGHT_POKEMON: %s", cau_pokemon == YES? "Ok": "Fail");
 	close(conexion_con_broker);
 	free(a_enviar);
 
@@ -173,7 +173,7 @@ void procesarGet(t_paquete* paquete){
 
 	if(ruta_pokemon != NULL) {
 		while(archivo_en_uso(ruta_pokemon)) {
-			log_error(logger, "el archivo está abierto por otro proceso y no se puede abrir, reintentando en %i segundos", tiempo_reintento);
+			log_error(logger, "El archivo ya se encuientra abierto, reintentando en %i segundos", tiempo_reintento);
 			sleep(tiempo_reintento);
 		}
 
@@ -205,7 +205,7 @@ void procesarGet(t_paquete* paquete){
 	int conexion_con_broker = abrirUnaConexionGameCard(config);
 
 	if(conexion_con_broker == CANT_CONNECT){
-		log_info(logger, "no se pudo establecer conexión con el broker");
+		log_info(logger, "No se pudo establecer conexión con el broker");
 	} else {
 		uint32_t bytes;
 		uint32_t bytes_paquete;
@@ -213,7 +213,7 @@ void procesarGet(t_paquete* paquete){
 		void* serialized_localized_pokemon = serializarLocalizedPokemon(loc_pokemon, &bytes);
 		void* a_enviar = crear_paquete_con_id_correlativo(LOCALIZED_POKEMON, serialized_localized_pokemon, bytes, paquete -> id, &bytes_paquete);
 		int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
-		log_info(logger, "envie un LOCALIZED al broker con status: %d", status);
+		log_info(logger, "Se envió un LOCALIZED_POKEMON: %s", loc_pokemon -> pokemon -> name);
 		close(conexion_con_broker);
 
 		if(lista_de_coordenadas != NULL)
