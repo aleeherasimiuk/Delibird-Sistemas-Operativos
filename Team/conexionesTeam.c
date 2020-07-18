@@ -396,16 +396,10 @@ void* procesarAppeared(void* data) {
 	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
 	log_info(logger, "LLEGA UN MENSAJE: ID: %d ID_CORR: %d DATA: APPEARED_POKEMON %s %d %d", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->coords->posX, pok->coords->posY);
 
-	if (pokemonNecesario(pok->pokemon)) {
-		log_debug(logger, "El pokemon es necesario");
-		agregarPokemonAlMapa(pok->pokemon, pok->coords);
-		addPokemonRecibido(pok->pokemon->name);
-	} else {
-		log_debug(logger, "No necesito un %s ahora mismo", pok->pokemon->name);
-		free(pok->pokemon->name);
-		free(pok->pokemon);
-		free(pok->coords);
-	}
+	log_debug(logger, "El pokemon es necesario");
+	agregarPokemonAlMapa(pok->pokemon, pok->coords);
+	addPokemonRecibido(pok->pokemon->name);
+
 	free(pok);
 	free(ptrStream);
 	free(paquete->buffer);
