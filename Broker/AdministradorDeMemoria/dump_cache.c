@@ -72,6 +72,7 @@ char* obtener_hora(){
 char* obtener_status(memory_block_t* mem_block){
 
 	clientes_por_mensaje_t* cli = obtenerMensaje(mem_block -> data -> msg_id);
+
 	char* st;
 
 	if(mem_block -> data -> status == LIBRE){

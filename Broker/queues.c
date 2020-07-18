@@ -145,7 +145,8 @@ void* queue(void* message_type){
 			if(!ya_existe){
 				send_to_subscribers(paquete);
 			} else {
-				log_info(logger_extra, "Se ignorará el mensaje por haberse repetido el ID Correlativo: #%d", paquete -> correlative_id);
+				listar_mensaje(paquete);
+				log_warning(logger_extra, "Se ignorará el mensaje por haberse repetido el ID Correlativo: #%d", paquete -> correlative_id);
 //				free(paquete -> buffer -> stream);
 //				free(paquete -> buffer);
 //				free(paquete);
