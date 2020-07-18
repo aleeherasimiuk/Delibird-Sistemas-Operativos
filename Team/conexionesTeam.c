@@ -34,9 +34,9 @@ void suscribirseAlBroker(void) {
 	pthread_create(&thread2, NULL, escucharAlSocket, &escuchar_localized);
 	pthread_create(&thread3, NULL, escucharAlSocket, &escuchar_caught);
 
-	pthread_detach(&thread1);
-	pthread_detach(&thread2);
-	pthread_detach(&thread3);
+	pthread_detach(thread1);
+	pthread_detach(thread2);
+	pthread_detach(thread3);
 
 	esperarAQueFinalicenLosEntrenadores();
 	//log_debug(logger, "Ya finalizaron todos los entrenadores");
@@ -48,14 +48,12 @@ void suscribirseAlBroker(void) {
 int abrirUnaConexion(t_config* config) {
 	int tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
 	int conexion;
-	int hubo_reconexion = 0;
 
 	while (1) {
 		// Reconexion
 		conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 		if(conexion == CANT_CONNECT){
 			log_debug(logger, "No me pude conectar, espero para reintentar");
-			hubo_reconexion = 1;
 			log_warning(logger, "REINTENTO DE COMUNICACIÓN CON EL BROKER");
 			sleep(tiempo_reconexion);
 		} else {
@@ -330,8 +328,9 @@ void* procesarLocalized(void* data) {
 	t_pokemon* pokemon_aux = NULL;
 
 	log_debug(logger, "Se localizaron %d Pokemon: %s!", pok->cant_coords, pok -> pokemon -> name);
+
 	// LOGUEO
-	char* log_msg = string_from_format("LLEGA UN MESAJE: ID: %d ID_CORR: %d DATA: LOCALIZED_POKEMON %s %d ", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->cant_coords);
+	char* log_msg = string_from_format("LLEGA UN MENSAJE: ID: %d ID_CORR: %d DATA: LOCALIZED_POKEMON %s %d ", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->cant_coords);
 
 	for (int i = 0; i < pok->cant_coords; i++) {
 		string_append_with_format(&log_msg, "%d %d ", pok->coords_array[i]->posX, pok->coords_array[i]->posY);
@@ -395,7 +394,7 @@ void* procesarAppeared(void* data) {
 	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
 
 	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
-	log_info(logger, "LLEGA UN MESAJE: ID: %d ID_CORR: %d DATA: APPEARED_POKEMON %s %d %d", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->coords->posX, pok->coords->posY);
+	log_info(logger, "LLEGA UN MENSAJE: ID: %d ID_CORR: %d DATA: APPEARED_POKEMON %s %d %d", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->coords->posX, pok->coords->posY);
 
 	if (pokemonNecesario(pok->pokemon)) {
 		log_debug(logger, "El pokemon es necesario");
@@ -488,7 +487,7 @@ void* procesarCaughtPokemon(void* data) {
 
 	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
 
-	log_info(logger, "LLEGA UN MESAJE: ID: %d ID_CORR: %d DATA: CAUGHT_POKEMON %d", paquete->id, paquete->correlative_id, *cau_pok);
+	log_info(logger, "LLEGA UN MENSAJE: ID: %d ID_CORR: %d DATA: CAUGHT_POKEMON %d", paquete->id, paquete->correlative_id, *cau_pok);
 
 	t_tcb* tcb = traerTcbDelCatchConID(paquete->correlative_id);
 
