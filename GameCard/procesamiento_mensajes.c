@@ -10,8 +10,11 @@
 
 void procesarID(t_paquete* paquete){
 
- t_id* id = paquete -> buffer -> stream;
- log_debug(logger, "Recibí el ID: %d", *id);
+	t_id* id = paquete -> buffer -> stream;
+	log_debug(logger, "Recibí el ID: %d", *id);
+	free(id);
+	free(paquete->buffer);
+	free(paquete);
 }
 
 void procesarNew(t_paquete* paquete){
@@ -33,10 +36,14 @@ void procesarNew(t_paquete* paquete){
 
 	char* path_clave;
 
-	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 1);
+	char* path_files = concat_string(ruta_punto_montaje, "/Files");
+
+	char* ruta_pokemon = verificar_pokemon(path_files, nombre_pokemon, 1);
+
+	free(path_files);
 	while(archivo_en_uso(ruta_pokemon)) {
 
-		log_debug(logger, "esperando a que cierren el archivo");
+		log_error(logger, "El archivo ya esta abierto por otro proceso y no se puede abrir, reintentando en %d segundos", tiempo_reintento);
 		sleep(tiempo_reintento);
 	}
 
@@ -51,6 +58,8 @@ void procesarNew(t_paquete* paquete){
 	sleep(tiempo_retardo);
 
 	cerrar_archivo(ruta_pokemon);
+
+	actualizar_size_metadata(ruta_pokemon);
 
 	free(ruta_pokemon);
 
@@ -109,12 +118,17 @@ void procesarCatch(t_paquete* paquete){
 
 	char* path_clave;
 
-	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 0);
+	char* path_files = concat_string(ruta_punto_montaje, "/Files");
+
+	char* ruta_pokemon = verificar_pokemon(path_files, nombre_pokemon, 0);
+
+	free(path_files);
+
 
 	if(ruta_pokemon != NULL) {
 		while(archivo_en_uso(ruta_pokemon)) {
 
-			log_info(logger, "esperando a que cierren el archivo");
+			log_error(logger, "El archivo ya esta abierto por otro proceso y no se puede abrir, reintentando en %d segundos", tiempo_reintento);
 			sleep(tiempo_reintento);
 		}
 
@@ -124,6 +138,7 @@ void procesarCatch(t_paquete* paquete){
 		if(path_clave != NULL) {
 			cau_pokemon = caught_pokemon(YES);
 			disminuir_cantidad(coords, path_clave);
+			actualizar_size_metadata(ruta_pokemon);
 			free(path_clave);
 		} else {
 			log_error(logger, "No hay un pokemon en esa posicion");
@@ -155,6 +170,9 @@ void procesarCatch(t_paquete* paquete){
 	free(pok -> pokemon);
 	free(pok -> coords);
 	free(pok);
+
+	free(paquete -> buffer);
+	free(paquete);
 }
 
 void procesarGet(t_paquete* paquete){
@@ -165,7 +183,11 @@ void procesarGet(t_paquete* paquete){
 	int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
 	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
 
-	char* ruta_pokemon = verificar_pokemon("/home/utnso/Escritorio/tall-grass/Files", nombre_pokemon, 0);
+	char* path_files = concat_string(ruta_punto_montaje, "/Files");
+
+	char* ruta_pokemon = verificar_pokemon(path_files, nombre_pokemon, 0);
+
+	free(path_files);
 	t_list* lista_de_coordenadas = NULL;
 	uint32_t cantidad_de_coordenadas = 0;
 
@@ -227,5 +249,8 @@ void procesarGet(t_paquete* paquete){
 
 	free(nombre_pokemon);
 	free(pok);
+
+	free(paquete -> buffer);
+	free(paquete);
 }
 
