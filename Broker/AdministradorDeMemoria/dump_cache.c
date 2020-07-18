@@ -87,7 +87,7 @@ char* obtener_status(memory_block_t* mem_block){
 
 	char* queue = queue_name(cola);
 
-	st = string_from_format("LRU: %d\t COLA: %s\t ID: %d", lru, queue, id);
+	st = string_from_format("LRU: %d\t COLA: %s\t\t ID: %d", lru, queue, id);
 	return st;
 }
 

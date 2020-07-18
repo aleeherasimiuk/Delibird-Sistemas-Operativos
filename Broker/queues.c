@@ -203,7 +203,10 @@ void send_to_subscribers(t_paquete* paquete){
 		 * MSG_NOSIGNAL logrará hacer que en el caso de que el socket esté cerrado porque cayó la conexión
 		 * con el cliente, el broker no caiga
 		 * */
-		int status = send(client -> socket, a_enviar, bytes_p, MSG_NOSIGNAL);
+		//int status = send(client -> socket, a_enviar, bytes_p, MSG_NOSIGNAL);
+
+		int status = send_msg(client -> socket, a_enviar, bytes_p);
+
 		log_debug(logger, "Envié el mensaje al suscriptor %d con status: %d", client -> socket ,status);
 
 		if(status)
@@ -250,7 +253,8 @@ void asignar_id(t_paquete* paquete, uint32_t socket_cliente){
 
 	uint32_t bytes;
 	void* pack_id = crear_paquete_con_id(ID, &to_send, sizeof(uint32_t), -1, &bytes);
-	int status = send(socket_cliente, pack_id, bytes, MSG_NOSIGNAL);
+	//int status = send(socket_cliente, pack_id, bytes, MSG_NOSIGNAL);
+	int status = send_msg(socket_cliente, pack_id, bytes);
 	//log_debug(logger, "Envié el ID: %d, con status: %d", next_socket[type].id_to_assing, status);
 	free(pack_id);
 }
@@ -469,7 +473,8 @@ int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
 		int bytes;
 		void* a_enviar = crear_paquete_con_ids(cola, stream, tamano_efectivo, id, id_c, &bytes);
 
-		int status = send(client -> socket, a_enviar, bytes, MSG_NOSIGNAL);
+		//int status = send(client -> socket, a_enviar, bytes, MSG_NOSIGNAL);
+		int status = send_msg(client -> socket, a_enviar, bytes);
 		log_debug(logger, "Envié un mensaje cacheado con status: %d", status);
 		if(status)
 			log_info(logger, "Se envió el mensaje #%d, al proceso #%d", id, client -> process_id);
@@ -527,7 +532,8 @@ void suscripcionOk(uint32_t conexion){
 	*ok = SUBSCRIBED;
 	uint32_t bytes;
 	void* pack_id = crear_paquete_con_id(ID, (void*)ok, sizeof(int), -1, &bytes);
-	int status = send(conexion, pack_id, bytes, MSG_NOSIGNAL);
+	//int status = send(conexion, pack_id, bytes, MSG_NOSIGNAL);
+	int status = send_msg(conexion, pack_id, bytes);
 	free(pack_id);
 	free(ok);
 
