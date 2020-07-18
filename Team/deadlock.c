@@ -33,7 +33,7 @@ void deteccionYCorreccionDeadlock(void) {
 			log_info(logger, "NO HAY DEADLOCKS");
 		}
 	}
-	while (cant_blocked_full >= 2 && hay_deadlock == 1) {
+	while (cant_blocked_full >= 2 && hay_deadlock == 1 && log_deadlocks_producidos > 0) {
 		corregirUnDeadlock();
 		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
 		cant_blocked_full = list_size(entrenadores_blocked_full->lista);
