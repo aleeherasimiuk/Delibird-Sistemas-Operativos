@@ -735,6 +735,9 @@ char* queue_name(message_type queue){
 }
 
 void free_coords_array(t_coords** coords) {
+	if (coords == NULL)
+		return;
+
 	int i = 0;
 	while(coords[i] != NULL) {
 		free(coords[i]);
