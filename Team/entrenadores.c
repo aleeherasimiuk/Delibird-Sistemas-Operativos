@@ -258,10 +258,11 @@ void intentarAtraparPokemon(t_tcb* tcb) {
 	realizarCicloDeCPU(tcb , 1);
 	log_debug(logger, "Entrenador %d va a enviar catch", tcb->entrenador->id_entrenador);
 	log_info(logger, "ENVÍO DE CATCH: El entrenador %d va a enviar un CATCH_POKEMON '%s' %d %d", tcb->entrenador->id_entrenador, tcb->entrenador->objetivo->pokemon->name, tcb->entrenador->objetivo->posicion->posX, tcb->entrenador->objetivo->posicion->posY);
-	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
+	log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_WAITING_CAUGHT porque envió un catch recientemente", tcb->entrenador->id_entrenador);
 	bloquearPorEsperarCaught(tcb);
-	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
+	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
 	terminarDeEjecutar(tcb);	// Se sigue manteniendo por si no corta por quantum
+	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
 	pthread_mutex_unlock(&(tcb->exec_mutex));
 
 }

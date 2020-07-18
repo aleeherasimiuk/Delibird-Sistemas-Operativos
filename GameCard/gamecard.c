@@ -28,6 +28,8 @@ int main() {
 
 	logger = iniciar_logger(logfile);
 
+	pthread_mutex_init(&mx_open, NULL);
+
 	bitarray = iniciar_bitarray();
 
 	escucharAlGameboy();
@@ -49,14 +51,14 @@ t_bitarray* iniciar_bitarray(void) {
 
 	char* bitmap_path = NULL;
 	t_bitarray* array = NULL;
-	struct stat statbuf;
+	//struct stat statbuf;
 	size_t bitmap_size;
 	char* buffer = NULL;
 
-	bitmap_path = "/home/utnso/Escritorio/tall-grass/Metadata/Bitmap.bin";
+	bitmap_path = concat_string(ruta_punto_montaje, "/Metadata/Bitmap.bin");
 
-	stat(bitmap_path, &statbuf);
-	bitmap_size = statbuf.st_size;
+	//stat(bitmap_path, &statbuf);
+	bitmap_size = 400;
 
 	int file = open(bitmap_path, O_RDWR);
 
@@ -77,7 +79,6 @@ t_bitarray* iniciar_bitarray(void) {
 	//fclose(file);
 
 	buffer = mmap(NULL, bitmap_size, PROT_WRITE | PROT_READ, MAP_SHARED, file, 0);
-
 
 	array = bitarray_create_with_mode(buffer, bitmap_size, MSB_FIRST);
 

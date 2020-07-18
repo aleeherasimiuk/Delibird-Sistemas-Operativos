@@ -29,6 +29,9 @@ void deteccionYCorreccionDeadlock(void) {
 	if (log_deadlocks_producidos == 0) {
 		log_info(logger, "INICIO DE ALGORITMO DE DETECCIÓN DE DEADLOCK");
 		deteccionDeadlock();
+		if (log_deadlocks_producidos == 0) {
+			log_info(logger, "NO HAY DEADLOCKS");
+		}
 	}
 	while (cant_blocked_full >= 2 && hay_deadlock == 1) {
 		corregirUnDeadlock();
@@ -36,6 +39,7 @@ void deteccionYCorreccionDeadlock(void) {
 		cant_blocked_full = list_size(entrenadores_blocked_full->lista);
 		pthread_mutex_unlock(&(entrenadores_blocked_full->mutex));
 	}
+
 	pthread_mutex_unlock(&mutex_deadlock);
 	/*
 	 * Si queda 1 solo entrenador, significa que se capturó un pokemon que no tendría que haberse capturado
