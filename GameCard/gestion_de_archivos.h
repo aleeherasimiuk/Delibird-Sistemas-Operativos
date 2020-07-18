@@ -66,6 +66,7 @@ int chequear_ocupado(int);
 void actualizar_bitmap_pokemon(char*);
 t_list* leer_bloques_pokemon(char*);
 void agregar_coordenadas(char*, void*);
+void liberar_lista_de_punteros(char**);
 
 char* concat_string(char*, char*);
 

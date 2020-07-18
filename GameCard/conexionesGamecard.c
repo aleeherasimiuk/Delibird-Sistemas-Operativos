@@ -52,7 +52,6 @@ void suscribirGameCardAlBroker(void){
 
 int abrirUnaConexionGameCard(void) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
-	log_debug(logger, "el valor de conexion es: %d", conexion);
 	if(conexion == CANT_CONNECT) {
 		log_debug(logger, "No se puede conectar con el broker, intentando nueva conexión en %d segundos", tiempo_reconexion);
 		sleep(tiempo_reconexion);
@@ -109,6 +108,8 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 		log_error(logger, "No se puede conectar con el broker, intentando nueva conexión en %d segundos", tiempo_reconexion);
 		sleep(tiempo_reconexion);
 		suscribirAUnaCola(abrirUnaConexionGameCard(), cola, process_id);
+		free(serialized_subscribe);
+		free(paquete_serializado);
 		return;
 	}
 
@@ -125,9 +126,8 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 
 	log_debug(logger, "Me suscribí a %d", cola);
 
-	free(serialized_subscribe);
+	free(suscripcion_ok);
 	free(subscripcion);
-	free(paquete_serializado);
 }
 
 void escucharAlGameboy(){

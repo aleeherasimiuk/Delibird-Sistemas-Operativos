@@ -36,7 +36,7 @@ typedef struct {
 
 void  suscribirseAlBroker(void);
 void* escucharAlSocket(void*);
-void  suscribirAUnaCola(int conexion, message_type cola);
+int  suscribirAUnaCola(int conexion, message_type cola);
 int   abrirUnaConexion(t_config*);
 void* abrirSocketParaGameboy();
 void  serve_client(int*);
@@ -47,9 +47,15 @@ void  escucharAlGameboy();
 void  enviarACK(uint32_t, int);
 
 void*  enviarGetPokemon(void* data);
+void   defaultGetPokemon(t_pokemon* pokemon);
+
 void*  procesarLocalized(void* paquete);
+
 void*  procesarAppeared(void* paquete);
+
 void  enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb);
+void  defaultCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb);
+
 void*  procesarCaughtPokemon(void* paquete);
 
 #endif /* CONEXIONES_H_ */
