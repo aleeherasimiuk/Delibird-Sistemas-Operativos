@@ -18,7 +18,7 @@ int main() {
 	logfile = config_get_string_value(config, "LOG_FILE");
 	process_id = config_get_int_value(config, "PROCESS_ID");
 
-	logger = iniciar_logger_obligatorio(logfile, false);
+	logger = iniciar_logger_obligatorio(logfile, true);
 
 	inicializar_team();
 
@@ -44,7 +44,7 @@ void inicializar_team(void) {
 
 t_log* iniciar_logger_obligatorio(char* logfile, int in_console)
 {
-	return log_create(logfile, "Team", in_console, LOG_LEVEL_DEBUG);
+	return log_create(logfile, "Team", in_console, LOG_LEVEL_INFO);
 }
 
 t_config* leer_config(void) {
