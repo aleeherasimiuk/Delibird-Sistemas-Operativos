@@ -188,6 +188,7 @@ void procesarGet(t_paquete* paquete){
 		}
 
 		loc_pokemon = localized_pokemon(pok, cantidad_de_coordenadas, coordenadas);
+		liberar_lista_punteros_coordenadas(coordenadas);
 
 		sleep(tiempo_retardo);
 		cerrar_archivo(ruta_pokemon);
@@ -210,7 +211,7 @@ void procesarGet(t_paquete* paquete){
 		close(conexion_con_broker);
 
 		if(lista_de_coordenadas != NULL)
-			list_destroy_and_destroy_elements(lista_de_coordenadas, destruir_elementos);
+			list_destroy_and_destroy_elements(lista_de_coordenadas, free);
 
 		free(ruta_pokemon);
 		free(loc_pokemon);
@@ -222,6 +223,3 @@ void procesarGet(t_paquete* paquete){
 	free(pok);
 }
 
-void destruir_elementos(void* elemento){
-	free(elemento);
-}
