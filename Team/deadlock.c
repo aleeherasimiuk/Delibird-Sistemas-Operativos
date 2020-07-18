@@ -26,9 +26,10 @@ void deteccionYCorreccionDeadlock(void) {
 	hubo_deadlock = 0;
 	hay_deadlock = 1;
 
-	if (log_deadlocks_producidos == 0)
+	if (log_deadlocks_producidos == 0) {
 		log_info(logger, "INICIO DE ALGORITMO DE DETECCIÓN DE DEADLOCK");
-	deteccionDeadlock();
+		deteccionDeadlock();
+	}
 	while (cant_blocked_full >= 2 && hay_deadlock == 1) {
 		corregirUnDeadlock();
 		pthread_mutex_lock(&(entrenadores_blocked_full->mutex));
@@ -52,15 +53,6 @@ void deteccionDeadlock(void) {
 		tcb = (t_tcb*) list_get(entrenadores_blocked_full->lista, index);
 		list_add(entrenadores_en_deadlock, tcb);
 		agregarEntrenadorQueTengaElQueNecesita(entrenadores_en_deadlock, tcb);
-		if (list_size(entrenadores_en_deadlock) > 1){
-			log_msg = string_from_format("DEADLOCK entre los entrenadores:");
-			for (int i = 0; i < list_size(entrenadores_en_deadlock); i++) {
-				tcb = (t_tcb*) list_get(entrenadores_en_deadlock, i);
-				string_append_with_format(&log_msg, " %d", tcb->entrenador->id_entrenador);
-			}
-			log_info(logger, log_msg);
-			free(log_msg);
-		}
 		list_clean(entrenadores_en_deadlock);
 	}
 

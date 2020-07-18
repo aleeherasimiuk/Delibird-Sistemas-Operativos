@@ -18,7 +18,7 @@ void suscribirseAlBroker(void) {
 	t_escucha_socket escuchar_appeared = { 0, APPEARED_POKEMON };
 	t_escucha_socket escuchar_localized = { 0, LOCALIZED_POKEMON };
 	t_escucha_socket escuchar_caught = { 0, CAUGHT_POKEMON };
-
+/*
 	escuchar_appeared.socket = abrirUnaConexion(config);
 	suscribirAUnaCola(escuchar_appeared.socket, escuchar_appeared.cola);
 
@@ -27,7 +27,7 @@ void suscribirseAlBroker(void) {
 
 	escuchar_caught.socket = abrirUnaConexion(config);
 	suscribirAUnaCola(escuchar_caught.socket, escuchar_caught.cola);
-
+*/
 
 	pthread_t thread1, thread2, thread3;
 	pthread_create(&thread1, NULL, escucharAlSocket, &escuchar_appeared);
@@ -35,7 +35,7 @@ void suscribirseAlBroker(void) {
 	pthread_create(&thread3, NULL, escucharAlSocket, &escuchar_caught);
 
 	esperarAQueFinalicenLosEntrenadores();
-	log_debug(logger, "Ya finalizaron todos los entrenadores");
+	//log_debug(logger, "Ya finalizaron todos los entrenadores");
 
 	return;
 }
@@ -52,7 +52,7 @@ int abrirUnaConexion(t_config* config) {
 		if(conexion == CANT_CONNECT){
 			log_debug(logger, "No me pude conectar, espero para reintentar");
 			hubo_reconexion = 1;
-			log_info(logger, "REINTENTO DE COMUNICACIÓN CON EL BROKER");
+			log_warning(logger, "REINTENTO DE COMUNICACIÓN CON EL BROKER");
 			sleep(tiempo_reconexion);
 		} else {
 			log_debug(logger, "Conexión Abierta");
@@ -244,7 +244,7 @@ void* enviarGetPokemon(void* data) {
 
 	if(conexion == CANT_CONNECT) {
 
-		log_info(logger, "ERROR DE COMUNICACIÓN AL BROKER: se ejecuta comportamiento default de GET_POKEMON %s => no existen locaciones", pokemon->name);
+		log_warning(logger, "ERROR DE COMUNICACIÓN AL BROKER: se ejecuta comportamiento default de GET_POKEMON %s => no existen locaciones", pokemon->name);
 		// Comportamiento default: no existen locaciones de ese pokemon
 		addGetEnviado(0);
 
@@ -394,7 +394,7 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 	int conexion = crear_conexion_con_config(config, "IP_BROKER", "PUERTO_BROKER");
 
 	if(conexion == CANT_CONNECT) {
-		log_info(logger, "ERROR DE COMUNICACIÓN AL BROKER: se ejecuta comportamiento default de CATCH_POKEMON %s => se atrapa el pokemon", pokemon_en_mapa->pokemon->name);
+		log_warning(logger, "ERROR DE COMUNICACIÓN AL BROKER: se ejecuta comportamiento default de CATCH_POKEMON %s => se atrapa el pokemon", pokemon_en_mapa->pokemon->name);
 
 		// Comportamiento default: se atrapa el pokemon
 		addCatchEnviado(0, tcb);
