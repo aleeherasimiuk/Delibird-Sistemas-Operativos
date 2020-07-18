@@ -217,6 +217,6 @@ t_client* cliente(uint32_t, uint32_t);
 t_ack* ack(t_process_id, t_id);
 
 char* queue_name(message_type);
-void free_coords_array(t_coords** coords);
+void free_coords_array(t_coords** coords, int cantidad_coordenadas);
 
 #endif /* MENSAJES_H_ */
