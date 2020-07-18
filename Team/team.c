@@ -18,7 +18,7 @@ int main() {
 	logfile = config_get_string_value(config, "LOG_FILE");
 	process_id = config_get_int_value(config, "PROCESS_ID");
 
-	logger = iniciar_logger_obligatorio(logfile, false);
+	logger = iniciar_logger_obligatorio(logfile, true);	// TODO: SACAR
 
 	inicializar_team();
 

@@ -350,6 +350,7 @@ void* procesarLocalized(void* data) {
 				// Lo copio porque sino cuando se libere el pokemon en algun lado, va a liberar a todos
 				memcpy(pokemon_aux, pok->pokemon, sizeof(t_pokemon));
 				pokemon_aux->name_size = pok->pokemon->name_size;
+				pokemon_aux->name = malloc(pokemon_aux->name_size);
 				memcpy(pokemon_aux->name, pok->pokemon->name, pokemon_aux->name_size);
 
 				agregarPokemonAlMapa(pokemon_aux, pok->coords_array[i]);
@@ -372,8 +373,8 @@ void* procesarLocalized(void* data) {
 
 	free(pok);
 
-	if (pokemon_aux != NULL)
-		free(pokemon_aux);
+	//if (pokemon_aux != NULL)
+	//	free(pokemon_aux);
 
 	free(ptrStream);
 	free(paquete->buffer);
