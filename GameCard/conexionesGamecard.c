@@ -103,7 +103,7 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 	t_paquete* suscripcion_ok = recibirPaquete(conexion);
 
 
-	if(suscripcion_ok == NULL){
+	if(suscripcion_ok == NULL) 	{// || *((int *)suscripcion_ok -> buffer -> stream) != SUBSCRIBED){
 		close(conexion);
 		log_error(logger, "No se puede conectar con el broker, intentando nueva conexión en %d segundos", tiempo_reconexion);
 		sleep(tiempo_reconexion);

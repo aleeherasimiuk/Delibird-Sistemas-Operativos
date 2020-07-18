@@ -60,6 +60,9 @@ void* serializarAppearedPokemon(t_appeared_pokemon* appeared_pokemon, uint32_t *
 
 		void* serialized_appeared_pokemon = serializarGenerico(bytes, 2, serialized_pokemon, pokemon_size, serialized_coords, coords_size);
 
+		free(serialized_pokemon);
+		free(serialized_coords);
+
 		return serialized_appeared_pokemon;
 }
 
