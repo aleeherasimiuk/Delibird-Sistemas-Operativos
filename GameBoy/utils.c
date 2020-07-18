@@ -32,10 +32,11 @@ int enviar_mensaje(int argc, char* argv[]){
 	// Abro conexión con el proceso en cuestión
 	conexion = abrirUnaConexion(ip, puerto);
 
-	log_info(logger, "Se ha establecido una conexión con: %s", proceso);
+	log_info(logger, "Se ha establecido una conexión con: %s", pr);
 
 
-	int status = send(conexion, paquete, paquete_size, 0);
+	//int status = send(conexion, paquete, paquete_size, 0);
+	int status = send_msg(conexion, paquete, paquete_size);
 	log_debug(logger, "Envié un mensaje con status: %d", status);
 
 	if(compare_string(proceso, "SUSCRIPTOR"))
@@ -263,8 +264,8 @@ void escuchar_broker(uint32_t conexion, uint32_t seconds, char* queue){
 			break;
 		}
 
-//		if(paquete -> type != ID)
-//			enviarACK(paquete -> id);
+		if(paquete -> type != ID)
+			enviarACK(paquete -> id);
 
 		switch(paquete -> type) {
 
@@ -433,7 +434,8 @@ void enviarACK(uint32_t id){
 	uint32_t bytes;
 	void* a_enviar = crear_paquete(ACK, serialized_ack, bytes_ack, &bytes);
 
-	int status = send(conexion, a_enviar, bytes, 0);
+	//int status = send(conexion, a_enviar, bytes, 0);
+	int status = send_msg(conexion, a_enviar, bytes);
 	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
 	free(a_enviar);
 	close(conexion);
@@ -486,6 +488,9 @@ message_type string_to_queue(char* msg){
 
 	if(compare_string(msg, "GET_POKEMON"))
 		return GET_POKEMON;
+
+	if(compare_string(msg, "LOCALIZED_POKEMON"))
+		return LOCALIZED_POKEMON;
 
 	return WRONG_PARAMETERS;
 

@@ -72,6 +72,7 @@ char* obtener_hora(){
 char* obtener_status(memory_block_t* mem_block){
 
 	clientes_por_mensaje_t* cli = obtenerMensaje(mem_block -> data -> msg_id);
+
 	char* st;
 
 	if(mem_block -> data -> status == LIBRE){
@@ -86,7 +87,7 @@ char* obtener_status(memory_block_t* mem_block){
 
 	char* queue = queue_name(cola);
 
-	st = string_from_format("LRU: %d\t COLA: %s\t ID: %d", lru, queue, id);
+	st = string_from_format("LRU: %d\t COLA: %s\t\t ID: %d", lru, queue, id);
 	return st;
 }
 

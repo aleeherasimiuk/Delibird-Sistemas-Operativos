@@ -146,4 +146,22 @@ void liberar_conexion(int socket_cliente)
 	close(socket_cliente);
 }
 
+int send_msg(int socket, void* stream, int stream_size){
+
+	int streamed = 0;
+
+	while(streamed < stream_size){
+		int st = send(socket, stream, stream_size - streamed, MSG_NOSIGNAL);
+
+		if(st != -1)
+			streamed += st;
+		else
+			return -1;
+
+	}
+
+	return streamed;
+
+}
+
 

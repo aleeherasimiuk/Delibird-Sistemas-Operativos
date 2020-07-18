@@ -58,6 +58,12 @@ void process_request(message_type type, uint32_t socket_cliente){
 		return;
 	}
 
+	if(type < NEW_POKEMON || type > LOCALIZED_POKEMON){
+		log_error(logger_extra, "Cierro la conexión por ser un proceso desconocido.");
+		close(socket_cliente);
+		return;
+	}
+
 	//uint32_t id_message_to_module;
 
 	sem_wait(&(sem_sockets[type].c));
