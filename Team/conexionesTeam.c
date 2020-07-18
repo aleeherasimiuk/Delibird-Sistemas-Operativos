@@ -197,7 +197,7 @@ void* abrirSocketParaGameboy(){
 	char* ip = config_get_string_value(config, "IP");
 	char* puerto = config_get_string_value(config, "PUERTO");
 	char* ruta_logger = config_get_string_value(config, "LOG_FILE_EXTRA");
-	logger_extra = iniciar_logger_obligatorio(ruta_logger, true);
+	logger_extra = iniciar_logger_obligatorio(ruta_logger, false);
 	crear_servidor_cuando_se_pueda(ip, puerto, serve_client, logger_extra);
 
 	return NULL;
