@@ -223,14 +223,17 @@ void process_management(t_paquete* paquete) {
 			pthread_detach(&thread);
 			break;
 		case NEW_POKEMON:
+			log_info(logger, "recibi un NEW_POKEMON");
 			pthread_create(&thread, NULL, procesarNew, paquete);
 			pthread_detach(thread);
 			break;
 		case CATCH_POKEMON:
+			log_info(logger, "recibi un CATCH_POKEMON");
 			pthread_create(&thread, NULL, procesarCatch, paquete);
 			pthread_detach(thread);
 			break;
 		case GET_POKEMON:
+			log_info(logger, "recibi un GET_POKEMON");
 			pthread_create(&thread, NULL, procesarGet, paquete);
 			pthread_detach(thread);
 			break;
