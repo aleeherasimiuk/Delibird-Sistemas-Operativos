@@ -185,12 +185,7 @@ void cargarEntrenadores(void) {
 		tcb_nuevo->estim_restante = 0;
 		tcb_nuevo->real_actual = 0;
 
-
-		if (entrenadorAlMaximoDeCapacidad(tcb_nuevo->entrenador)) {
-			agregarACola(tcb_nuevo, entrenadores_blocked_full); // Si ya viene lleno desde el config, lo mando a full
-		} else {
-			agregarACola(tcb_nuevo, entrenadores_new);
-		}
+		tcb_nuevo->log_cpus_ejecutados = 0;
 
 		pthread_create(&thread, NULL, entrenadorMain, tcb_nuevo);
 		pthread_detach(thread);
@@ -198,6 +193,13 @@ void cargarEntrenadores(void) {
 			pthread_mutex_lock(&mutex_entrenadores_cargando);
 			entrenadores_cargando = 0;
 			pthread_mutex_unlock(&mutex_entrenadores_cargando);
+		}
+
+		if (entrenadorAlMaximoDeCapacidad(tcb_nuevo->entrenador)) {
+			cambiarColaSegunObjetivo(tcb_nuevo, NULL); // Si ya viene lleno desde el config, lo mando a full
+		} else {
+			log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a NEW porque todavía le falta conseguir pokemones para cumplir su objetivo, y recién se cargó", tcb_nuevo->entrenador->id_entrenador);
+			agregarACola(tcb_nuevo, entrenadores_new);
 		}
 		i++;
 	}
@@ -232,11 +234,10 @@ void esperarAQueFinalicenLosEntrenadores() {
 	}
 }
 
-int indexOf(t_tcb* tcb, t_cola_planificacion* cola) {
+int indexOf(t_tcb* tcb, t_list* lista) {
 	int index;
-	for (index = 0; index < list_size(cola->lista); index++) {
-		if (tcb == (t_tcb*)list_get(cola->lista, index)) {
-			pthread_mutex_unlock(&(cola->mutex));
+	for (index = 0; index < list_size(lista); index++) {
+		if (tcb == (t_tcb*)list_get(lista, index)) {
 			return index;
 		}
 	}
@@ -246,7 +247,7 @@ int indexOf(t_tcb* tcb, t_cola_planificacion* cola) {
 void sacarDeCola(t_tcb* tcb, t_cola_planificacion* cola) {
 	pthread_mutex_lock(&(cola->mutex));
 
-	int index = indexOf(tcb, cola); // Busco el indice donde se encuentra el elemento
+	int index = indexOf(tcb, cola->lista); // Busco el indice donde se encuentra el elemento
 
 	list_remove(cola->lista, index);
 	pthread_mutex_unlock(&(cola->mutex));
@@ -263,7 +264,7 @@ void agregarACola(t_tcb* tcb, t_cola_planificacion* cola) {
 			sem_post(&counter_entrenadores_disponibles);
 		} else if (cola == entrenadores_ready) {
 			sem_post(&counter_entrenadores_ready);
-		} else if (cola == entrenadores_blocked_full) {
+		} else if (cola == entrenadores_blocked_full || cola == entrenadores_exit) {
 			// Verifico si el team ya está lleno, en cuyo caso lanzo algoritmo de deteccion de deadlock
 			pthread_t thread;	// Lo ejecuto en un hilo, porque sino nunca se completaria el agregarLista
 			pthread_create(&thread, NULL, verificarSiTeamTerminoDeCapturar, NULL);
@@ -282,8 +283,9 @@ void cambiarDeCola(t_tcb* tcb, t_cola_planificacion* cola_actual, t_cola_planifi
 
 void cambiarColaSegunCapacidad(t_tcb* tcb) {
 	if (entrenadorAlMaximoDeCapacidad(tcb->entrenador)) {
-		cambiarDeCola(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_full);
+		cambiarColaSegunObjetivo(tcb, entrenadores_blocked_waiting_caught);
 	} else {
+		log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_IDLE porque todavía tiene espacio para más pokemones", tcb->entrenador->id_entrenador);
 		cambiarDeCola(tcb, entrenadores_blocked_waiting_caught, entrenadores_blocked_idle);
 	}
 }
@@ -291,17 +293,20 @@ void cambiarColaSegunCapacidad(t_tcb* tcb) {
 void cambiarColaSegunObjetivo(t_tcb* tcb, t_cola_planificacion* cola_actual) {
 	if (entrenadorCumpleObjetivo(tcb->entrenador)) {
 		log_debug(logger, "Felicidades! El entrenador %d cumplió su objetivo", tcb->entrenador->id_entrenador);
+		log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a EXIT porque cumplió su objetivo", tcb->entrenador->id_entrenador);
 		tcb->finalizado = 1;
 		cambiarDeCola(tcb, cola_actual, entrenadores_exit);
 
 		sem_post(&counter_entrenadores_terminados);
 	} else {
+		log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_FULL porque tiene capacidad máxima, pero no cumple su objetivo", tcb->entrenador->id_entrenador);
 		cambiarDeCola(tcb, cola_actual, entrenadores_blocked_full);
 	}
 }
 
 void ponerAEjecutarEntrenador(t_tcb* tcb) {
 	pthread_mutex_lock(&(tcb->exec_mutex));
+	log_cambios_contexto++;
 	entrenador_exec = tcb;
 	tcb->ejecucion = 1;
 	ocuparCPU();
@@ -317,6 +322,7 @@ t_tcb* terminarDeEjecutar(t_tcb* tcb) {
 		entrenador = tcb;
 		// SJF
 		actualizarValoresSJF(entrenador_exec);
+		log_cambios_contexto++;
 		entrenador_exec = NULL;
 
 		liberarCPU();
@@ -343,13 +349,9 @@ void ocuparCPU(void) {
 	pthread_mutex_unlock(&mutex_cpu_libre);
 }
 
-// Bloquear por idle
-void bloquearPorIdle(t_tcb* tcb) {
-	agregarACola(tcb, entrenadores_blocked_idle);
-}
-
 // Bloquear por caught
 void bloquearPorEsperarCaught(t_tcb* tcb) {
+	log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a BLOCKED_WAITING_CAUGHT porque envió un catch recientemente", tcb->entrenador->id_entrenador);
 	agregarACola(tcb, entrenadores_blocked_waiting_caught);
 }
 
@@ -447,7 +449,7 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 	t_pokemon_en_mapa* pokemon;
 	t_cola_planificacion* cola_actual = NULL; // Lista en la que se encuentra el entrenador mas cercano
 
-	while(1)  { // TODO no esté en exit el team
+	while(1)  {
 		log_debug(logger, "Voy a esperar a que haya pokemones libres");
 
 		sem_wait(&counter_pokemones_libres);
@@ -493,6 +495,7 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 
 			log_debug(logger, "cantidad de lista actual = %d", cola_actual->lista->elements_count);
 
+			log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d, que está en x: %d y: %d, pasa a READY porque es el más cercano al pokemon %s en x:%d y:%d", tcb_entrenador->entrenador->id_entrenador, tcb_entrenador->entrenador->posicion->posX, tcb_entrenador->entrenador->posicion->posY, pokemon->pokemon->name, pokemon->posicion->posX, pokemon->posicion->posY);
 			cambiarDeCola(tcb_entrenador, cola_actual, entrenadores_ready);
 		}
 	}
@@ -505,7 +508,7 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 void *planificadorCortoPlazo(void* _) {
 	algoritmo_planificacion = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
 
-	while (1) {	// TODO proceso no en exit
+	while (1) {
 		log_debug(logger, "Planificador de corto plazo esperando a que haya entrenadores en ready");
 		sem_wait(&counter_entrenadores_ready);	// Espero a que haya algun entrenador para planificar
 
@@ -534,8 +537,13 @@ void desalojarCPU(int ultimo_ciclo) {
 	if (entrenador_exec != NULL) {
 		log_debug(logger, "Se va a desalojar al entrenador %d", entrenador_exec->entrenador->id_entrenador);
 		t_tcb* entrenador_desalojado = terminarDeEjecutar(entrenador_exec);	// Lo saco de ejecucion y lo mando a ready
-		if (!ultimo_ciclo)	// Si en realidad iba a terminar, no lo mando a ready
+		if (!ultimo_ciclo) {
+			// Si en realidad iba a terminar, no lo mando a ready
+
+			// Puede ser que primero se muestre que se ejecutó otro entrenador antes de "desalojar" a éste, ya que se termina de ejecutar antes, lo que libera el semaforo de cpu libre y el planificador envía otro a ejecutar
+			log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a READY por que fué desalojado según el algoritmo %s", entrenador_desalojado->entrenador->id_entrenador, algoritmo_planificacion);
 			agregarACola(entrenador_desalojado, entrenadores_ready);
+		}
 	}
 }
 
@@ -554,6 +562,8 @@ void planificarSegunFifo(void) {
 	pthread_mutex_unlock(&(entrenadores_ready->mutex));
 
 	log_debug(logger, "Planificador %s pone a ejecutar al entrenador %d", algoritmo_planificacion, entrenador_a_ejecutar->entrenador->id_entrenador);
+
+	log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a EXEC por ser el primero de la cola READY", entrenador_a_ejecutar->entrenador->id_entrenador);
 	ponerAEjecutarEntrenador(entrenador_a_ejecutar);
 }
 
@@ -571,6 +581,8 @@ void planificarSegunRR(void) {
 	while(quantum_actual > 0) pthread_cond_wait(&cond_quantum, &mutex_quantum);
 	log_debug(logger, "Planificador RR se vació el quantum");
 	pthread_mutex_unlock(&mutex_quantum);
+
+	// cambio de contexto
 }
 
 // Tambien libera el RR si se termina de ejecutar
@@ -610,6 +622,7 @@ void planificarSegunSJFCD(void) {
 				pthread_mutex_unlock(&(ultimo_desalojado->exec_mutex));
 
 				sacarDeCola(entrenador_a_verificar, entrenadores_ready);
+				log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a EXEC por tener menor estimación que la restante del entrenador actual (%f vs %f)", entrenador_a_verificar->entrenador->id_entrenador, estimacionDe(entrenador_a_verificar), estimacion_restante);
 				ponerAEjecutarEntrenador(entrenador_a_verificar);
 				return;
 			}
@@ -629,6 +642,7 @@ void planificarSegunSJFSD(void) {
 	pthread_mutex_unlock(&(entrenadores_ready->mutex));
 
 	log_debug(logger, "Planificador %s pone a ejecutar al entrenador %d", algoritmo_planificacion, entrenador_a_ejecutar->entrenador->id_entrenador);
+	log_info(logger, "CAMBIO DE COLA DE PLANIFICACIÓN: el entrenador %d pasa a EXEC por tener la menor estimación (%f)", entrenador_a_ejecutar->entrenador->id_entrenador, estimacionDe(entrenador_a_ejecutar));
 	ponerAEjecutarEntrenador(entrenador_a_ejecutar);
 }
 
@@ -690,6 +704,9 @@ void realizarCicloDeCPU(t_tcb* tcb, int ultimo_ciclo) {
 	tcb->real_actual++;
 	// RR
 	vaciarQuantum(ultimo_ciclo);
+
+	log_cpus_totales++;
+	tcb->log_cpus_ejecutados++;
 }
 
 
@@ -768,7 +785,7 @@ void* verificarSiTeamTerminoDeCapturar(void* _) {
 	int cargando = entrenadores_cargando;
 	pthread_mutex_unlock(&mutex_entrenadores_cargando);
 
-	log_debug(logger, "Entrenadores cargando = %d", cargando);
+	// log_debug(logger, "Entrenadores cargando = %d", cargando);
 	if (cargando)
 		return NULL;
 

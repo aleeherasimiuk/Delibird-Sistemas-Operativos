@@ -29,7 +29,7 @@ void enviarGetsAlBroker(void);
 
 // Estados
 void esperarAQueFinalicenLosEntrenadores(void);
-int indexOf(t_tcb* tcb, t_cola_planificacion* lista);
+int indexOf(t_tcb* tcb, t_list* lista);
 void sacarDeCola(t_tcb* tcb, t_cola_planificacion* lista);
 void agregarACola(t_tcb* tcb, t_cola_planificacion* lista);
 void cambiarDeCola(t_tcb* tcb, t_cola_planificacion* lista_actual, t_cola_planificacion* lista_destino);
@@ -41,7 +41,6 @@ t_tcb* terminarDeEjecutar(t_tcb* tcb);
 void liberarCPU(void);
 void ocuparCPU(void);
 
-void bloquearPorIdle(t_tcb* tcb);
 void bloquearPorEsperarCaught(t_tcb* tcb);
 
 // Planificacion largo plazo

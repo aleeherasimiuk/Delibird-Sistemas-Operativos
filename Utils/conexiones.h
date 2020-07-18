@@ -25,6 +25,7 @@
 int crear_conexion(char* ip, char* puerto);
 int crear_conexion_con_config(t_config* config, char* campo_ip, char* campo_puerto);
 void liberar_paquete(t_paquete* paquete);
+void crear_servidor_cuando_se_pueda(char* ip, char* puerto, void* serve_client, t_log* logger);
 void crear_servidor(char*, char*, void*);
 void esperar_cliente(int, void*);
 

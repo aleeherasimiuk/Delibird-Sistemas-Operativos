@@ -21,6 +21,7 @@ typedef struct {
 
 extern t_config* config;
 extern t_log* logger;
+extern t_log* logger_extra;
 extern uint32_t process_id;
 
 extern t_cola_planificacion* entrenadores_new; // lista de t_tcb*
@@ -37,5 +38,10 @@ extern t_list* actuales_global;
 
 extern pthread_mutex_t mutex_entrenadores_blocked_full;	// SACAR
 extern pthread_mutex_t mutex_actuales_global;
+
+// logs
+extern int log_cpus_totales;
+extern int log_cambios_contexto;
+extern int log_deadlocks_producidos;
 
 #endif /* VAR_GLOBALES_H_ */
