@@ -34,6 +34,10 @@ void suscribirseAlBroker(void) {
 	pthread_create(&thread2, NULL, escucharAlSocket, &escuchar_localized);
 	pthread_create(&thread3, NULL, escucharAlSocket, &escuchar_caught);
 
+	pthread_detach(&thread1);
+	pthread_detach(&thread2);
+	pthread_detach(&thread3);
+
 	esperarAQueFinalicenLosEntrenadores();
 	//log_debug(logger, "Ya finalizaron todos los entrenadores");
 
@@ -75,7 +79,19 @@ void suscribirAUnaCola(int conexion, message_type cola){
 	uint32_t paquete_size;
 	void* paquete_serializado = crear_paquete(SUBSCRIBE, serialized_subscribe, subscripcion_size, &paquete_size);
 
-	send(conexion, paquete_serializado, paquete_size, 0);
+	send_msg(conexion, paquete_serializado, paquete_size);
+
+	t_paquete* suscripcion_ok = recibirPaquete(conexion);
+
+
+	if(suscripcion_ok == NULL) 	{// || *((int *)suscripcion_ok -> buffer -> stream) != SUBSCRIBED){
+		close(conexion);
+		int tiempo_reconexion = config_get_int_value(config, "TIEMPO_RECONEXION");
+		log_error(logger, "No se puede conectar con el broker, intentando nueva conexión en %d segundos", tiempo_reconexion);
+		sleep(tiempo_reconexion);
+		suscribirAUnaCola(abrirUnaConexion(config), cola);
+		return;
+	}
 
 	free(subscripcion);
 	free(serialized_subscribe);
@@ -175,7 +191,7 @@ void* abrirSocketParaGameboy(){
 	char* ip = config_get_string_value(config, "IP");
 	char* puerto = config_get_string_value(config, "PUERTO");
 	char* ruta_logger = config_get_string_value(config, "LOG_FILE_EXTRA");
-	logger_extra = iniciar_logger_obligatorio(ruta_logger, false);
+	logger_extra = iniciar_logger_obligatorio(ruta_logger, true);
 	crear_servidor_cuando_se_pueda(ip, puerto, serve_client, logger_extra);
 
 	return NULL;
@@ -226,7 +242,7 @@ void enviarACK(uint32_t id, int conexion){
 	uint32_t bytes;
 	void* a_enviar = crear_paquete(ACK, serialized_ack, bytes_ack, &bytes);
 
-	int status = send(conexion, a_enviar, bytes, 0);
+	int status = send_msg(conexion, a_enviar, bytes);
 	log_debug(logger, "Envié un ACK al ID: %d, con status: %d", id, status);
 
 	free(_ack);
@@ -275,7 +291,7 @@ void* enviarGetPokemon(void* data) {
 		uint32_t paquete_size;
 		void* paquete_serializado = crear_paquete(GET_POKEMON, serialized_get_pokemon, get_pokemon_size, &paquete_size);
 
-		send(conexion, paquete_serializado, paquete_size, 0);
+		send_msg(conexion, paquete_serializado, paquete_size);
 
 		uint32_t id = esperarID(conexion);
 		addGetEnviado(id);
@@ -426,7 +442,7 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 		uint32_t paquete_size;
 		void* paquete_serializado = crear_paquete(CATCH_POKEMON, serialized_catch_pokemon, catch_pokemon_size, &paquete_size);
 
-		send(conexion, paquete_serializado, paquete_size, 0);
+		send_msg(conexion, paquete_serializado, paquete_size);
 
 		uint32_t id = esperarID(conexion);
 		addCatchEnviado(id, tcb);

@@ -44,7 +44,7 @@ void inicializar_team(void) {
 
 t_log* iniciar_logger_obligatorio(char* logfile, int in_console)
 {
-	return log_create(logfile, "Team", in_console, LOG_LEVEL_INFO);
+	return log_create(logfile, "Team", in_console, LOG_LEVEL_DEBUG);
 }
 
 t_config* leer_config(void) {
