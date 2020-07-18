@@ -21,6 +21,7 @@ typedef struct {
 
 extern t_config* config;
 extern t_log* logger;
+extern t_log* logger_extra;
 extern uint32_t process_id;
 
 extern t_cola_planificacion* entrenadores_new; // lista de t_tcb*

@@ -98,7 +98,9 @@ void *escucharAlSocket(void* data) {
 
 
 		if(paquete != NULL){
-			enviarACK(paquete -> id);
+			int con_ack = abrirUnaConexion(config);
+			enviarACK(paquete -> id, con_ack);
+			close(con_ack);
 
 			//void* ptrStream = paquete->buffer->stream; // lo guardo porque mientras se desserializa se mueve el puntero del stream
 
@@ -172,8 +174,9 @@ void* abrirSocketParaGameboy(){
 
 	char* ip = config_get_string_value(config, "IP");
 	char* puerto = config_get_string_value(config, "PUERTO");
-	log_debug(logger, "Estoy escuchando al gameboy en %s:%s", ip, puerto);
-	crear_servidor(ip, puerto, serve_client);
+	char* ruta_logger = config_get_string_value(config, "LOG_FILE_EXTRA");
+	logger_extra = iniciar_logger_obligatorio(ruta_logger, false);
+	crear_servidor_cuando_se_pueda(ip, puerto, serve_client, logger_extra);
 
 	return NULL;
 }
@@ -187,11 +190,14 @@ void serve_client(int* socket){
 	}else {
 		log_debug(logger, "No puedo procesar la solicitud");
 	}
+	free(socket);
 }
 
 void process_request(message_type type, int socket){
 
 	t_paquete* paquete = recibirPaqueteSi(socket, type);
+
+	enviarACK(paquete->id, socket);
 
 	switch(type){
 
@@ -206,12 +212,10 @@ void process_request(message_type type, int socket){
 		default:
 			log_error(logger, "Código de operación inválido");
 	}
-
+	close(socket);
 }
 
-void enviarACK(uint32_t id){
-
-	int conexion = abrirUnaConexion(config);
+void enviarACK(uint32_t id, int conexion){
 
 	log_debug(logger,"Enviaré un ACK por el id: %d",id);
 	t_ack* _ack = ack(process_id, id);
@@ -228,9 +232,6 @@ void enviarACK(uint32_t id){
 	free(_ack);
 	free(serialized_ack);
 	free(a_enviar);
-
-	close(conexion);
-
 }
 
 

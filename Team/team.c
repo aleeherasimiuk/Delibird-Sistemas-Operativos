@@ -1,6 +1,7 @@
 #include "team.h"
 
 t_log* logger = NULL;
+t_log* logger_extra = NULL;
 t_config* config = NULL;
 
 int log_cpus_totales = 0;
@@ -17,7 +18,7 @@ int main() {
 	logfile = config_get_string_value(config, "LOG_FILE");
 	process_id = config_get_int_value(config, "PROCESS_ID");
 
-	logger = iniciar_logger_obligatorio(logfile, true);
+	logger = iniciar_logger_obligatorio(logfile, false);
 
 	inicializar_team();
 
