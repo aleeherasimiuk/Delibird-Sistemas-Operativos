@@ -121,7 +121,6 @@ void* serializarLocalizedPokemon(t_localized_pokemon* localized_pokemon, uint32_
 	}
 
 	free(serialized_pokemon);
-	liberar_lista_punteros_coordenadas(coords_array);
 
 	return serialized_localized_pokemon;
 }
