@@ -65,13 +65,19 @@ void consolidarBuddySystem(memory_block_t* bloque_eliminado){
 
 	if(elSiguienteEsBuddy(bloque_eliminado)){
 		memory_block_t* merged = merge(bloque_eliminado, bloque_eliminado -> next);
+		estadoDeLaMemoria();
 		consolidarBuddySystem(merged);
+		return;
 	}
 
 	if(elAnteriorEsBuddy(bloque_eliminado)){
 		memory_block_t* merged = merge(bloque_eliminado -> previous, bloque_eliminado);
+		estadoDeLaMemoria();
 		consolidarBuddySystem(merged);
+		return;
 	}
+
+	log_debug(logger, "Finalizada la consolidación en BS");
 
 }
 
@@ -80,7 +86,7 @@ int elSiguienteEsBuddy(memory_block_t* bloque_eliminado) {
 }
 
 int elAnteriorEsBuddy(memory_block_t* bloque_eliminado) {
-	return (bloque_eliminado -> previous != NULL) && (bloque_eliminado -> previous -> data -> status == LIBRE) && sonBuddies(bloque_eliminado, bloque_eliminado -> previous);
+	return (bloque_eliminado -> previous != NULL) && (bloque_eliminado -> previous -> data -> status == LIBRE) && sonBuddies(bloque_eliminado -> previous, bloque_eliminado);
 }
 
 

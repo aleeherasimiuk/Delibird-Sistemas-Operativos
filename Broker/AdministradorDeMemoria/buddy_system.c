@@ -46,6 +46,14 @@ memory_block_t* buddy_system(memory_block_t* mem_block, uint32_t size){
 }
 
 int sonBuddies(memory_block_t* block1, memory_block_t* block2){
-	return (block1 -> data -> size == block2 -> data -> size) && block1 -> data -> base == ((uint32_t)block2 -> data -> base ^ block2 -> data -> size);
+
+	uint32_t fst_block_size = block1 -> data -> size;
+	uint32_t snd_block_size = block2 -> data -> size;
+	uint32_t fst_block_base = (block1 -> data -> base) - (memory -> data -> base);
+	uint32_t snd_block_base = (block2 -> data -> base) - (memory -> data -> base);
+	uint32_t xor_calc 		= snd_block_base ^ snd_block_size;
+
+	return fst_block_size == snd_block_size && fst_block_base == xor_calc;
+	//return (block1 -> data -> size == block2 -> data -> size) && block1 -> data -> base == ((uint32_t)block2 -> data -> base ^ block2 -> data -> size);
 }
 
