@@ -92,7 +92,7 @@ int suscribirAUnaCola(int conexion, message_type cola){
 			hubo_reconexion = 1;
 		} else {
 			if (hubo_reconexion)
-				log_info(logger, "SE CONECTA AL BROKER EN EL SOCKET: %d", conexion);
+				log_info(logger, "Suscrito al Broker en la cola [%s]", queue_name(cola));
 			free(subscripcion);
 			free(serialized_subscribe);
 			free(paquete_serializado);
@@ -292,7 +292,7 @@ void* enviarGetPokemon(void* data) {
 }
 
 void defaultGetPokemon(t_pokemon* pokemon) {
-	log_warning(logger, "ERROR DE COMUNICACIÓN AL BROKER: se ejecuta comportamiento default de GET_POKEMON %s => no existen locaciones", pokemon->name);
+	log_warning(logger, "ERROR DE COMUNICACIÓN AL BROKER: Comportamiento DEFAULT -> No se han localizado %s", pokemon->name);
 	// Comportamiento default: no existen locaciones de ese pokemon
 	addGetEnviado(0);
 
@@ -330,10 +330,10 @@ void* procesarLocalized(void* data) {
 	log_debug(logger, "Se localizaron %d Pokemon: %s!", pok->cant_coords, pok -> pokemon -> name);
 
 	// LOGUEO
-	char* log_msg = string_from_format("LLEGA UN MENSAJE: ID: %d ID_CORR: %d DATA: LOCALIZED_POKEMON %s %d ", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->cant_coords);
+	char* log_msg = string_from_format("[CID:%d][LOCALIZED_POKEMON] Se han localizado %d %s", paquete -> correlative_id, pok->cant_coords,  pok->pokemon->name);
 
 	for (int i = 0; i < pok->cant_coords; i++) {
-		string_append_with_format(&log_msg, "%d %d ", pok->coords_array[i]->posX, pok->coords_array[i]->posY);
+		string_append_with_format(&log_msg, "(%d,%d) ", pok->coords_array[i]->posX, pok->coords_array[i]->posY);
 	}
 	log_info(logger, log_msg);
 	free(log_msg);
@@ -395,7 +395,7 @@ void* procesarAppeared(void* data) {
 	t_appeared_pokemon* pok = deserializarAppearedPokemon(paquete -> buffer);
 
 	log_debug(logger, "Wow! Apareció un Pokemon: %s!", pok -> pokemon -> name);
-	log_info(logger, "LLEGA UN MENSAJE: ID: %d ID_CORR: %d DATA: APPEARED_POKEMON %s %d %d", paquete->id, paquete->correlative_id, pok->pokemon->name, pok->coords->posX, pok->coords->posY);
+	log_info(logger, "[APPEARED_POKEMON] Apareció un %s en (%d,%d)", pok->pokemon->name, pok->coords->posX, pok->coords->posY);
 
 	log_debug(logger, "El pokemon es necesario");
 	agregarPokemonAlMapa(pok->pokemon, pok->coords);
@@ -446,7 +446,7 @@ void enviarCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
 }
 
 void defaultCatchPokemon(t_pokemon_en_mapa* pokemon_en_mapa, t_tcb* tcb) {
-	log_warning(logger, "ERROR DE COMUNICACIÓN AL BROKER: se ejecuta comportamiento default de CATCH_POKEMON %s => se atrapa el pokemon", pokemon_en_mapa->pokemon->name);
+	log_warning(logger, "ERROR DE COMUNICACIÓN AL BROKER: Comportamiento DEFAULT -> Se ha capturado a %s", pokemon_en_mapa->pokemon->name);
 
 	// Comportamiento default: se atrapa el pokemon
 	addCatchEnviado(0, tcb);
@@ -483,7 +483,7 @@ void* procesarCaughtPokemon(void* data) {
 
 	t_caught_pokemon* cau_pok = deserializarCaughtPokemon(paquete -> buffer);
 
-	log_info(logger, "LLEGA UN MENSAJE: ID: %d ID_CORR: %d DATA: CAUGHT_POKEMON %d", paquete->id, paquete->correlative_id, *cau_pok);
+	log_info(logger, "[CID:%d][CAUGHT_POKEMON] %s", paquete->correlative_id, (*cau_pok) == YES? "Se ha capturado al pokemon": "No se ha podido capturar el pokemon");
 
 	t_tcb* tcb = traerTcbDelCatchConID(paquete->correlative_id);
 
