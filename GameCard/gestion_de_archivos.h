@@ -46,7 +46,7 @@ void agregar_coordenadas(char*, void*);
 void unir_paths(char*, char*, char**);
 int  archivo_en_uso(char*);
 char* verificar_pokemon(char*, char*, int);
-char* path_para_clave(char*, char*, uint32_t, int, char*);
+char* path_para_clave(char*, char*, uint32_t, int, char*, int*);
 int agregar_posicion_y_cantidad(t_coords* ,int , char*);
 int disminuir_cantidad(t_coords*, char* path);
 void obtener_posiciones(char*);
@@ -69,6 +69,11 @@ void agregar_coordenadas(char*, void*);
 void liberar_lista_de_punteros(char**);
 void actualizar_size_metadata(char*);
 char* concat_string(char*, char*);
+void desfragmentar_bloques(char* , int);
+int ultimo_bloque(char*);
+int obtener_primera_linea(int);
+void agregar_linea(char*, char*);
+char* get_clave(char*);
 
 typedef struct {
 	t_coords* coordenadas;

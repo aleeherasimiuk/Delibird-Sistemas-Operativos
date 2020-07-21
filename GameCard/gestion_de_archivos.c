@@ -102,7 +102,7 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 }
 
 //Me parece que esta funcion va a crear 23432 memory leaks
-char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mode, char* pokemon) {
+char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mode, char* pokemon, int *bloque_asignado) {
 
 	char** bloques = NULL;
 	char* ruta = NULL;
@@ -148,6 +148,7 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 				free(ruta);
 				free(ruta_media);
 				free(ruta_final_copia);
+				*bloque_asignado = bloques[i];
 				return ruta_final;
 			}
 			i++;
@@ -162,6 +163,7 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 				config_destroy(bloque);
 				free(ruta);
 				free(ruta_media);
+				*bloque_asignado = bloques[i];
 				return ruta_final;
 			}
 		} else {
@@ -174,6 +176,7 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 				config_destroy(bloque);
 				free(ruta);
 				free(ruta_media);
+				*bloque_asignado = bloques[i];
 				return ruta_final;
 			}
 		}
@@ -191,6 +194,7 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 	bloque_disponible = agregar_bloque_disponible(path_pokemon);
 	log_info(logger, "[Asignación] -> Bloque #%d -> %s", bloque_disponible, pokemon);
 
+	*bloque_asignado = bloque_disponible;
 	char* bloque_ruta;
 	bloque_ruta = string_itoa(bloque_disponible);
 
@@ -827,3 +831,148 @@ void actualizar_size_metadata(char* path) {
 	free(valor_string);
 
 }
+
+
+void desfragmentar_bloques(char* ruta_pokemon, int bloque) {
+
+	char** bloques_pok = obtener_bloques(ruta_pokemon);
+	int ultimo = ultimo_bloque(bloques_pok);
+	char* linea_a_reacomodar = NULL;
+	int tamanio = 0;
+	int tamanio_linea = 0;
+	t_config* metadata;
+	int block_size = 0;
+
+	char* ruta_metadata = concat_string(ruta_punto_montaje, "/Metadata/Metadata.bin");
+	metadata = config_create(ruta_metadata);
+	block_size = config_get_int_value(metadata, "BLOCK_SIZE");
+	config_destroy(metadata);
+
+	char* ruta;
+	char* ruta_media;
+	char* ruta_final;
+
+	struct stat statbuf;
+
+	ruta = concat_string(ruta_punto_montaje, "/Blocks/");
+	ruta_media = concat_string(ruta, bloque);
+	ruta_final = concat_string(ruta_media, ".bin");
+
+
+	stat(ruta_final, &statbuf);
+	tamanio = statbuf.st_size;
+
+	if(ultimo != bloque && ultimo != -1) {
+
+		linea_a_reacomodar = obtener_primera_linea(ultimo);
+		tamanio_linea = strlen(linea_a_reacomodar);
+		int esta_lleno = chequear_lleno(ruta_final, block_size, tamanio_linea);
+
+		if(!esta_lleno) {
+
+			agregar_linea(ruta_final, linea_a_reacomodar);
+		}
+
+		free(linea_a_reacomodar);
+		free(bloques_pok);
+	}
+
+	free(ruta);
+	free(ruta_media);
+	free(ruta_final);
+	free(ruta_metadata);
+
+}
+
+int ultimo_bloque(char* bloques) {
+	int i = -1;
+	int bloque_int;
+
+	while(1) {
+
+		if(bloques[++i] == NULL) {
+			i--;
+
+			if(i == -1) {
+				return i;
+			} else {
+
+				bloque_int = atoi(bloques[i]);
+				return bloque_int;
+			}
+		}
+	}
+}
+
+int obtener_primera_linea(int bloque) {
+
+	char* ruta;
+	char* ruta_media;
+	char* ruta_final;
+	t_config* metadata;
+	int block_size = 0;
+	char* clave;
+
+		char* ruta_metadata = concat_string(ruta_punto_montaje, "/Metadata/Metadata.bin");
+		metadata = config_create(ruta_metadata);
+		block_size = config_get_int_value(metadata, "BLOCK_SIZE");
+		config_destroy(metadata);
+
+	char* bloque_string = string_itoa(bloque);
+
+	ruta = concat_string(ruta_punto_montaje, "/Blocks/");
+	ruta_media = concat_string(ruta, bloque_string);
+	ruta_final = concat_string(ruta_media, ".bin");
+
+	char* buffer = malloc(sizeof(char) * block_size);
+
+	FILE* file = fopen(ruta_final, "r+");
+
+	fseek(file, 0, SEEK_SET);
+	fgets(buffer, sizeof(char) * block_size, file);
+
+	fclose(file);
+
+	clave = get_clave(buffer);
+
+	t_config* bloque_config = config_create(ruta_final);
+
+	config_remove_key(bloque_config, clave);
+
+	config_destroy(bloque_config);
+
+	free(ruta);
+	free(ruta_media);
+	free(ruta_final);
+	free(ruta_metadata);
+	free(clave);
+
+	return buffer;
+}
+
+void agregar_linea(char* path, char* linea) {
+
+	FILE* file = fopen(path, "r+");
+
+	fseek(file, 0, SEEK_END);
+	fputs(linea, file);
+	fclose(file);
+
+}
+
+char* get_clave(char* linea) {
+
+	int i = 0;
+	char* clave = malloc(strlen(linea));
+
+	while(linea[i] != '=') {
+		clave[i] = linea[i];
+		i++;
+	}
+
+	return clave;
+}
+
+
+
+

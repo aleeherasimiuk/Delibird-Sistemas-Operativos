@@ -49,9 +49,10 @@ void procesarNew(t_paquete* paquete){
 		sleep(tiempo_reintento);
 	}
 
+	int bloque;
 
 	char* clave = pos_a_clave(posX, posY);
-	path_clave = path_para_clave(clave, ruta_pokemon, cantidad, MODIFICAR_CLAVE, nombre_pokemon);
+	path_clave = path_para_clave(clave, ruta_pokemon, cantidad, MODIFICAR_CLAVE, nombre_pokemon, &bloque);
 
 	agregar_posicion_y_cantidad(coords, cantidad, path_clave);
 
@@ -136,12 +137,14 @@ void procesarCatch(t_paquete* paquete){
 			sleep(tiempo_reintento);
 		}
 
+		int bloque;
 		char* clave = pos_a_clave(posX, posY);
-		path_clave = path_para_clave(clave, ruta_pokemon, 0, BUSCAR_CLAVE, nombre_pokemon);
+		path_clave = path_para_clave(clave, ruta_pokemon, 0, BUSCAR_CLAVE, nombre_pokemon, &bloque);
 
 		if(path_clave != NULL) {
 			cau_pokemon = caught_pokemon(YES);
 			disminuir_cantidad(coords, path_clave);
+			desfragmentar_bloques(ruta_pokemon, bloque);
 			actualizar_size_metadata(ruta_pokemon);
 			free(path_clave);
 		} else {
