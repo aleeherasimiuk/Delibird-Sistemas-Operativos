@@ -21,6 +21,7 @@ t_list* actuales_global; // lista de t_inventario* para contar los pokemones que
 
 t_queue* pokemones_en_el_mapa; // Lista de t_pokemon_en_mapa*
 t_list*	pokemones_auxiliares_en_el_mapa; // Lista para guardar los pokemones que tengo por si no se llega a atrapar uno,
+t_list* pokemones_planificados;	// lista de t_inventario para guardar los pokemones que se planificaron para ir a atrapar, luego o se pasan a actuales o se liberan
 
 
 pthread_mutex_t mutex_cpu_libre;
@@ -39,6 +40,7 @@ pthread_mutex_t mutex_actuales_global;
 pthread_mutex_t mutex_objetivo_global;
 pthread_mutex_t mutex_pokemones_en_el_mapa;
 pthread_mutex_t mutex_pokemones_auxiliares_en_el_mapa;
+pthread_mutex_t mutex_pokemones_planificados;
 
 int entrenadores_totales = 0;
 
@@ -101,6 +103,7 @@ void iniciarPlanificador(void) {
 
 	pokemones_en_el_mapa = queue_create();
 	pokemones_auxiliares_en_el_mapa = list_create();
+	pokemones_planificados = list_create();
 	retardo_ciclo_cpu = config_get_int_value(config, "RETARDO_CICLO_CPU");
 
 	quantum_max = config_get_int_value(config, "QUANTUM");
@@ -124,8 +127,15 @@ void iniciarPlanificador(void) {
 	pthread_mutex_init(&mutex_objetivo_global					, NULL);
 	pthread_mutex_init(&mutex_pokemones_en_el_mapa				, NULL);
 	pthread_mutex_init(&mutex_pokemones_auxiliares_en_el_mapa	, NULL);
+	pthread_mutex_init(&mutex_pokemones_planificados 			, NULL);
 
 	pthread_t thread;
+
+
+	actuales_global = list_create();
+	objetivo_global = list_create();
+	sem_init(&counter_entrenadores_disponibles, 0, 0);
+
 
 	// plani largo plazo
 	pthread_create(&thread, NULL, mandarABuscarPokemones, NULL);
@@ -137,9 +147,6 @@ void iniciarPlanificador(void) {
 }
 
 void cargarEntrenadores(void) {
-	actuales_global = list_create();
-	objetivo_global = list_create();
-	sem_init(&counter_entrenadores_disponibles, 0, 0);
 
 	char** posiciones_entrenadores = config_get_array_value(config, "POSICIONES_ENTRENADORES");
 	char** pokemon_entrenadores    = config_get_array_value(config, "POKEMON_ENTRENADORES");
@@ -485,6 +492,9 @@ void *mandarABuscarPokemones(void* _) { //Pasar de new/blocked_idle a ready (Pla
 			// Pero necesitar menos instancias, que se queden esperando.
 			pthread_mutex_lock(&mutex_actuales_global);
 			cargarPokemonEnListaDeInventario(actuales_global, pokemon->pokemon->name);
+			pthread_mutex_lock(&mutex_pokemones_planificados);
+			cargarPokemonEnListaDeInventario(pokemones_planificados, pokemon->pokemon->name);
+			pthread_mutex_unlock(&mutex_pokemones_planificados);
 			pthread_mutex_unlock(&mutex_actuales_global);
 
 
@@ -777,12 +787,16 @@ int teamAlMaximoDeCapacidad(void) {
 	int cant_actuales = cantidadDePokemonesEnInventario(actuales_global);
 	pthread_mutex_unlock(&mutex_actuales_global);
 
+	pthread_mutex_lock(&mutex_pokemones_planificados);
+	int cant_planificados = cantidadDePokemonesEnInventario(pokemones_planificados);
+	pthread_mutex_unlock(&mutex_pokemones_planificados);
+
 	pthread_mutex_lock(&mutex_objetivo_global);
 	int cant_objetivo = cantidadDePokemonesEnInventario(objetivo_global);
 	pthread_mutex_unlock(&mutex_objetivo_global);
 
-	// le resto los catch pendientes ya que realmente no los tiene todavia
-	return cant_actuales - catchPendientes() >= cant_objetivo;
+	// le resto los planificados ya que realmente no los tiene todavia
+	return cant_actuales - cant_planificados >= cant_objetivo;
 }
 
 void* verificarSiTeamTerminoDeCapturar(void* _) {

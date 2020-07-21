@@ -498,7 +498,6 @@ void* procesarCaughtPokemon(void* data) {
 		// Cargo en el entrenador
 		cargarPokemonEnListaDeInventario(tcb->entrenador->pokes_actuales, tcb->entrenador->objetivo->pokemon->name);
 	} else if(*cau_pok == NO){
-		log_debug(logger, "Ufa! No pude atraparlo :(");
 		
 		pthread_mutex_lock(&mutex_actuales_global);
 		sacarPokemonEnListaDeInventario(actuales_global, tcb->entrenador->objetivo->pokemon->name);
@@ -508,8 +507,11 @@ void* procesarCaughtPokemon(void* data) {
 		log_debug(logger, "No entiendo man %d o %d o %d", *cau_pok, cau_pok, &cau_pok);
 	}
 
+	pthread_mutex_lock(&mutex_pokemones_planificados);
+	sacarPokemonEnListaDeInventario(pokemones_planificados, tcb->entrenador->objetivo->pokemon->name);
+	pthread_mutex_unlock(&mutex_pokemones_planificados);
 	// libero el objetivo
-	//free(tcb->entrenador->objetivo->pokemon->name); // El nombre está
+	free(tcb->entrenador->objetivo->pokemon->name); // El nombre está en las listas
 	free(tcb->entrenador->objetivo->pokemon);
 	free(tcb->entrenador->objetivo->posicion);
 	free(tcb->entrenador->objetivo);
