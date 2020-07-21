@@ -218,8 +218,7 @@ void serve_client(int* socket){
 void process_request(message_type type, int socket){
 
 	t_paquete* paquete = recibirPaqueteSi(socket, type);
-
-	enviarACK(paquete->id, socket);
+	uint32_t paquete_id = paquete->id;
 
 	switch(type){
 
@@ -234,6 +233,7 @@ void process_request(message_type type, int socket){
 		default:
 			log_error(logger, "Código de operación inválido");
 	}
+	enviarACK(paquete_id, socket);
 	close(socket);
 }
 
