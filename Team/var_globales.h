@@ -33,11 +33,13 @@ extern t_cola_planificacion* entrenadores_blocked_waiting_trade;
 extern t_cola_planificacion* entrenadores_exit; // lista de t_tcb*
 
 extern t_list* actuales_global;
+extern t_list* pokemones_planificados;
 
 // mutexs
 
 extern pthread_mutex_t mutex_entrenadores_blocked_full;	// SACAR
 extern pthread_mutex_t mutex_actuales_global;
+extern pthread_mutex_t mutex_pokemones_planificados;
 
 // logs
 extern int log_cpus_totales;

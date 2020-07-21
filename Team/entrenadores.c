@@ -262,7 +262,6 @@ void intentarAtraparPokemon(t_tcb* tcb) {
 	bloquearPorEsperarCaught(tcb);
 	enviarCatchPokemon(tcb->entrenador->objetivo, tcb);
 	terminarDeEjecutar(tcb);	// Se sigue manteniendo por si no corta por quantum
-	log_debug(logger, "Entrenador %d se bloquea por esperar caught", tcb->entrenador->id_entrenador);
 	pthread_mutex_unlock(&(tcb->exec_mutex));
 
 }
