@@ -34,6 +34,8 @@ void procesarNew(t_paquete* paquete){
 	uint32_t posX = coords -> posX;
 	uint32_t posY = coords -> posY;
 
+	log_info(logger, "[NEW_POKEMON] -> %d %s en (%d,%d)", cantidad, pok -> pokemon -> name, posX, posY);
+
 	char* path_clave;
 
 	char* path_files = concat_string(ruta_punto_montaje, "/Files");
@@ -49,11 +51,11 @@ void procesarNew(t_paquete* paquete){
 
 
 	char* clave = pos_a_clave(posX, posY);
-	path_clave = path_para_clave(clave, ruta_pokemon, cantidad, MODIFICAR_CLAVE);
+	path_clave = path_para_clave(clave, ruta_pokemon, cantidad, MODIFICAR_CLAVE, nombre_pokemon);
 
 	agregar_posicion_y_cantidad(coords, cantidad, path_clave);
 
-	actualizar_bitmap_pokemon(ruta_pokemon);
+	actualizar_bitmap_pokemon(ruta_pokemon, nombre_pokemon);
 
 	sleep(tiempo_retardo);
 
@@ -79,7 +81,7 @@ void procesarNew(t_paquete* paquete){
 		void* serialized_appeared_pokemon = serializarAppearedPokemon(app_pokemon, &bytes);
 		void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, serialized_appeared_pokemon, bytes, paquete -> id, &bytes_paquete);
 		int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
-		log_info(logger, "Se enviará un APPEARED_POKEMON por: %s", app_pokemon -> pokemon -> name);
+		log_info(logger, "Se enviará un [CID:%d][APPEARED_POKEMON] -> %s en (%d, %d)", paquete -> id ,app_pokemon -> pokemon -> name, app_pokemon -> coords -> posX, app_pokemon -> coords -> posY);
 		close(conexion_con_broker);
 
 		free(app_pokemon -> coords);
@@ -114,6 +116,8 @@ void procesarCatch(t_paquete* paquete){
 	uint32_t posX = coords -> posX;
 	uint32_t posY = coords -> posY;
 
+	log_info(logger, "[CATCH_POKEMON] -> %s en (%d, %d)", nombre_pokemon, posX, posY);
+
 	t_caught_pokemon* cau_pokemon;
 
 	char* path_clave;
@@ -133,7 +137,7 @@ void procesarCatch(t_paquete* paquete){
 		}
 
 		char* clave = pos_a_clave(posX, posY);
-		path_clave = path_para_clave(clave, ruta_pokemon, 0, BUSCAR_CLAVE);
+		path_clave = path_para_clave(clave, ruta_pokemon, 0, BUSCAR_CLAVE, nombre_pokemon);
 
 		if(path_clave != NULL) {
 			cau_pokemon = caught_pokemon(YES);
@@ -145,7 +149,7 @@ void procesarCatch(t_paquete* paquete){
 			cau_pokemon = caught_pokemon(NO);
 		}
 
-		actualizar_bitmap_pokemon(ruta_pokemon);
+		actualizar_bitmap_pokemon(ruta_pokemon, nombre_pokemon);
 		sleep(tiempo_retardo);
 		cerrar_archivo(ruta_pokemon);
 
@@ -163,7 +167,7 @@ void procesarCatch(t_paquete* paquete){
 	void* serialized_caught_pokemon = serializarCaughtPokemon(&cau_pokemon, &bytes);
 	void* a_enviar = crear_paquete_con_id_correlativo(CAUGHT_POKEMON, serialized_caught_pokemon, bytes, paquete -> id, &bytes_paquete);
 	int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
-	log_info(logger, "Se envió un CAUGHT_POKEMON: %s", cau_pokemon == YES? "Ok": "Fail");
+	log_info(logger, "Se enviará [CID:%d][CAUGHT_POKEMON] -> %s", paquete -> id ,cau_pokemon == YES? "Ok": "Fail");
 	close(conexion_con_broker);
 	free(a_enviar);
 
@@ -190,6 +194,8 @@ void procesarGet(t_paquete* paquete){
 	free(path_files);
 	t_list* lista_de_coordenadas = NULL;
 	uint32_t cantidad_de_coordenadas = 0;
+
+	log_info(logger, "[GET POKEMON] -> %s", nombre_pokemon);
 
 	t_localized_pokemon* loc_pokemon = NULL;
 
@@ -227,7 +233,7 @@ void procesarGet(t_paquete* paquete){
 	int conexion_con_broker = abrirUnaConexionGameCard(config);
 
 	if(conexion_con_broker == CANT_CONNECT){
-		log_info(logger, "No se pudo establecer conexión con el broker");
+		log_error(logger, "No se pudo establecer conexión con el broker");
 	} else {
 		uint32_t bytes;
 		uint32_t bytes_paquete;
@@ -235,7 +241,7 @@ void procesarGet(t_paquete* paquete){
 		void* serialized_localized_pokemon = serializarLocalizedPokemon(loc_pokemon, &bytes);
 		void* a_enviar = crear_paquete_con_id_correlativo(LOCALIZED_POKEMON, serialized_localized_pokemon, bytes, paquete -> id, &bytes_paquete);
 		int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
-		log_info(logger, "Se envió un LOCALIZED_POKEMON: %s", loc_pokemon -> pokemon -> name);
+		log_info(logger, "Se enviará [CID:%d][LOCALIZED_POKEMON] -> %s", paquete -> id, loc_pokemon -> pokemon -> name);
 		close(conexion_con_broker);
 
 		if(lista_de_coordenadas != NULL)

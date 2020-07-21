@@ -82,12 +82,13 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 				mkdir(ruta_final, 0777);
 
 				crear_metadata_archivo(ruta_final);
+				log_info(logger, "Se creó la carpeta '%s' en el File System", nombre_pokemon);
 
 		}
 
 		else if((stat(ruta_final, &st) == -1) && !crear) {
 
-			log_error(logger, "No existe ese pokemon");
+			log_error(logger, "No se ha encontrado %s en el File System", nombre_pokemon);
 
 			free(ruta);
 			free(ruta_final);
@@ -101,7 +102,7 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 }
 
 //Me parece que esta funcion va a crear 23432 memory leaks
-char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mode) {
+char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mode, char* pokemon) {
 
 	char** bloques = NULL;
 	char* ruta = NULL;
@@ -188,6 +189,7 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 	}
 
 	bloque_disponible = agregar_bloque_disponible(path_pokemon);
+	log_info(logger, "[Asignación] -> Bloque #%d -> %s", bloque_disponible, pokemon);
 
 	char* bloque_ruta;
 	bloque_ruta = string_itoa(bloque_disponible);
@@ -558,12 +560,11 @@ int agregar_bloque_disponible(char* path) {
 	free(nuevos_bloques_medio);
 	free(nuevos_bloques_final);
 
-
 	return bloque_disponible;
 
 }
 
-void quitar_bloque(char* path ,int bloque) {
+void quitar_bloque(char* path, int bloque) {
 
 	char** bloques;
 	char** bloques_nuevos;
@@ -597,8 +598,6 @@ void quitar_bloque(char* path ,int bloque) {
 
 	while(bloques[i] != NULL) {
 		if(strcmp(bloques[i], bloque_string) == 0) {
-
-
 			i++;
 		}
 
@@ -669,7 +668,7 @@ int chequear_ocupado(int bloque) {
 	return chequear_lleno(ruta_bloque, 1, 1);
 }
 
-void actualizar_bitmap_pokemon(char* path) {
+void actualizar_bitmap_pokemon(char* path, char* nombre_pokemon) {
 
 	char** bloques;
 	int posicion_array = 0;
@@ -701,6 +700,7 @@ void actualizar_bitmap_pokemon(char* path) {
 		if(actualizar_bitmap(bloques_ent[posicion_array])){
 
 			quitar_bloque(path, bloques_ent[posicion_array]);
+
 		}
 
 		posicion_array++;
