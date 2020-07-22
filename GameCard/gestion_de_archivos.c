@@ -720,7 +720,7 @@ void actualizar_bitmap_pokemon(char* path, char* nombre_pokemon) {
 }
 
 t_list* leer_bloques_pokemon(char* path) {
-	char* path_bloques = "/home/utnso/Escritorio/tall-grass/Blocks/";
+	char* path_bloques = concat_string(ruta_punto_montaje, "/Blocks/");
 
 	char** bloques = obtener_bloques(path);
 	t_config* bloque;
