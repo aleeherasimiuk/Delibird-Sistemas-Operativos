@@ -137,9 +137,10 @@ void procesarCatch(t_paquete* paquete){
 			sleep(tiempo_reintento);
 		}
 
-		int bloque;
+		int bloque = 0;
+		int* bloque_p = &bloque;
 		char* clave = pos_a_clave(posX, posY);
-		path_clave = path_para_clave(clave, ruta_pokemon, 0, BUSCAR_CLAVE, nombre_pokemon, &bloque);
+		path_clave = path_para_clave(clave, ruta_pokemon, 0, BUSCAR_CLAVE, nombre_pokemon, bloque_p);
 
 		if(path_clave != NULL) {
 			cau_pokemon = caught_pokemon(YES);

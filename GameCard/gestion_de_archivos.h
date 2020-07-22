@@ -70,7 +70,7 @@ void liberar_lista_de_punteros(char**);
 void actualizar_size_metadata(char*);
 char* concat_string(char*, char*);
 void desfragmentar_bloques(char* , int);
-int ultimo_bloque(char*);
+int ultimo_bloque(char**);
 int obtener_primera_linea(int);
 void agregar_linea(char*, char*);
 char* get_clave(char*);

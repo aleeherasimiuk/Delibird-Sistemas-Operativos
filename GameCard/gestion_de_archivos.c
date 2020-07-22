@@ -112,6 +112,7 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 	int i = 0;
 	int bloque_disponible = -1;
 	int block_size = 0;
+	int valor_bloque = 0;
 	t_config* metadata = NULL;
 	uint32_t cantidad_total = 0;
 	uint32_t tamanio_clave = sizeof(char) * strlen(clave);
@@ -148,7 +149,8 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 				free(ruta);
 				free(ruta_media);
 				free(ruta_final_copia);
-				*bloque_asignado = bloques[i];
+				valor_bloque = atoi(bloques[i]);
+				*bloque_asignado = valor_bloque;
 				return ruta_final;
 			}
 			i++;
@@ -163,7 +165,8 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 				config_destroy(bloque);
 				free(ruta);
 				free(ruta_media);
-				*bloque_asignado = bloques[i];
+				valor_bloque = atoi(bloques[i]);
+				*bloque_asignado = valor_bloque;
 				return ruta_final;
 			}
 		} else {
@@ -176,7 +179,8 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 				config_destroy(bloque);
 				free(ruta);
 				free(ruta_media);
-				*bloque_asignado = bloques[i];
+				 valor_bloque = atoi(bloques[i]);
+				*bloque_asignado = valor_bloque;
 				return ruta_final;
 			}
 		}
@@ -838,6 +842,7 @@ void desfragmentar_bloques(char* ruta_pokemon, int bloque) {
 	char** bloques_pok = obtener_bloques(ruta_pokemon);
 	int ultimo = ultimo_bloque(bloques_pok);
 	char* linea_a_reacomodar = NULL;
+	char* bloque_string = string_itoa(bloque);
 	int tamanio = 0;
 	int tamanio_linea = 0;
 	t_config* metadata;
@@ -855,9 +860,12 @@ void desfragmentar_bloques(char* ruta_pokemon, int bloque) {
 	struct stat statbuf;
 
 	ruta = concat_string(ruta_punto_montaje, "/Blocks/");
-	ruta_media = concat_string(ruta, bloque);
+	ruta_media = concat_string(ruta, bloque_string);
 	ruta_final = concat_string(ruta_media, ".bin");
 
+
+	char* ruta_final_cpy = malloc(strlen(ruta_final) + 1);
+	strcpy(ruta_final_cpy,ruta_final);
 
 	stat(ruta_final, &statbuf);
 	tamanio = statbuf.st_size;
@@ -870,7 +878,7 @@ void desfragmentar_bloques(char* ruta_pokemon, int bloque) {
 
 		if(!esta_lleno) {
 
-			agregar_linea(ruta_final, linea_a_reacomodar);
+			agregar_linea(ruta_final_cpy, linea_a_reacomodar);
 		}
 
 		free(linea_a_reacomodar);
@@ -879,28 +887,28 @@ void desfragmentar_bloques(char* ruta_pokemon, int bloque) {
 
 	free(ruta);
 	free(ruta_media);
-	free(ruta_final);
+	free(ruta_final_cpy);
 	free(ruta_metadata);
 
 }
 
-int ultimo_bloque(char* bloques) {
-	int i = -1;
+int ultimo_bloque(char** bloques) {
+	int i = 0;
 	int bloque_int;
 
-	while(1) {
+	while(bloques[i] != NULL) {
+		i++;
+	}
+	i--;
 
-		if(bloques[++i] == NULL) {
-			i--;
+	if(i == -1) {
 
-			if(i == -1) {
-				return i;
-			} else {
+		return i;
 
-				bloque_int = atoi(bloques[i]);
-				return bloque_int;
-			}
-		}
+	} else {
+
+		bloque_int = atoi(bloques[i]);
+		return bloque_int;
 	}
 }
 
@@ -939,6 +947,7 @@ int obtener_primera_linea(int bloque) {
 
 	config_remove_key(bloque_config, clave);
 
+	config_save(bloque_config);
 	config_destroy(bloque_config);
 
 	free(ruta);
@@ -969,6 +978,8 @@ char* get_clave(char* linea) {
 		clave[i] = linea[i];
 		i++;
 	}
+
+	clave[i] = '\0';
 
 	return clave;
 }
