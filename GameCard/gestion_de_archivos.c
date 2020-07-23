@@ -116,8 +116,12 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 	t_config* metadata = NULL;
 	uint32_t cantidad_total = 0;
 	uint32_t tamanio_clave = sizeof(char) * strlen(clave);
-	uint32_t tamanio_cantidad = sizeof(char) * strlen(string_itoa(cantidad));
+	char* cantidad_string = string_itoa(cantidad);
+	uint32_t tamanio_cantidad = sizeof(char) * strlen(cantidad_string);
 	int cantidad_caracteres = 0;
+	char* cantidad_total_string;
+
+	free(cantidad_string);
 
 	char* ruta_metadata = concat_string(ruta_punto_montaje, "/Metadata/Metadata.bin");
 
@@ -151,6 +155,7 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 				free(ruta_final_copia);
 				valor_bloque = atoi(bloques[i]);
 				*bloque_asignado = valor_bloque;
+				liberarListaDePunteros(bloques);
 				return ruta_final;
 			}
 			i++;
@@ -159,7 +164,9 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 
 			cantidad_total = config_get_int_value(bloque, clave);
 			cantidad_total += cantidad;
-			cantidad_caracteres = strlen(string_itoa(cantidad_total));
+			cantidad_total_string = string_itoa(cantidad_total);
+			cantidad_caracteres = strlen(cantidad_total_string);
+			free(cantidad_total_string);
 
 			if (!chequear_lleno(ruta_final_copia, block_size, cantidad_caracteres)) {
 				config_destroy(bloque);
@@ -167,13 +174,16 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 				free(ruta_media);
 				valor_bloque = atoi(bloques[i]);
 				*bloque_asignado = valor_bloque;
+				liberarListaDePunteros(bloques);
 				return ruta_final;
 			}
 		} else {
 			cantidad_total += cantidad;
-			cantidad_caracteres = strlen(string_itoa(cantidad_total));
+			cantidad_total_string = string_itoa(cantidad_total);
+			cantidad_caracteres = strlen(cantidad_total_string);
 			cantidad_caracteres += tamanio_clave;
 			cantidad_caracteres += 2; //Caracter "=" y "\n"
+			free(cantidad_total_string);
 
 			if(!chequear_lleno(ruta_final_copia, block_size, cantidad_caracteres)) {
 				config_destroy(bloque);
@@ -181,6 +191,7 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 				free(ruta_media);
 				 valor_bloque = atoi(bloques[i]);
 				*bloque_asignado = valor_bloque;
+				liberarListaDePunteros(bloques);
 				return ruta_final;
 			}
 		}
@@ -206,7 +217,11 @@ char* path_para_clave(char* clave, char* path_pokemon, uint32_t cantidad, int mo
 	ruta_media = concat_string(ruta, bloque_ruta);
 	ruta_final = concat_string(ruta_media, ".bin");
 
-	liberar_lista_de_punteros(bloques);
+	free(bloque_ruta);
+
+	if(bloques != NULL) {
+		liberar_lista_de_punteros(bloques);
+	}
 
 	free(ruta);
 	free(ruta_media);
@@ -252,6 +267,7 @@ int agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 
 		fprintf(file, a_escribir_final);
 
+		fflush(file);
 		fclose(file);
 
 		data = config_create(path);
@@ -261,6 +277,8 @@ int agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 
 
 	}
+
+	log_debug(logger, "%s", clave);
 
 
 	int cant_vieja = config_get_int_value(data, clave);
@@ -276,6 +294,8 @@ int agregar_posicion_y_cantidad(t_coords* coordenadas, int cant, char* path) {
 	config_save(data);
 
 	config_destroy(data);
+
+	free(clave);
 
 	free(cantidad_nueva);
 
@@ -371,11 +391,9 @@ void crear_metadata_archivo(char* path) {
 
 char* pos_a_clave(uint32_t x, uint32_t y) {
 
-	char* posX = malloc(strlen(string_itoa(x)));
-	char* posY = malloc(strlen(string_itoa(y)));
 
-	posX = string_itoa(x);
-	posY = string_itoa(y);
+	char* posX = string_itoa(x);
+	char* posY = string_itoa(y);
 
 	char* clave = concat_string(posX, "-");
 	char* clave_final = concat_string(clave, posY);
@@ -503,6 +521,8 @@ int chequear_bloque_disponible(int bloque) {
 //Busca y retorna un bloque disponible en el bitmap
 int buscar_bloque_disponible(void) {
 	int pos = 1;
+
+
 	int max = bitarray_get_max_bit(bitarray);
 	int bit_ocupado;
 
@@ -511,12 +531,15 @@ int buscar_bloque_disponible(void) {
 		bit_ocupado = bitarray_test_bit(bitarray, pos);
 		log_debug(logger, "el bit ocupado vale %i", bit_ocupado);
 		log_debug(logger, "El bit de la posición %d, %s", pos, bit_ocupado? "está ocupado": "está libre");
+
 		if(!bit_ocupado) {
+
 			return pos;
 		} else {
 			pos++;
 		}
 	}
+
 
 	return -1;
 }
@@ -567,6 +590,7 @@ int agregar_bloque_disponible(char* path) {
 	free(nuevos_bloques);
 	free(nuevos_bloques_medio);
 	free(nuevos_bloques_final);
+	free(ruta);
 
 	return bloque_disponible;
 
@@ -686,6 +710,8 @@ void actualizar_bitmap_pokemon(char* path, char* nombre_pokemon) {
 
 	char* path_metadata = concat_string(ruta_punto_montaje, "/Metadata/Metadata.bin");
 
+	pthread_mutex_lock(&mx_open);
+
 	metadata = config_create(path_metadata);
 
 	bloques_maximos = config_get_int_value(metadata, "BLOCKS");
@@ -696,6 +722,8 @@ void actualizar_bitmap_pokemon(char* path, char* nombre_pokemon) {
 
 	config_destroy(metadata);
 
+	pthread_mutex_unlock(&mx_open);
+
 	while(bloques[posicion_array] != NULL) {
 		bloques_ent[posicion_array] = atoi(bloques[posicion_array]);
 		posicion_array++;
@@ -703,6 +731,7 @@ void actualizar_bitmap_pokemon(char* path, char* nombre_pokemon) {
 	}
 
 	posicion_array = 0;
+
 
 	while (posicion_array < maximo_array) {
 		if(actualizar_bitmap(bloques_ent[posicion_array])){
@@ -807,9 +836,9 @@ void actualizar_size_metadata(char* path) {
 	char** bloques = obtener_bloques(path);
 
 	while(bloques[i] != NULL) {
-				tamanio_bloques++;
-				i++;
-			}
+			tamanio_bloques++;
+			i++;
+		}
 
 	for( i = 0; i < tamanio_bloques; i++) {
 		ruta_bloque_inicial = concat_string(ruta_punto_montaje, "/Blocks/");
@@ -832,7 +861,12 @@ void actualizar_size_metadata(char* path) {
 	config_save(metadata);
 	config_destroy(metadata);
 
+	if(bloques != NULL) {
+		liberar_lista_de_punteros(bloques);
+	}
+
 	free(valor_string);
+	free(ruta);
 
 }
 

@@ -7,6 +7,8 @@
 
 #include "procesamiento_mensajes.h"
 
+pthread_mutex_t mx_bitmap;
+
 
 void procesarID(t_paquete* paquete){
 
@@ -22,6 +24,7 @@ void procesarNew(t_paquete* paquete){
 	int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
 	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
 	int i;
+	void* ptr_stream = paquete->buffer->stream;
 
 	t_new_pokemon* pok = deserializarNewPokemon(paquete -> buffer);
 	log_debug(logger, "despues de deserializar al pokemon");
@@ -52,11 +55,16 @@ void procesarNew(t_paquete* paquete){
 	int bloque;
 
 	char* clave = pos_a_clave(posX, posY);
+
+	pthread_mutex_lock(&mx_bitmap);
+
 	path_clave = path_para_clave(clave, ruta_pokemon, cantidad, MODIFICAR_CLAVE, nombre_pokemon, &bloque);
 
 	agregar_posicion_y_cantidad(coords, cantidad, path_clave);
 
 	actualizar_bitmap_pokemon(ruta_pokemon, nombre_pokemon);
+
+	pthread_mutex_unlock(&mx_bitmap);
 
 	sleep(tiempo_retardo);
 
@@ -65,7 +73,6 @@ void procesarNew(t_paquete* paquete){
 	actualizar_size_metadata(ruta_pokemon);
 
 	free(ruta_pokemon);
-
 	free(path_clave);
 
 	int conexion_con_broker = abrirUnaConexionGameCard(config);
@@ -80,6 +87,8 @@ void procesarNew(t_paquete* paquete){
 	log_info(logger, "Se enviará un [CID:%d][APPEARED_POKEMON] -> %s en (%d, %d)", paquete -> id ,app_pokemon -> pokemon -> name, app_pokemon -> coords -> posX, app_pokemon -> coords -> posY);
 	close(conexion_con_broker);
 
+	free(clave);
+
 	free(app_pokemon -> coords);
 	free(app_pokemon);
 	free(serialized_appeared_pokemon);
@@ -90,9 +99,9 @@ void procesarNew(t_paquete* paquete){
 	free(pok -> coords);
 	free(pok);
 
-	free(paquete -> buffer);
+	free(ptr_stream);
+	free(paquete->buffer);
 	free(paquete);
-
 }
 
 void procesarCatch(t_paquete* paquete){
@@ -134,6 +143,9 @@ void procesarCatch(t_paquete* paquete){
 		int bloque = 0;
 		int* bloque_p = &bloque;
 		char* clave = pos_a_clave(posX, posY);
+
+		pthread_mutex_lock(&mx_bitmap);
+
 		path_clave = path_para_clave(clave, ruta_pokemon, 0, BUSCAR_CLAVE, nombre_pokemon, bloque_p);
 
 		if(path_clave != NULL) {
@@ -148,6 +160,7 @@ void procesarCatch(t_paquete* paquete){
 		}
 
 		actualizar_bitmap_pokemon(ruta_pokemon, nombre_pokemon);
+		pthread_mutex_unlock(&mx_bitmap);
 		sleep(tiempo_retardo);
 		cerrar_archivo(ruta_pokemon);
 
@@ -173,8 +186,9 @@ void procesarCatch(t_paquete* paquete){
 	free(pok -> coords);
 	free(pok);
 
-	free(paquete -> buffer);
+	free(paquete->buffer);
 	free(paquete);
+
 }
 
 void procesarGet(t_paquete* paquete){
@@ -254,7 +268,7 @@ void procesarGet(t_paquete* paquete){
 	free(nombre_pokemon);
 	free(pok);
 
-	free(paquete -> buffer);
+	free(paquete->buffer);
 	free(paquete);
 }
 

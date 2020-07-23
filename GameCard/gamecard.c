@@ -29,6 +29,7 @@ int main() {
 	logger = iniciar_logger(logfile);
 
 	pthread_mutex_init(&mx_open, NULL);
+	pthread_mutex_init(&mx_bitmap, NULL);
 
 	bitarray = iniciar_bitarray();
 
@@ -39,7 +40,7 @@ int main() {
 }
 
 t_log* iniciar_logger(char* logfile) {
-	return log_create(logfile, "GameCard", true, LOG_LEVEL_INFO);
+	return log_create(logfile, "GameCard", true, LOG_LEVEL_DEBUG);
 }
 
 t_config* leer_config(void) {
@@ -54,20 +55,28 @@ t_bitarray* iniciar_bitarray(void) {
 	//struct stat statbuf;
 	size_t bitmap_size;
 	char* buffer = NULL;
+	char* metadata_path;
+	t_config* metadata;
 
 	bitmap_path = concat_string(ruta_punto_montaje, "/Metadata/Bitmap.bin");
+	metadata_path = concat_string(ruta_punto_montaje, "/Metadata/Metadata.bin");
+
+	metadata = config_create(metadata_path);
+
+	bitmap_size = config_get_int_value(metadata, "BLOCKS");
+
+	config_destroy(metadata);
 
 	//stat(bitmap_path, &statbuf);
-	bitmap_size = 400;
 
 	int file = open(bitmap_path, O_RDWR);
 
 	if(file == -1){
 	    FILE* f = fopen(bitmap_path, "wb");
 
-	    for(int i = 0; i < 100; i++){
-	      int bit = 0;
-	      fwrite(&bit, sizeof(int),1 ,f);
+	    for(int i = 0; i < bitmap_size/8; i++){
+	      uint8_t bit = 0;
+	      fwrite(&bit, sizeof(uint8_t),1 ,f);
 	    }
 
 	    fflush(f);
@@ -81,6 +90,9 @@ t_bitarray* iniciar_bitarray(void) {
 	buffer = mmap(NULL, bitmap_size, PROT_WRITE | PROT_READ, MAP_SHARED, file, 0);
 
 	array = bitarray_create_with_mode(buffer, bitmap_size, MSB_FIRST);
+
+	free(bitmap_path);
+	free(metadata_path);
 
 	return array;
 }
