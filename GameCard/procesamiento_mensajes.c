@@ -68,28 +68,22 @@ void procesarNew(t_paquete* paquete){
 
 	free(path_clave);
 
+	int conexion_con_broker = abrirUnaConexionGameCard(config);
 
-	for(i = 0; i < (pok -> cantidad); i++){
+	t_appeared_pokemon* app_pokemon = appeared_pokemon(pokemon, posX, posY);
+	uint32_t bytes;
+	uint32_t bytes_paquete;
 
-		int conexion_con_broker = abrirUnaConexionGameCard(config);
+	void* serialized_appeared_pokemon = serializarAppearedPokemon(app_pokemon, &bytes);
+	void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, serialized_appeared_pokemon, bytes, paquete -> id, &bytes_paquete);
+	int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
+	log_info(logger, "Se enviará un [CID:%d][APPEARED_POKEMON] -> %s en (%d, %d)", paquete -> id ,app_pokemon -> pokemon -> name, app_pokemon -> coords -> posX, app_pokemon -> coords -> posY);
+	close(conexion_con_broker);
 
-		t_appeared_pokemon* app_pokemon = appeared_pokemon(pokemon, posX, posY);
-
-		uint32_t bytes;
-		uint32_t bytes_paquete;
-
-
-		void* serialized_appeared_pokemon = serializarAppearedPokemon(app_pokemon, &bytes);
-		void* a_enviar = crear_paquete_con_id_correlativo(APPEARED_POKEMON, serialized_appeared_pokemon, bytes, paquete -> id, &bytes_paquete);
-		int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
-		log_info(logger, "Se enviará un [CID:%d][APPEARED_POKEMON] -> %s en (%d, %d)", paquete -> id ,app_pokemon -> pokemon -> name, app_pokemon -> coords -> posX, app_pokemon -> coords -> posY);
-		close(conexion_con_broker);
-
-		free(app_pokemon -> coords);
-		free(app_pokemon);
-		free(serialized_appeared_pokemon);
-		free(a_enviar);
-	}
+	free(app_pokemon -> coords);
+	free(app_pokemon);
+	free(serialized_appeared_pokemon);
+	free(a_enviar);
 
 	free(pok -> pokemon -> name);
 	free(pok -> pokemon);
