@@ -381,8 +381,8 @@ void crear_metadata_archivo(char* path) {
 
 	char datos[40] = "DIRECTORY=N\nSIZE=0\nBLOCKS=[]\nOPEN=N";
 
-	fwrite(&datos, sizeof(char[40]), 1, file);
-
+	fwrite(&datos, sizeof(char), 40, file);
+	fflush(file);
 	fclose(file);
 
 	free(rutameta);
@@ -955,10 +955,10 @@ int obtener_primera_linea(int bloque) {
 	int block_size = 0;
 	char* clave;
 
-		char* ruta_metadata = concat_string(ruta_punto_montaje, "/Metadata/Metadata.bin");
-		metadata = config_create(ruta_metadata);
-		block_size = config_get_int_value(metadata, "BLOCK_SIZE");
-		config_destroy(metadata);
+	char* ruta_metadata = concat_string(ruta_punto_montaje, "/Metadata/Metadata.bin");
+	metadata = config_create(ruta_metadata);
+	block_size = config_get_int_value(metadata, "BLOCK_SIZE");
+	config_destroy(metadata);
 
 	char* bloque_string = string_itoa(bloque);
 
