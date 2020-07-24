@@ -23,7 +23,6 @@ void procesarNew(t_paquete* paquete){
 
 	int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
 	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
-	int i;
 	void* ptr_stream = paquete->buffer->stream;
 
 	t_new_pokemon* pok = deserializarNewPokemon(paquete -> buffer);
@@ -117,6 +116,7 @@ void procesarCatch(t_paquete* paquete){
 
 	int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
 	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
+	void* ptr_stream = paquete->buffer->stream;
 
 	//FILE* archivo = ruta_del_archivo;
 
@@ -176,8 +176,12 @@ void procesarCatch(t_paquete* paquete){
 		actualizar_bitmap_pokemon(ruta_pokemon, nombre_pokemon);
 		pthread_mutex_unlock(&mx_bitmap);
 		sleep(tiempo_retardo);
+		char* ruta_mx = concat_string(ruta_pokemon, "/Metadata.bin");
+		pthread_mutex_t* mx = (pthread_mutex_t*) dictionary_get(mx_dict, ruta_mx);
+		pthread_mutex_lock(mx);
 		cerrar_archivo(ruta_pokemon);
-
+		free(ruta_mx);
+		pthread_mutex_unlock(mx);
 		free(ruta_pokemon);
 
 	} else {
@@ -200,6 +204,7 @@ void procesarCatch(t_paquete* paquete){
 	free(pok -> coords);
 	free(pok);
 
+	free(ptr_stream);
 	free(paquete->buffer);
 	free(paquete);
 
@@ -244,12 +249,22 @@ void procesarGet(t_paquete* paquete){
 
 			loc_pokemon = localized_pokemon(pok, cantidad_de_coordenadas, coordenadas);
 			sleep(tiempo_retardo);
+			char* ruta_mx = concat_string(ruta_pokemon, "/Metadata.bin");
+			pthread_mutex_t* mx = (pthread_mutex_t*) dictionary_get(mx_dict, ruta_mx);
+			pthread_mutex_lock(mx);
 			cerrar_archivo(ruta_pokemon);
+			free(ruta_mx);
+			pthread_mutex_unlock(mx);
 
 		} else {
 			loc_pokemon = localized_pokemon(pok, 0, NULL);
 			sleep(tiempo_retardo);
+			char* ruta_mx = concat_string(ruta_pokemon, "/Metadata.bin");
+			pthread_mutex_t* mx = (pthread_mutex_t*) dictionary_get(mx_dict, ruta_mx);
+			pthread_mutex_lock(mx);
 			cerrar_archivo(ruta_pokemon);
+			free(ruta_mx);
+			pthread_mutex_unlock(mx);
 		}
 	} else {
 		loc_pokemon = localized_pokemon(pok, 0, NULL);
