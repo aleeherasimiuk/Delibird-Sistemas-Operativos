@@ -111,6 +111,7 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 		log_debug(logger, "La ruta del mx la pongo en: %s", mx_path);
 
 	}
+	free(mx_path);
 	free(ruta);
 	closedir(dir);
 	return ruta_final;

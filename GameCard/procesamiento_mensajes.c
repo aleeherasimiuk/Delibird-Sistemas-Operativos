@@ -70,7 +70,6 @@ void procesarNew(t_paquete* paquete){
 	sleep(tiempo_retardo);
 
 	char* ruta_mx = concat_string(ruta_pokemon, "/Metadata.bin");
-	log_warning(logger, "Existe la key: %s", dictionary_has_key(mx_dict, ruta_mx)? "SIIIIIII": "NO");
 	pthread_mutex_t* mx = (pthread_mutex_t*) dictionary_get(mx_dict, ruta_mx);
 	pthread_mutex_lock(mx);
 
@@ -79,6 +78,7 @@ void procesarNew(t_paquete* paquete){
 
 	actualizar_size_metadata(ruta_pokemon);
 
+	free(ruta_mx);
 	pthread_mutex_unlock(mx);
 
 	free(ruta_pokemon);
