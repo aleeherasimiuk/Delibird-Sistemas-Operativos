@@ -11,6 +11,7 @@
 t_list* lista_coordenadas;
 
 pthread_mutex_t mx_open;
+pthread_mutex_t mx_metadata_blocks;
 
 /*void unir_paths(char* path1, char* path2, char **ruta) {
 
@@ -43,8 +44,8 @@ int archivo_en_uso(char* path){
 
 
 	if(!strcmp(open, "Y")) {
-		pthread_mutex_unlock(&mx_open);
 		destruir_metadata(metadata);
+		pthread_mutex_unlock(&mx_open);
 		free(ruta);
 
 		return 1;
@@ -76,17 +77,17 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 		char* ruta_final = concat_string(ruta, nombre_pokemon);
 
 		struct stat st = {0};
+		DIR* dir = opendir(ruta_final);
+		if (dir == NULL && crear) {
 
-		if ((stat(ruta_final, &st) == -1) && crear) {
+			mkdir(ruta_final, 0777);
 
-				mkdir(ruta_final, 0777);
-
-				crear_metadata_archivo(ruta_final);
-				log_info(logger, "Se creó la carpeta '%s' en el File System", nombre_pokemon);
+			crear_metadata_archivo(ruta_final);
+			log_info(logger, "Se creó la carpeta '%s' en el File System", nombre_pokemon);
 
 		}
 
-		else if((stat(ruta_final, &st) == -1) && !crear) {
+		else if(dir == NULL && !crear) {
 
 			log_error(logger, "No se ha encontrado %s en el File System", nombre_pokemon);
 
@@ -98,6 +99,7 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 		}
 
 	free(ruta);
+	closedir(dir);
 	return ruta_final;
 }
 
@@ -379,10 +381,11 @@ void crear_metadata_archivo(char* path) {
 
 	file = fopen(rutameta, "w");
 
-	char datos[40] = "DIRECTORY=N\nSIZE=0\nBLOCKS=[]\nOPEN=N";
+	char datos[36] = "DIRECTORY=N\nSIZE=0\nBLOCKS=[]\nOPEN=N";
 
-	fwrite(&datos, sizeof(char[40]), 1, file);
+	fwrite(&datos, sizeof(char), 36, file);
 
+	fflush(file);
 	fclose(file);
 
 	free(rutameta);
@@ -710,7 +713,7 @@ void actualizar_bitmap_pokemon(char* path, char* nombre_pokemon) {
 
 	char* path_metadata = concat_string(ruta_punto_montaje, "/Metadata/Metadata.bin");
 
-	pthread_mutex_lock(&mx_open);
+	pthread_mutex_lock(&mx_metadata_blocks);
 
 	metadata = config_create(path_metadata);
 
@@ -722,7 +725,7 @@ void actualizar_bitmap_pokemon(char* path, char* nombre_pokemon) {
 
 	config_destroy(metadata);
 
-	pthread_mutex_unlock(&mx_open);
+	pthread_mutex_unlock(&mx_metadata_blocks);
 
 	while(bloques[posicion_array] != NULL) {
 		bloques_ent[posicion_array] = atoi(bloques[posicion_array]);
@@ -955,10 +958,10 @@ int obtener_primera_linea(int bloque) {
 	int block_size = 0;
 	char* clave;
 
-		char* ruta_metadata = concat_string(ruta_punto_montaje, "/Metadata/Metadata.bin");
-		metadata = config_create(ruta_metadata);
-		block_size = config_get_int_value(metadata, "BLOCK_SIZE");
-		config_destroy(metadata);
+	char* ruta_metadata = concat_string(ruta_punto_montaje, "/Metadata/Metadata.bin");
+	metadata = config_create(ruta_metadata);
+	block_size = config_get_int_value(metadata, "BLOCK_SIZE");
+	config_destroy(metadata);
 
 	char* bloque_string = string_itoa(bloque);
 
@@ -972,7 +975,7 @@ int obtener_primera_linea(int bloque) {
 
 	fseek(file, 0, SEEK_SET);
 	fgets(buffer, sizeof(char) * block_size, file);
-
+	fflush(file);
 	fclose(file);
 
 	clave = get_clave(buffer);
@@ -999,6 +1002,7 @@ void agregar_linea(char* path, char* linea) {
 
 	fseek(file, 0, SEEK_END);
 	fputs(linea, file);
+	fflush(file);
 	fclose(file);
 
 }

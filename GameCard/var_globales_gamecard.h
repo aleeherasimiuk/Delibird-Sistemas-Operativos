@@ -21,6 +21,7 @@ extern char* ruta_punto_montaje;
 extern uint32_t tiempo_reconexion;
 extern pthread_mutex_t mx_open;
 extern pthread_mutex_t mx_bitmap;
+extern pthread_mutex_t mx_metadata_blocks;
 
 /*extern typedef struct {
 	extern t_coords coordenadas;

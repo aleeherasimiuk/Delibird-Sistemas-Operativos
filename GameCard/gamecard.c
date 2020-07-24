@@ -30,6 +30,7 @@ int main() {
 
 	pthread_mutex_init(&mx_open, NULL);
 	pthread_mutex_init(&mx_bitmap, NULL);
+	pthread_mutex_init(&mx_metadata_blocks, NULL);
 
 	bitarray = iniciar_bitarray();
 

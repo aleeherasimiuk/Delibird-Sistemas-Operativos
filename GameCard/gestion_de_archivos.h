@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <commons/collections/list.h>
+#include "dirent.h"
 
 #define BUSCAR_CLAVE 1
 #define MODIFICAR_CLAVE 0
