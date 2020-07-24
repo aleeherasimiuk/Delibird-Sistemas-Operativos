@@ -54,7 +54,7 @@ void process_request(message_type type, uint32_t socket_cliente){
 		//free(paquete -> buffer -> stream);
 		//free(paquete -> buffer);
 		free(paquete);
-		//close(socket_cliente);
+		close(socket_cliente);
 		return;
 	}
 

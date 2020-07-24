@@ -8,8 +8,6 @@
 
 #include "gestion_de_archivos.h"
 
-t_list* lista_coordenadas;
-
 pthread_mutex_t mx_open;
 pthread_mutex_t mx_metadata_blocks;
 t_dictionary* mx_dict;
@@ -798,6 +796,7 @@ t_list* leer_bloques_pokemon(char* path) {
 	free(mx_path);
 	t_config* bloque;
 
+	t_list* lista_coordenadas;
 	lista_coordenadas = list_create();
 
 	for(int i = 0; bloques[i] != NULL; i++){

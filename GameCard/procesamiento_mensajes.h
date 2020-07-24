@@ -27,4 +27,6 @@ void procesarNew(t_paquete*);
 void procesarCatch(t_paquete*);
 void procesarGet(t_paquete*);
 
+void liberar_coords_con_cantidad(t_coords_con_cant*);
+
 #endif /* GAMECARD_PROCESAMIENTO_MENSAJES_H_ */

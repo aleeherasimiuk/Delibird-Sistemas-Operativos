@@ -78,7 +78,7 @@ char* get_clave(char*);
 
 typedef struct {
 	t_coords* coordenadas;
-	 uint32_t* cantidad;
+	uint32_t cantidad;
 }t_coords_con_cant;
 
 //void obtener_posiciones(char*);
