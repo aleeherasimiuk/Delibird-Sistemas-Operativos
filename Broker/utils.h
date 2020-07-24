@@ -23,6 +23,7 @@
 #include"queue_thread_vars.h"
 
 
+void iniciar_servidor(char*, char*);
 int recibir_operacion(int);
 void process_request(message_type, uint32_t);
 void serve_client(int* socket);

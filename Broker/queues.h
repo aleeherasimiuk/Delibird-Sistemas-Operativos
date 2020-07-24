@@ -61,7 +61,8 @@ typedef struct{
 
 }status_mensaje_t;
 
-int fueEnviado(t_paquete* paquete, t_client* client);
+void send_to_subscribers(t_paquete*);
+int agregarClienteSiNuncaFueEnviado(t_paquete* paquete, t_client* client);
 clientes_por_mensaje_t* agregarMensaje(t_paquete* paquete);
 clientes_por_mensaje_t* obtenerMensajeIDCorrelativo(int);
 int existe_id_correlativo(int);
@@ -71,9 +72,12 @@ clientes_por_mensaje_t* obtenerMensajeYPosicion(int id_mensaje, int*);
 status_mensaje_t* obtenerStatus(t_list* suscriptores, int);
 void procesarACK(t_buffer* buffer);
 
+void listar_mensaje(t_paquete* paquete);
 int enviarCacheado(t_client*, clientes_por_mensaje_t*);
 void enviarMensajesCacheados(t_client*, message_type);
 
+void destruir_mensajes();
+void suscripcionOk(uint32_t conexion);
 
 
 

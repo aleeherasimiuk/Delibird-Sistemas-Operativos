@@ -7,6 +7,8 @@
 
 #include "asignacion_de_memoria.h"
 
+void actualizarFlag(clientes_por_mensaje_t*);
+
 sem_t sem_msg_data;
 pthread_mutex_t mx_mem;
 pthread_mutex_t mx_flag;

@@ -29,14 +29,6 @@ void iniciarMemoria(){
 	min_part     = minimaParticion();
 	dump_path    = rutaDump();
 
-//	cache        = allocarMemoria();
-//	memoria      = PARTICIONES;
-//	reemplazo    = FIFO;
-//	part_libre   = FIRST_FIT;
-//	freq_compact = 3;
-//	min_part     = 10;
-//	dump_path    = "/home/utnso/cache.txt";
-
 	iniciarCola();
 	pthread_t memory_admin;
 	pthread_create(&memory_admin, NULL, guardarEnMemoria, NULL);

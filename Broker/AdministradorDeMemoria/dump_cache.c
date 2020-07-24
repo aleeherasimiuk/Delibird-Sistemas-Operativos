@@ -14,7 +14,7 @@ void dump_cache(int n){
 	FILE* file = txt_open_for_append(dump_path);
 	char* hora = obtener_hora();
 	char* hora_string = string_from_format("Dump: %s\n", hora);
-	char* separacion = guiones(120);
+	char* separacion = guiones(150);
 	//printf(separacion);
 	//printf(hora_string);
 	txt_write_in_file(file, separacion);
