@@ -962,9 +962,10 @@ void desfragmentar_bloques(char* ruta_pokemon, int bloque) {
 		}
 
 		free(linea_a_reacomodar);
-		free(bloques_pok);
+		liberar_lista_de_punteros(bloques_pok);
 	}
 
+	liberar_lista_de_punteros(bloques_pok);
 	free(ruta);
 	free(ruta_media);
 	free(ruta_final);
