@@ -81,8 +81,8 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 		if (dir == NULL && crear) {
 
 			mkdir(ruta_final, 0777);
-
 			crear_metadata_archivo(ruta_final);
+			log_warning(logger, "holis :D");
 			log_info(logger, "Se creó la carpeta '%s' en el File System", nombre_pokemon);
 
 		}
@@ -716,13 +716,9 @@ void actualizar_bitmap_pokemon(char* path, char* nombre_pokemon) {
 	pthread_mutex_lock(&mx_metadata_blocks);
 
 	metadata = config_create(path_metadata);
-
 	bloques_maximos = config_get_int_value(metadata, "BLOCKS");
-
 	bloques = obtener_bloques(path);
-
 	int bloques_ent[bloques_maximos];
-
 	config_destroy(metadata);
 
 	pthread_mutex_unlock(&mx_metadata_blocks);
