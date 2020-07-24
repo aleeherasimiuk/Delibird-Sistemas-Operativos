@@ -34,6 +34,7 @@ int main() {
 
 	bitarray = iniciar_bitarray();
 
+	mx_dict = dictionary_create();
 	escucharAlGameboy();
 	suscribirGameCardAlBroker();
 

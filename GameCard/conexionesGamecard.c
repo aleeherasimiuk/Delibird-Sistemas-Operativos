@@ -211,13 +211,18 @@ void enviarACKAlBroker(uint32_t id){
 void process_management(t_paquete* paquete) {
 
 	pthread_t thread;
+	int st;
 	switch(paquete->type) {
 		case ID:
 			pthread_create(&thread, NULL, procesarID, paquete);
-			pthread_detach(&thread);
+			pthread_detach(thread);
 			break;
 		case NEW_POKEMON:
-			pthread_create(&thread, NULL, procesarNew, paquete);
+			st = pthread_create(&thread, NULL, procesarNew, paquete);
+			if(st != 0){
+				log_error(logger, "Error, hay demasiados hilos ejecutándose. No se pueden procesar");
+				exit(0);
+			}
 			pthread_detach(thread);
 			break;
 		case CATCH_POKEMON:

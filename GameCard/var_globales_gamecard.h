@@ -12,6 +12,7 @@
 #include<commons/log.h>
 #include<commons/bitarray.h>
 #include<pthread.h>
+#include<commons/collections/dictionary.h>
 
 extern t_config* config;
 extern t_bitarray* bitarray;
@@ -22,6 +23,7 @@ extern uint32_t tiempo_reconexion;
 extern pthread_mutex_t mx_open;
 extern pthread_mutex_t mx_bitmap;
 extern pthread_mutex_t mx_metadata_blocks;
+extern t_dictionary* mx_dict;
 
 /*extern typedef struct {
 	extern t_coords coordenadas;
