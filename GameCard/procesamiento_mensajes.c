@@ -64,13 +64,22 @@ void procesarNew(t_paquete* paquete){
 
 	actualizar_bitmap_pokemon(ruta_pokemon, nombre_pokemon);
 
+
 	pthread_mutex_unlock(&mx_bitmap);
 
 	sleep(tiempo_retardo);
 
+	char* ruta_mx = concat_string(ruta_pokemon, "/Metadata.bin");
+	pthread_mutex_t* mx = (pthread_mutex_t*) dictionary_get(mx_dict, ruta_mx);
+	pthread_mutex_lock(mx);
+
 	cerrar_archivo(ruta_pokemon);
 
+
 	actualizar_size_metadata(ruta_pokemon);
+
+	free(ruta_mx);
+	pthread_mutex_unlock(mx);
 
 	free(ruta_pokemon);
 	free(path_clave);
@@ -151,9 +160,14 @@ void procesarCatch(t_paquete* paquete){
 		if(path_clave != NULL) {
 			cau_pokemon = caught_pokemon(YES);
 			disminuir_cantidad(coords, path_clave);
+			char* mx_path = concat_string(ruta_pokemon, "/Metadata.bin");
+			pthread_mutex_t* mx = (pthread_mutex_t*) dictionary_get(mx_dict, mx_path);
+			pthread_mutex_lock(mx);
 			desfragmentar_bloques(ruta_pokemon, bloque);
 			actualizar_size_metadata(ruta_pokemon);
+			pthread_mutex_unlock(mx);
 			free(path_clave);
+			free(mx_path);
 		} else {
 			log_error(logger, "No hay un pokemon en esa posicion");
 			cau_pokemon = caught_pokemon(NO);
