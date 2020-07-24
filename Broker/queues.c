@@ -52,19 +52,12 @@ void suscribir(t_client* client, message_type queue) {
 }
 
 void iniciarColas(){
-	pthread_create(&thread_new_pokemon,NULL,(void*)queue, NEW_POKEMON);
-	pthread_create(&thread_appeared_pokemon,NULL,(void*)queue, APPEARED_POKEMON);
-	pthread_create(&thread_localized_pokemon,NULL,(void*)queue, LOCALIZED_POKEMON);
-	pthread_create(&thread_catch_pokemon,NULL,(void*)queue, CATCH_POKEMON);
-	pthread_create(&thread_caught_pokemon,NULL,(void*)queue, CAUGHT_POKEMON);
-	pthread_create(&thread_get_pokemon,NULL,(void*)queue, GET_POKEMON);
-
-	pthread_setname_np(&thread_new_pokemon, "TH - NEW POKEMON");
-	pthread_setname_np(&thread_appeared_pokemon, "TH - APPEARED POKEMON");
-	pthread_setname_np(&thread_localized_pokemon, "TH - LOCALIZED POKEMON");
-	pthread_setname_np(&thread_catch_pokemon, "TH - CATCH POKEMON");
-	pthread_setname_np(&thread_caught_pokemon, "TH - CAUGHT POKEMON");
-	pthread_setname_np(&thread_get_pokemon, "TH - GET POKEMON");
+	pthread_create(&thread_new_pokemon,NULL,(void*)queue, (void*)NEW_POKEMON);
+	pthread_create(&thread_appeared_pokemon,NULL,(void*)queue, (void*)APPEARED_POKEMON);
+	pthread_create(&thread_localized_pokemon,NULL,(void*)queue, (void*)LOCALIZED_POKEMON);
+	pthread_create(&thread_catch_pokemon,NULL,(void*)queue, (void*)CATCH_POKEMON);
+	pthread_create(&thread_caught_pokemon,NULL,(void*)queue, (void*)CAUGHT_POKEMON);
+	pthread_create(&thread_get_pokemon,NULL,(void*)queue, (void*)GET_POKEMON);
 
 	pthread_detach(thread_new_pokemon);
 	pthread_detach(thread_appeared_pokemon);
@@ -188,15 +181,13 @@ void send_to_subscribers(t_paquete* paquete){
 		t_client* client = deserializarCliente(list_element);
 		log_debug(logger, "Intentaré enviar el mensaje al cliente %d", client -> socket);
 
-		/*TODO: No es necesario? -- Ojo, adentro se agrega el cliente a la lista con los mensajes*/
-		if(fueEnviado(paquete, client))
+
+		if(agregarClienteSiNuncaFueEnviado(paquete, client))
 			continue;
 
 		int id = paquete -> id;
 
-		int bytes;
-		int bytes_p;
-		//TODO: ID Correlativo
+		uint32_t bytes_p;
 		void* a_enviar = crear_paquete_con_ids(type, paquete -> buffer -> stream, paquete -> buffer -> stream_size, paquete -> id, paquete -> correlative_id ,&bytes_p);
 
 		/*
@@ -249,17 +240,18 @@ void asignar_id(t_paquete* paquete, uint32_t socket_cliente){
 
 	int to_send = next_socket[paquete -> type].id_to_assing;
 	paquete -> id = next_socket[paquete -> type].id_to_assing;
-	//id_message_to_module = id_siguiente++;
 
 	uint32_t bytes;
 	void* pack_id = crear_paquete_con_id(ID, &to_send, sizeof(uint32_t), -1, &bytes);
-	//int status = send(socket_cliente, pack_id, bytes, MSG_NOSIGNAL);
-	int status = send_msg(socket_cliente, pack_id, bytes);
-	//log_debug(logger, "Envié el ID: %d, con status: %d", next_socket[type].id_to_assing, status);
+	send_msg(socket_cliente, pack_id, bytes);
 	free(pack_id);
 }
 
-int fueEnviado(t_paquete* paquete, t_client* client){
+/*
+ * Esta función revisa si por alguna casualidad ese mensaje ya fue enviado,
+ * si nunca fue enviado agrega el cliente a la lista del mensaje.
+ * */
+int agregarClienteSiNuncaFueEnviado(t_paquete* paquete, t_client* client){
 
 	uint32_t id_mensaje = paquete -> id;
 
@@ -461,7 +453,6 @@ int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
 		int frag = mem_block -> data -> fragmentacion;
 		int tamano_efectivo = size - frag;
 		void* stream = malloc(tamano_efectivo);
-		log_debug(logger, "Con ampersand %p, sin ampersand %p", &(mem_block -> data -> base), mem_block -> data -> base);
 		pthread_mutex_lock(&mx_mem);
 		memcpy(stream, (mem_block -> data -> base), tamano_efectivo);
 		pthread_mutex_unlock(&mx_mem);
@@ -470,10 +461,9 @@ int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
 
 		log_debug(logger, "ID: %d, ID_CORRELATIVO: %d, STREAM SIZE: %d, FRAGMENTACION: %d", id, id_c, size, frag);
 
-		int bytes;
+		uint32_t bytes;
 		void* a_enviar = crear_paquete_con_ids(cola, stream, tamano_efectivo, id, id_c, &bytes);
 
-		//int status = send(client -> socket, a_enviar, bytes, MSG_NOSIGNAL);
 		int status = send_msg(client -> socket, a_enviar, bytes);
 		log_debug(logger, "Envié un mensaje cacheado con status: %d", status);
 		if(status)
@@ -488,29 +478,6 @@ int enviarCacheado(t_client* client, clientes_por_mensaje_t* cxm){
 
 	}
 }
-
-//void destruir_colas(){
-//
-//	pthread_kill(thread_new_pokemon,0);
-//	pthread_kill(thread_appeared_pokemon,0);
-//	pthread_kill(thread_catch_pokemon,0);
-//	pthread_kill(thread_caught_pokemon,0);
-//	pthread_kill(thread_get_pokemon,0);
-//	pthread_kill(thread_localized_pokemon,0);
-//
-//	list_destroy_and_destroy_elements(mensajes, free);
-//	for(int i = 0; i < 7; i++){
-//		list_destroy_and_destroy_elements(subscribers[i], free);
-//	}
-//
-//	for(int i = 0; i < 9; i++){
-//		sem_destroy(&sem_sockets[i].c);
-//		sem_destroy(&sem_sockets[i].q);
-//		pthread_mutex_destroy(&sem_sockets[i].mx);
-//	}
-//
-//
-//}
 
 void destruir_mensajes(){
 
@@ -532,8 +499,7 @@ void suscripcionOk(uint32_t conexion){
 	*ok = SUBSCRIBED;
 	uint32_t bytes;
 	void* pack_id = crear_paquete_con_id(ID, (void*)ok, sizeof(int), -1, &bytes);
-	//int status = send(conexion, pack_id, bytes, MSG_NOSIGNAL);
-	int status = send_msg(conexion, pack_id, bytes);
+	send_msg(conexion, pack_id, bytes);
 	free(pack_id);
 	free(ok);
 

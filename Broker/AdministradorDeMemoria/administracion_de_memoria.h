@@ -34,6 +34,7 @@ int algoritmoParticionLibre();
 int frecuenciaDeCompactacion();
 int minimaParticion();
 char* rutaDump();
+void liberarCache();
 
 int compare_string(char*, char*);
 void errorConfig(char*);

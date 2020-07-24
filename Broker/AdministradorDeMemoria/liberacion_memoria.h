@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "consolidacion.h"
+#include "compactacion.h"
 
 void librerarUnBloque();
 memory_block_t* bloqueAEliminar();

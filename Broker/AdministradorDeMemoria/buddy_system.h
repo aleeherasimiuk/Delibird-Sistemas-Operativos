@@ -10,6 +10,7 @@
 
 #include "organizacion_de_memoria.h"
 #include <stdint.h>
+#include "particionamiento.h"
 
 memory_block_t* buddy_system(memory_block_t*, uint32_t);
 int sonBuddies(memory_block_t*, memory_block_t*);
