@@ -114,7 +114,7 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 		return;
 	}
 
-	log_debug(logger, "Me suscribí a %d", cola);
+	log_info(logger, "Suscripcion -> [%s]", queue_name(cola));
 
 	free(serialized_subscribe);
 	free(paquete_serializado);

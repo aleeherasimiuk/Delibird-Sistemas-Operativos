@@ -86,7 +86,7 @@ char* verificar_pokemon(char* path, char* nombre_pokemon, int crear){
 
 		mkdir(ruta_final, 0777);
 		crear_metadata_archivo(ruta_final);
-		log_warning(logger, "holis :D");
+
 		log_info(logger, "Se creó la carpeta '%s' en el File System", nombre_pokemon);
 
 	} else if(dir == NULL && !crear) {
