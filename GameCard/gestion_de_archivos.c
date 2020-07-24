@@ -361,7 +361,7 @@ int disminuir_cantidad(t_coords* coordenadas, char* path) {
 		config_set_value(datos, clave, cantidad_nueva);
 
 	}
-
+	free(clave);
 	config_save(datos);
 
 

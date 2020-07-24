@@ -156,6 +156,7 @@ void procesarCatch(t_paquete* paquete){
 		pthread_mutex_lock(&mx_bitmap);
 
 		path_clave = path_para_clave(clave, ruta_pokemon, 0, BUSCAR_CLAVE, nombre_pokemon, bloque_p);
+		free(clave);
 
 		if(path_clave != NULL) {
 			cau_pokemon = caught_pokemon(YES);
