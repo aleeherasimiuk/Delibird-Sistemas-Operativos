@@ -218,11 +218,13 @@ void procesarCatch(t_paquete* paquete){
 
 void procesarGet(t_paquete* paquete){
 
+	void* ptr_stream = paquete->buffer->stream;
 	t_get_pokemon* pok = deserializarPokemon(&(paquete -> buffer));
 	char* nombre_pokemon = pok -> name;
 
 	int tiempo_reintento = config_get_int_value(config,"TIEMPO_REINTENTO_OPERACION");
 	int tiempo_retardo = config_get_int_value(config,"TIEMPO_RETARDO_OPERACION");
+
 
 	char* path_files = concat_string(ruta_punto_montaje, "/Files");
 
@@ -244,21 +246,17 @@ void procesarGet(t_paquete* paquete){
 
 		lista_de_coordenadas = leer_bloques_pokemon(ruta_pokemon);
 
-		log_debug(logger, "cantidad de coordenadas: %d", list_size(lista_de_coordenadas));
-
-
 		if(lista_de_coordenadas != NULL && !list_is_empty(lista_de_coordenadas)) {
 			cantidad_de_coordenadas = list_size(lista_de_coordenadas);
 			t_coords** coordenadas = malloc(sizeof(t_coords*) * cantidad_de_coordenadas);
 
 			for(int i = 0; i < list_size(lista_de_coordenadas); i++){
 				t_coords_con_cant* coordenadas_y_cantidad = list_get(lista_de_coordenadas, i);
-				log_debug(logger, "posicion X: %d, posicion Y: %d", coordenadas_y_cantidad -> coordenadas -> posX, coordenadas_y_cantidad -> coordenadas -> posY);
 				coordenadas[i] = malloc(sizeof(t_coords));
 				memcpy(coordenadas[i], coordenadas_y_cantidad -> coordenadas, sizeof(t_coords));
 			}
 
-			//list_destroy_and_destroy_elements(lista_de_coordenadas, liberar_coords_con_cantidad);
+			list_destroy_and_destroy_elements(lista_de_coordenadas, liberar_coords_con_cantidad);
 
 			loc_pokemon = localized_pokemon(pok, cantidad_de_coordenadas, coordenadas);
 			sleep(tiempo_retardo);
@@ -309,6 +307,7 @@ void procesarGet(t_paquete* paquete){
 	free(nombre_pokemon);
 	free(pok);
 
+	free(ptr_stream);
 	free(paquete->buffer);
 	free(paquete);
 }

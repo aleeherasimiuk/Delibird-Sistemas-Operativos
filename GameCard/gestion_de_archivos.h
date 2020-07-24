@@ -42,8 +42,6 @@ void destruir_metadata(t_config*);
 //char* obtener_pokemon_del_path(char*);
 int cantidad_de_posiciones(char*);
 
-void agregar_coordenadas(char*, void*);
-
 void unir_paths(char*, char*, char**);
 int  archivo_en_uso(char*);
 char* verificar_pokemon(char*, char*, int);
@@ -66,7 +64,7 @@ char* remove_char(char*);
 int chequear_ocupado(int);
 void actualizar_bitmap_pokemon(char*, char*);
 t_list* leer_bloques_pokemon(char*);
-void agregar_coordenadas(char*, void*);
+void agregar_coordenadas(char*, void*, t_list*);
 void liberar_lista_de_punteros(char**);
 void actualizar_size_metadata(char*);
 char* concat_string(char*, char*);
@@ -75,6 +73,8 @@ int ultimo_bloque(char**);
 int obtener_primera_linea(int);
 void agregar_linea(char*, char*);
 char* get_clave(char*);
+
+void my_dictionary_iterator(t_dictionary *self, void(*closure)(char*,void*,t_list*), t_list* pokemon_list);
 
 typedef struct {
 	t_coords* coordenadas;

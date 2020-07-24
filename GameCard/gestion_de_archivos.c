@@ -806,17 +806,19 @@ t_list* leer_bloques_pokemon(char* path) {
 
 		bloque = config_create(ruta_final);
 		t_dictionary* dict = bloque -> properties;
-		dictionary_iterator(dict, agregar_coordenadas);
+		my_dictionary_iterator(dict, agregar_coordenadas, lista_coordenadas);
 
 		free(ruta);
 		free(ruta_final);
 	}
+	free(path_bloques);
+	liberar_lista_de_punteros(bloques);
 	config_destroy(bloque);
 	return lista_coordenadas;
 
 }
 
-void agregar_coordenadas(char* key, void* value){
+void agregar_coordenadas(char* key, void* value, t_list* lista_coordenadas){
 	char** coords_separated = string_split(key, "-");
 	int posX = atoi(coords_separated[0]);
 	int posY = atoi(coords_separated[1]);
@@ -845,10 +847,6 @@ void liberarListaDePunteros(char** list) {
 	}
 	free(list);
 }
-
-//int cantidad_de_posiciones(char* bloque){
-//	return (sizeof(bloque) / sizeof(t_coords_con_cant));
-//}
 
 void liberar_lista_de_punteros(char** list){
 	int i = 0;
@@ -1065,6 +1063,17 @@ char* get_clave(char* linea) {
 	return clave;
 }
 
+void my_dictionary_iterator(t_dictionary *self, void(*closure)(char*,void*,t_list*), t_list* pokemon_list) {
+	int table_index;
+	for (table_index = 0; table_index < self->table_max_size; table_index++) {
+		t_hash_element *element = self->elements[table_index];
 
+		while (element != NULL) {
+			closure(element->key, element->data, pokemon_list);
+			element = element->next;
+
+		}
+	}
+}
 
 

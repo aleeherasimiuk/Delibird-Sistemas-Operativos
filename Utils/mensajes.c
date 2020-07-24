@@ -261,11 +261,11 @@ t_pokemon* deserializarPokemon(t_buffer** buffer) {
 	(*buffer) -> stream += sizeof(uint32_t);
 
 	pokemon -> name = malloc(pokemon -> name_size);
-	memcpy(pokemon -> name, (*buffer) -> stream, pokemon -> name_size);
+	memcpy(pokemon -> name, (*buffer) -> stream, (pokemon -> name_size) - 1);
 	(*buffer) -> stream += (pokemon -> name_size - 1) * sizeof(char);
 
 	char* name = pokemon -> name;
-	name[pokemon -> name_size - 1] = '\0';
+	name[(pokemon -> name_size) - 1] = '\0';
 
 	return pokemon;
 }
