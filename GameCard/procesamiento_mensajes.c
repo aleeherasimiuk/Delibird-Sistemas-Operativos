@@ -197,9 +197,11 @@ void procesarCatch(t_paquete* paquete){
 	void* a_enviar = crear_paquete_con_id_correlativo(CAUGHT_POKEMON, serialized_caught_pokemon, bytes, paquete -> id, &bytes_paquete);
 	int status = send_msg(conexion_con_broker, a_enviar , bytes_paquete);
 	log_info(logger, "Se enviará [CID:%d][CAUGHT_POKEMON] -> %s", paquete -> id ,cau_pokemon == YES? "Ok": "Fail");
+
 	close(conexion_con_broker);
 	free(a_enviar);
 
+	free(pok -> pokemon -> name);
 	free(pok -> pokemon);
 	free(pok -> coords);
 	free(pok);
