@@ -359,17 +359,15 @@ int disminuir_cantidad(t_coords* coordenadas, char* path) {
 		char* cantidad_nueva = string_itoa(cantidad_act);
 
 		config_set_value(datos, clave, cantidad_nueva);
+		if(cantidad_nueva != NULL) {
+			free(cantidad_nueva);
+		}
 
 	}
 	free(clave);
 	config_save(datos);
 
-
 	config_destroy(datos);
-
-	if(cantidad_nueva != NULL) {
-		free(cantidad_nueva);
-	}
 
 	return 0;
 
@@ -618,6 +616,7 @@ int agregar_bloque_disponible(char* path) {
 
 	pthread_mutex_unlock(mx);
 
+	free(bloques_fixed);
 	free(nuevos_bloques);
 	free(nuevos_bloques_medio);
 	free(nuevos_bloques_final);
@@ -942,7 +941,7 @@ void desfragmentar_bloques(char* ruta_pokemon, int bloque) {
 	ruta = concat_string(ruta_punto_montaje, "/Blocks/");
 	ruta_media = concat_string(ruta, bloque_string);
 	ruta_final = concat_string(ruta_media, ".bin");
-
+	free(bloque_string);
 
 	char* ruta_final_cpy = malloc(strlen(ruta_final) + 1);
 	strcpy(ruta_final_cpy,ruta_final);

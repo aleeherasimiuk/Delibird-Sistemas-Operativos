@@ -118,6 +118,7 @@ void suscribirAUnaCola(int conexion, message_type cola, uint32_t process_id){
 
 	free(serialized_subscribe);
 	free(paquete_serializado);
+	free(suscripcion_ok -> buffer -> stream);
 	free(suscripcion_ok -> buffer);
 	free(suscripcion_ok);
 	free(subscripcion);
@@ -147,6 +148,7 @@ void serve_client(int* socket){
 	if(type != NULL){
 		log_debug(logger, "Procesando solicitud");
 		process_request(type, *socket);
+		free(socket);
 	}else {
 		log_debug(logger, "No puedo procesar la solicitud");
 	}

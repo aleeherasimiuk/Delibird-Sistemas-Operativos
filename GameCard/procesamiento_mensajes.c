@@ -177,12 +177,15 @@ void procesarCatch(t_paquete* paquete){
 		actualizar_bitmap_pokemon(ruta_pokemon, nombre_pokemon);
 		pthread_mutex_unlock(&mx_bitmap);
 		sleep(tiempo_retardo);
+
 		char* ruta_mx = concat_string(ruta_pokemon, "/Metadata.bin");
 		pthread_mutex_t* mx = (pthread_mutex_t*) dictionary_get(mx_dict, ruta_mx);
+
 		pthread_mutex_lock(mx);
 		cerrar_archivo(ruta_pokemon);
 		free(ruta_mx);
 		pthread_mutex_unlock(mx);
+
 		free(ruta_pokemon);
 
 	} else {
