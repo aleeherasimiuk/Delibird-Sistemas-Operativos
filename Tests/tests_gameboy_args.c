@@ -121,7 +121,7 @@ context (TestsGameBoyArgs) {
 			int resultado11 = handleNewPokemon("BROKER", 1, caso_de_prueba9);
 			int resultado12 = handleNewPokemon("BROKER", 1, caso_de_prueba10);
 
-			should_int(resultado1) be equal to (PARAMETERS_OK);
+			should_int(resultado1) be equal to (WRONG_PARAMETERS);
 			should_int(resultado2) be equal to (PARAMETERS_OK);
 			should_int(resultado3) be equal to (WRONG_PARAMETERS);
 			should_int(resultado4) be equal to (WRONG_PARAMETERS);
@@ -165,7 +165,7 @@ context (TestsGameBoyArgs) {
 			int resultado12 = handleAppearedPokemon("BROKER", 1, caso_de_prueba10);
 
 			should_int(resultado1) be equal to  (PARAMETERS_OK);
-			should_int(resultado2) be equal to  (PARAMETERS_OK);
+			should_int(resultado2) be equal to  (WRONG_PARAMETERS);
 			should_int(resultado3) be equal to  (WRONG_PARAMETERS);
 			should_int(resultado4) be equal to  (WRONG_PARAMETERS);
 			should_int(resultado5) be equal to  (WRONG_PARAMETERS);
@@ -208,7 +208,7 @@ context (TestsGameBoyArgs) {
 			int resultado12 = handleCatchPokemon("BROKER", 1, caso_de_prueba10);
 
 			should_int(resultado1)  be equal to (PARAMETERS_OK);
-			should_int(resultado2)  be equal to (PARAMETERS_OK);
+			should_int(resultado2)  be equal to (WRONG_PARAMETERS);
 			should_int(resultado3)  be equal to (WRONG_PARAMETERS);
 			should_int(resultado4)  be equal to (WRONG_PARAMETERS);
 			should_int(resultado5)  be equal to (WRONG_PARAMETERS);
@@ -263,7 +263,7 @@ context (TestsGameBoyArgs) {
 
 
 			should_int(resultado1)  be equal to (PARAMETERS_OK);
-			should_int(resultado2)  be equal to (PARAMETERS_OK);
+			should_int(resultado2)  be equal to (WRONG_PARAMETERS);
 			should_int(resultado3)  be equal to (WRONG_PARAMETERS);
 			should_int(resultado4)  be equal to (WRONG_PARAMETERS);
 			should_int(resultado5)  be equal to (WRONG_PARAMETERS);

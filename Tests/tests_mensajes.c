@@ -309,7 +309,7 @@ context (TestsMensajes) {
 
 		} end
 
-		skip("Serializar New Pokemon"){
+		it("Serializar New Pokemon"){
 
 			t_new_pokemon* new_pok = new_pokemon(pikachu, posicion_x, posicion_y, una_cantidad);
 
@@ -338,7 +338,7 @@ context (TestsMensajes) {
 
 		} end
 
-		skip("Serializar Appeared Pokemon"){
+		it("Serializar Appeared Pokemon"){
 
 			t_appeared_pokemon* app_pok = appeared_pokemon(pikachu, posicion_x, posicion_y);
 
@@ -362,7 +362,7 @@ context (TestsMensajes) {
 
 		} end
 
-		skip("Serializar Catch Pokemon") {
+		it("Serializar Catch Pokemon") {
 
 			t_catch_pokemon* cat_pok = catch_pokemon(pikachu, posicion_x, posicion_y);
 
@@ -408,7 +408,7 @@ context (TestsMensajes) {
 
 
 
-		skip("Serializar Localized Pokemon") {
+		it("Serializar Localized Pokemon") {
 
 			t_coords* cord1 = malloc(sizeof(t_coords));
 			t_coords* cord2 = malloc(sizeof(t_coords));
@@ -459,12 +459,6 @@ context (TestsMensajes) {
 			should_int(deserialized_loc_pokemon -> coords_array[4] -> posX) be equal to (90);
 			should_int(deserialized_loc_pokemon -> coords_array[4] -> posY) be equal to (100);
 
-			free(cord1);
-			free(cord2);
-			free(cord3);
-			free(cord4);
-			free(cord5);
-			free(loc_pok);
 
 			free(serialized_localized);
 			free(buffer);
