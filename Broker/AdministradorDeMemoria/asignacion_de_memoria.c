@@ -172,7 +172,7 @@ void* acomodarMemoria(uint32_t size){
 
 	log_debug(logger, "Valor de compact: %d", compact);
 
-	if(memoria != BUDDY_SYSTEM && compact == 0){
+	if(memoria != BUDDY_SYSTEM && !noCompactarPorConfig() && compact == 0){
 		compactar();
 		compact = freq_compact;
 	} else {
@@ -182,6 +182,10 @@ void* acomodarMemoria(uint32_t size){
 
 	return asignarUnaParticion(size);
 
+}
+
+int noCompactarPorConfig(){
+	return freq_compact == 0 || freq_compact == -1;
 }
 
 void estadoDeLaMemoria(){

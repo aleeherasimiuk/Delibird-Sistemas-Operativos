@@ -14,7 +14,7 @@ void dump_cache(int n){
 	FILE* file = txt_open_for_append(dump_path);
 	char* hora = obtener_hora();
 	char* hora_string = string_from_format("Dump: %s\n", hora);
-	char* separacion = guiones(150);
+	char* separacion = guiones(125);
 	//printf(separacion);
 	//printf(hora_string);
 	txt_write_in_file(file, separacion);
@@ -30,7 +30,7 @@ void dump_cache(int n){
 		int size = mem_block -> data -> size;
 		char* status = obtener_status(mem_block);
 		char libre = mem_block -> data -> status == LIBRE? 'L' : 'X';
-		char* string = string_from_format("Particion %d: %06p - %06p\t[%c]\tSize: %db %s\n", i++, base, fin, libre ,size, status);
+		char* string = string_from_format("Particion %d: %06p - %06p\t[%c]\tSize: %db\t%s\n", i++, base, fin, libre ,size, status);
 		txt_write_in_file(file, string);
 		//printf(string);
 		free(status);

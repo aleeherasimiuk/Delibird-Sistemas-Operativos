@@ -118,7 +118,7 @@ int frecuenciaDeCompactacion(){
 
 	int freq_compact = config_get_int_value(config, FREQ_COMPACT);
 
-	if(freq_compact > 0)
+	if(freq_compact >= -1)
 		return freq_compact;
 
 	errorConfig(FREQ_COMPACT);

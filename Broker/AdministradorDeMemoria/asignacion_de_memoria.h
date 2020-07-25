@@ -28,6 +28,7 @@ void relacionarBloqueConMensaje(memory_block_t*, t_paquete*);
 //void actualizarFlag(clientes_por_mensaje_t* cxm);
 void* acomodarMemoria(uint32_t);
 void estadoDeLaMemoria();
+int noCompactarPorConfig();
 
 
 #endif /* BROKER_ADMINISTRADORDEMEMORIA_ASIGNACION_DE_MEMORIA_H_ */
